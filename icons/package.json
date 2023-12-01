@@ -1,0 +1,38 @@
+{
+  "name": "@storepress/icons",
+  "version": "1.0.0",
+  "description": "StorePress Icons package.",
+  "author": "StorePress Inc.",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "icons",
+    "storepress"
+  ],
+  "homepage": "https://github.com/EmranAhmed/storepress-packages/icons/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmranAhmed/storepress-packages.git",
+    "directory": "icons"
+  },
+  "sideEffects": false,
+  "bugs": {
+    "url": "https://github.com/EmranAhmed/storepress-packages/issues"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "main": "build/index.js",
+  "module": "build-module/index.js",
+  "react-native": "src/index",
+  "types": "build-types",
+  "dependencies": {
+    "@babel/runtime": "^7.16.0",
+    "@wordpress/icons": "^9.38.0",
+    "@wordpress/primitives": "^3.45.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
