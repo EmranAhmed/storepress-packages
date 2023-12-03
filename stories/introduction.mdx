@@ -1,0 +1,24 @@
+import { Meta } from "@storybook/blocks";
+
+
+<Meta title="StorePress Packages" />
+
+# Introduction
+
+## Welcome!
+
+StorePress Packages uses Storybook to view and work with the UI components developed in WordPress packages, especially [@wordpress/components](https://github.com/WordPress/gutenberg/tree/trunk/packages/components).
+
+On this interactive site you can browse individual components, their controls, options, and settings in isolation. You can also modify controls and arguments and see the changes right away.
+
+The components displayed on this site can be used in your code to build the editor's UI for your custom blocks or other pages.
+Import them from the components root directory like in below example:
+
+```jsx
+import { Icon } from '@wordpress/icons';
+import { storepress } from '@storepress/icons';
+
+export default function StorePressIcon() {
+	return <Icon icon={storepress} />
+}
+```

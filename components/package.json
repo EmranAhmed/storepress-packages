@@ -1,5 +1,5 @@
 {
-  "name" : "@storepress/icons",
+  "name" : "@storepress/components",
   "version" : "1.0.0",
   "description" : "StorePress Icons",
   "author" : "StorePress",
@@ -22,8 +22,8 @@
     "url" : "https://github.com/EmranAhmed/storepress-packages/issues"
   },
   "dependencies" : {
-    "@wordpress/icons" : "^9.38.0",
-    "@wordpress/primitives" : "^3.45.0"
+    "@wordpress/element" : "^5.24.0",
+    "@wordpress/compose" : "^6.24.0"
   },
   "publishConfig" : {
     "access" : "public"
