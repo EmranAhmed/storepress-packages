@@ -1,6 +1,6 @@
 {
   "name" : "@storepress/icons",
-  "version" : "1.0.0",
+  "version" : "2.0.0",
   "description" : "StorePress Icons",
   "author" : "StorePress",
   "license" : "GPL-2.0-or-later",
@@ -17,15 +17,28 @@
     "directory" : "icons"
   },
   "sideEffects" : false,
-  "types" : "build-types",
+  "main" : "build/index.js",
+  "module" : "build-module/index.js",
   "bugs" : {
     "url" : "https://github.com/EmranAhmed/storepress-packages/issues"
   },
+  "scripts" : {
+    "build:module" : "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
+    "build:core" : "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
+    "build" : "npm run build:core && npm run build:module",
+    "publish" : "npm publish"
+  },
   "dependencies" : {
+    "@babel/runtime" : "^7.16.0",
     "@wordpress/icons" : "^9.38.0",
     "@wordpress/primitives" : "^3.45.0"
   },
   "publishConfig" : {
     "access" : "public"
+  },
+  "devDependencies" : {
+    "@babel/cli" : "^7.23.4",
+    "@babel/preset-react" : "^7.23.3",
+    "@wordpress/babel-preset-default" : "^7.31.0"
   }
 }

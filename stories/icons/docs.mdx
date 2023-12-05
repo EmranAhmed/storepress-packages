@@ -1,0 +1,37 @@
+import { Meta, Title, IconGallery, IconItem } from '@storybook/blocks';
+import * as icons from '../../packages/icons/src';
+
+<Meta title="Icons/Icon Library" />
+
+## Install
+
+```shell
+npm i @storepress/icons --save
+```
+
+## Usage
+
+```jsx
+import { Icon } from '@wordpress/icons';
+import { storepress } from '@storepress/icons';
+
+const IconExample = () => <Icon icon={ storepress } />;
+
+function IconExample2() {
+	return <Icon icon={storepress} size="48" />
+}
+
+export default IconExample2;
+```
+
+## Icon Library
+
+<IconGallery>
+    { Object.entries( icons ).map( ( [ name, icon ] ) => {
+        return (
+            <IconItem key={ name } name={ name }>
+                { typeof icon === 'function' ? icon( {} ) : icon }
+            </IconItem>
+        );
+    } ) }
+</IconGallery>

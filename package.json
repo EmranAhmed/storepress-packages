@@ -1,42 +1,40 @@
 {
-  "name": "storepress-packages",
-  "version": "1.0.0",
-  "private": true,
-  "description": "StorePress Packages",
-  "author": "StorePress",
-  "license": "GPL-2.0-or-later",
-  "keywords": [
+  "name" : "storepress-packages",
+  "version" : "0.0.1",
+  "private" : true,
+  "description" : "StorePress Packages",
+  "author" : "StorePress",
+  "license" : "GPL-2.0-or-later",
+  "keywords" : [
     "WordPress",
-    "editor",
-    "storepress"
+    "StorePress"
   ],
-  "devDependencies": {
-    "@babel/preset-env": "^7.23.5",
-    "@babel/preset-react": "^7.23.3",
-    "@babel/preset-typescript": "^7.23.3",
-    "@storepress/components": "file:components",
-    "@storepress/icons": "file:icons",
-    "@storybook/addon-essentials": "^7.6.3",
-    "@storybook/addon-interactions": "^7.6.3",
-    "@storybook/addon-links": "^7.6.3",
-    "@storybook/addon-onboarding": "^1.0.9",
-    "@emotion/react": "^11.11.1",
-    "@storybook/addon-themes": "^7.6.3",
-    "@storybook/blocks": "^7.6.3",
-    "@storybook/react": "^7.6.3",
-    "@storybook/react-webpack5": "^7.6.3",
-    "@storybook/test": "^7.6.3",
-    "@wordpress/base-styles": "^4.38.0",
-    "@wordpress/dependency-extraction-webpack-plugin": "^4.30.0",
-    "@wordpress/scripts": "^26.18.0",
-    "cross-env": "^7.0.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "storybook": "^7.6.3",
-    "webpack": "^5.89.0"
+  "workspaces" : [
+    "packages/*"
+  ],
+  "dependencies" : {
+    "@storepress/icons" : "file:packages/icons"
   },
-  "scripts": {
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+  "scripts" : {
+    "storybook" : "storybook dev -p 6006",
+    "build-storybook" : "storybook build",
+    "build" : "npm run build --workspaces --if-present",
+    "prepublish" : "npm run build",
+    "publish" : "npm run publish --workspaces --if-present"
+  },
+  "devDependencies" : {
+    "@babel/preset-env" : "^7.23.5",
+    "@babel/preset-react" : "^7.23.3",
+    "@storybook/addon-essentials" : "^7.6.3",
+    "@storybook/addon-interactions" : "^7.6.3",
+    "@storybook/addon-links" : "^7.6.3",
+    "@storybook/addon-onboarding" : "^1.0.9",
+    "@storybook/blocks" : "^7.6.3",
+    "@storybook/react" : "^7.6.3",
+    "@storybook/react-webpack5" : "^7.6.3",
+    "@storybook/test" : "^7.6.3",
+    "react" : "^18.2.0",
+    "react-dom" : "^18.2.0",
+    "storybook" : "^7.6.3"
   }
 }
