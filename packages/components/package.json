@@ -1,22 +1,24 @@
 {
-  "name" : "@storepress/icons",
-  "version" : "2.0.0",
-  "description" : "StorePress Icons",
+  "name" : "@storepress/components",
+  "version" : "0.0.1-dev",
+  "description" : "StorePress Components",
   "author" : "StorePress",
   "license" : "GPL-2.0-or-later",
   "keywords" : [
     "wordpress",
     "gutenberg",
-    "icons",
+    "components",
     "storepress"
   ],
-  "homepage" : "https://github.com/EmranAhmed/storepress-packages/packages/icons/README.md",
+  "homepage" : "https://github.com/EmranAhmed/storepress-packages/packages/components/README.md",
   "repository" : {
     "type" : "git",
     "url" : "git+https://github.com/EmranAhmed/storepress-packages.git",
-    "directory" : "packages/icons"
+    "directory" : "packages/components"
   },
-  "sideEffects" : false,
+  "sideEffects" : [
+    "src/**/*.scss"
+  ],
   "main" : "build/index.js",
   "module" : "build-module/index.js",
   "bugs" : {
@@ -31,7 +33,10 @@
   "dependencies" : {
     "@babel/runtime" : "^7.16.0",
     "@wordpress/icons" : "^9.38.0",
-    "@wordpress/primitives" : "^3.45.0"
+    "@wordpress/components" : "^25.13.0",
+    "@wordpress/element" : "^5.24.0",
+    "@wordpress/compose" : "^6.24.0",
+    "classnames" : "^2.3.2"
   },
   "publishConfig" : {
     "access" : "public"
@@ -39,7 +44,8 @@
   "devDependencies" : {
     "@babel/cli" : "^7.23.4",
     "@babel/preset-react" : "^7.23.3",
-    "@wordpress/babel-preset-default" : "^7.31.0"
+    "@wordpress/babel-preset-default" : "^7.31.0",
+    "@wordpress/base-styles" : "^4.38.0"
   },
   "peerDependencies" : {
     "react" : "^18.2.0",
