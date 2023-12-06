@@ -1,7 +1,7 @@
-@import '~@wordpress/base-styles/mixins';
-@import '~@wordpress/base-styles/variables';
-@import '~@wordpress/base-styles/colors';
-@import '~@wordpress/base-styles/breakpoints';
+@import "~@wordpress/base-styles/mixins";
+@import "~@wordpress/base-styles/variables";
+@import "~@wordpress/base-styles/colors";
+@import "~@wordpress/base-styles/breakpoints";
 
 $components-color-accent: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
 
