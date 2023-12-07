@@ -3,20 +3,20 @@ import path, { join, dirname } from "path";
 /**
  * WordPress dependencies
  */
-const postcssPlugins = require( '@wordpress/postcss-plugins-preset' );
+const postcssPlugins = require('@wordpress/postcss-plugins-preset');
 
-const scssLoaders = ( { isLazy } ) => [
+const scssLoaders = ({isLazy}) => [
     {
-        loader: 'style-loader',
-        options: { injectType: isLazy ? 'lazyStyleTag' : 'styleTag' },
+        loader  : 'style-loader',
+        options : {injectType : isLazy ? 'lazyStyleTag' : 'styleTag'},
     },
     'css-loader',
     {
-        loader: 'postcss-loader',
-        options: {
-            postcssOptions: {
-                ident: 'postcss',
-                plugins: postcssPlugins,
+        loader  : 'postcss-loader',
+        options : {
+            postcssOptions : {
+                ident   : 'postcss',
+                plugins : postcssPlugins,
             },
         },
     },
@@ -42,8 +42,7 @@ const config = {
     addons       : [
         getAbsolutePath("@storybook/addon-links"),
         getAbsolutePath("@storybook/addon-essentials"),
-        getAbsolutePath("@storybook/addon-onboarding"),
-        getAbsolutePath("@storybook/addon-interactions"),
+        //getAbsolutePath("@storybook/addon-interactions"),
     ],
     framework    : {
         name    : getAbsolutePath("@storybook/react-webpack5"),
@@ -58,20 +57,14 @@ const config = {
         autodocs : "tag",
     },
     webpackFinal : async (config) => {
-        return {
-            ...config,
-            module: {
-                ...config.module,
-                rules: [
-                    ...config.module.rules,
-                    {
-                        test: /\.scss$/,
-                        use: scssLoaders( { isLazy: false } ),
-                        include: path.resolve( __dirname, '..' ),
-                    },
-                ],
-            },
-        };
+
+        config.module.rules.push({
+            test    : /\.scss$/,
+            use     : scssLoaders({isLazy : false}),
+            include : path.resolve(__dirname, '..'),
+        });
+
+        return config;
     },
 };
 export default config;

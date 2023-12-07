@@ -23,6 +23,7 @@
     "postbuild" : "node ./bin/build-style.js"
   },
   "devDependencies" : {
+    "@wordpress/components" : "^25.13.0",
     "@wordpress/postcss-plugins-preset" : "^4.31.0",
     "@babel/preset-env" : "^7.23.5",
     "@babel/preset-react" : "^7.23.3",
@@ -40,11 +41,15 @@
     "glob" : "^10.3.10",
     "fs-extra" : "^11.2.0",
     "rimraf" : "3.0.2",
-    "style-loader": "^3.3.3",
-    "css-loader": "^6.8.1",
-    "postcss": "^8.4.32",
-    "postcss-loader": "^7.3.3",
-    "sass-loader": "^13.3.2",
-    "sass": "^1.69.5"
+    "style-loader" : "^3.3.3",
+    "css-loader" : "^6.8.1",
+    "postcss" : "^8.4.32",
+    "postcss-loader" : "^7.3.3",
+    "sass-loader" : "^13.3.2",
+    "sass" : "^1.69.5"
+  },
+  "peerDependencies" : {
+    "react" : "^18.2.0",
+    "react-dom" : "^18.2.0"
   }
 }
