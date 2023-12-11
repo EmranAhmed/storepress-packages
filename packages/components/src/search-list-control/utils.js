@@ -12,3 +12,7 @@ export function findObjectValue(obj, path, defValue) {
     // If found value is undefined return default value; otherwise return the value
     return result === undefined ? defValue : result;
 }
+
+export function escapeRegex(string) {
+    return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
+}

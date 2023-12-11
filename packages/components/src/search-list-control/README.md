@@ -27,21 +27,22 @@ return (
   <div {...blockProps}>
     <SearchList
       selected={['17', '23', '36']}
-      valueKey='id'
-      valueName='title.rendared'
+      itemKeyName="id"
+      itemValueName="title.rendared"
       hideSearchBox={false}
       isMultiSelect={true}
       isLoading={loding}
       onSearch={(input) => {
-        console.log(input)
+          // return filtered values.
       }}
       onSelect={(item) => {
-        console.log(item)
+          
       }}
       onClear={() => {
         console.log()
       }}
-      suggestions={sugessionList}
+      items={sugessionList}
+      selected={[]}
     />
     <div {...innerBlockProps} />
   </div>

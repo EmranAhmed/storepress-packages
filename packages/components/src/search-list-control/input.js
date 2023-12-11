@@ -1,50 +1,41 @@
 import { useRef } from "@wordpress/element";
-import { useInstanceId } from "@wordpress/compose";
 import { BaseControl, useBaseControlProps, Button, Spinner } from "@wordpress/components";
 import { closeSmall, Icon, search } from "@wordpress/icons";
-import classnames from "classnames";
 
-export function Input({
-                          value,
-                          isLoading = false,
-                          placeholder = '',
-                          closeText = '',
-                          resetText = '',
-                          onTyping,
-                          onKeyDown,
-                          onClear,
-                          ...baseProps
-                      }) {
+export function Input(props) {
+
+    const {
+              isLoading,
+              onTyping,
+              searchValue,
+              onClear,
+              clearText,
+              placeholder,
+              hideSearchBox
+          } = props;
 
     const ref = useRef();
 
-    const {baseControlProps} = useBaseControlProps(baseProps);
+    const {baseControlProps, controlProps} = useBaseControlProps(props);
+
+    if (hideSearchBox) {
+        return;
+    }
 
     const renderRightButton = () => {
         if (isLoading) {
             return <Spinner/>;
         }
 
-        if (onClear) {
+        if (!!searchValue) {
             return (
                 <Button
                     icon={closeSmall}
-                    label={closeText}
+                    label={clearText}
                     onClick={() => {
-                        onClear();
-                        onTyping('');
-                        ref.current?.focus();
-                    }}
-                />
-            );
-        }
-
-        if (!!value) {
-            return (
-                <Button
-                    icon={closeSmall}
-                    label={resetText}
-                    onClick={() => {
+                        if (typeof onClear === 'function') {
+                            onClear();
+                        }
                         onTyping('');
                         ref.current?.focus();
                     }}
@@ -64,9 +55,9 @@ export function Input({
                     type="search"
                     placeholder={placeholder}
                     onChange={(event) => onTyping(event.target.value)}
-                    onKeyDown={onKeyDown}
                     autoComplete="off"
-                    value={value || ''}
+                    value={searchValue}
+                    {...controlProps}
                 />
                 <div className="icon">
                     {renderRightButton()}

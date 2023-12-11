@@ -3,20 +3,15 @@ import { useLayoutEffect, useState } from "@wordpress/element";
 import { findObjectValue } from "./utils";
 
 // @TODO: Add Not found. See: https://github.com/woocommerce/woocommerce/blob/trunk/packages/js/components/src/search-list-control/index.js
-export function Results({
-                            useKey,
-                            useValue,
-                            useMeta,
-                            selected,
-                            suggestions,
-                            isMultiSelect,
-                            onSelect,
-                        }) {
+export function Results(props) {
+
+    const {items, itemKeyName, isMultiSelect, itemValueName, itemMetaName, selected, onSelect, noItemsFoundText} = props;
 
     const [selectedItem, setSelectedItem] = useState(selected);
 
     const instanceId = useInstanceId(Results);
-    const inputName  = `storepress-components-search-list-search-result-item-${instanceId}`;
+
+    const inputName = `storepress-components-search-list-search-result-item-${instanceId}`;
 
     const handleMultiSelection = (currentId, isSelected) => {
         if (isSelected) {
@@ -63,13 +58,13 @@ export function Results({
         onSelect(selectedItem);
     }, [selectedItem]);
 
-    return suggestions.length > 0 ? (
+    return items.length > 0 ? (
         <div className="results-wrapper">
             <ul>
-                {suggestions.map((suggestion, index) => {
-                    const key   = findObjectValue(suggestion, useKey);
-                    const value = findObjectValue(suggestion, useValue);
-                    const meta  = findObjectValue(suggestion, useMeta);
+                {items.map((item, index) => {
+                    const key   = findObjectValue(item, itemKeyName);
+                    const value = findObjectValue(item, itemValueName);
+                    const meta  = findObjectValue(item, itemMetaName);
                     const id    = `${inputName}-${index}`
 
                     return (
@@ -78,7 +73,7 @@ export function Results({
                             className="result-item"
                         >
                             <input
-                                checked={handleChecked(selected, key)}
+                                checked={handleChecked(selectedItem, key)}
                                 onChange={handleSelected}
                                 id={id}
                                 name={inputName}
@@ -104,6 +99,6 @@ export function Results({
             </ul>
         </div>
     ) : (
-        <div className="results-wrapper error">Not found.</div>
+        <div className="results-wrapper error not-found">{noItemsFoundText}</div>
     );
 }

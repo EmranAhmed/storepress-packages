@@ -1,1 +1,1 @@
-export { SearchList } from './search-list';
+export { default as SearchListControl } from './search-list-control';
