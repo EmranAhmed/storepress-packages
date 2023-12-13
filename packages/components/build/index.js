@@ -3,10 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-Object.defineProperty(exports, "SearchList", {
+Object.defineProperty(exports, "SearchListControl", {
   enumerable: true,
   get: function get() {
-    return _searchList.SearchList;
+    return _searchListControl["default"];
   }
 });
-var _searchList = require("./search-list");
+var _searchListControl = _interopRequireDefault(require("./search-list-control"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
