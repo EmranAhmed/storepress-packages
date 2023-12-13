@@ -1,68 +1,51 @@
-import { useRef } from "@wordpress/element";
-import { BaseControl, useBaseControlProps, Button, Spinner } from "@wordpress/components";
-import { closeSmall, Icon, search } from "@wordpress/icons";
+import { useCallback, useLayoutEffect, useRef } from "@wordpress/element";
+import { Icon } from "./icon"
 
 export function Input(props) {
 
     const {
-              isLoading,
-              onTyping,
+              controlProps,
               searchValue,
-              onClear,
-              clearText,
+              setSearchValue,
               placeholder,
-              hideSearchBox
+              hideSearchBox,
+              onSearch
           } = props;
-
-    const ref = useRef();
-
-    const {baseControlProps, controlProps} = useBaseControlProps(props);
 
     if (hideSearchBox) {
         return;
     }
 
-    const renderRightButton = () => {
-        if (isLoading) {
-            return <Spinner/>;
-        }
+    const ref = useRef();
 
-        if (!!searchValue) {
-            return (
-                <Button
-                    icon={closeSmall}
-                    label={clearText}
-                    onClick={() => {
-                        if (typeof onClear === 'function') {
-                            onClear();
-                        }
-                        onTyping('');
-                        ref.current?.focus();
-                    }}
-                />
-            );
-        }
+    const handleOnChange = useCallback((event) => {
+        const {value} = event?.target;
+        setSearchValue(value);
+    }, []);
 
-        return <Icon icon={search}/>;
-    };
+    const onFocus = () => {
+        ref.current?.focus();
+    }
+
+    useLayoutEffect(() => {
+        onSearch(searchValue);
+    }, [searchValue])
 
     return (
-        <BaseControl {...baseControlProps}>
-            <div className="input-wrapper">
-                <input
-                    ref={ref}
-                    className="input"
-                    type="search"
-                    placeholder={placeholder}
-                    onChange={(event) => onTyping(event.target.value)}
-                    autoComplete="off"
-                    value={searchValue}
-                    {...controlProps}
-                />
-                <div className="icon">
-                    {renderRightButton()}
-                </div>
+        <div className="input-wrapper">
+            <input
+                ref={ref}
+                className="input"
+                type="search"
+                placeholder={placeholder}
+                onChange={handleOnChange}
+                autoComplete="off"
+                value={searchValue}
+                {...controlProps}
+            />
+            <div className="icon">
+                <Icon {...props} onFocus={onFocus}/>
             </div>
-        </BaseControl>
+        </div>
     );
 }

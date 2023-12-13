@@ -1,27 +1,23 @@
-import { useInstanceId } from "@wordpress/compose";
-import { useLayoutEffect, useState } from "@wordpress/element";
-import { findObjectValue } from "./utils";
+import { useLayoutEffect, useMemo, useState } from "@wordpress/element";
+import { escapeRegex, findObjectValue } from "./utils";
 
-// @TODO: Add Not found. See: https://github.com/woocommerce/woocommerce/blob/trunk/packages/js/components/src/search-list-control/index.js
 export function Results(props) {
 
-    const {items, itemKeyName, isMultiSelect, itemValueName, itemMetaName, selected, onSelect, noItemsFoundText} = props;
+    const {id, disableFilter, searchValue, items, itemKeyName, itemFilterName, isMultiSelect, itemValueName, itemMetaName, selected, onSelect, noItemsFoundText} = props;
 
-    const [selectedItem, setSelectedItem] = useState(selected);
+    const [selectedItemKeys, setSelectedItemKeys] = useState(selected);
 
-    const instanceId = useInstanceId(Results);
-
-    const inputName = `storepress-components-search-list-search-result-item-${instanceId}`;
+    const inputName = `${id}-result-item`;
 
     const handleMultiSelection = (currentId, isSelected) => {
         if (isSelected) {
-            setSelectedItem((values) => {
+            setSelectedItemKeys((values) => {
                 values.push(currentId);
                 return [...new Set(values)];
             });
         }
         else {
-            setSelectedItem((values) =>
+            setSelectedItemKeys((values) =>
                 values.filter((value) => value !== currentId)
             );
         }
@@ -29,10 +25,10 @@ export function Results(props) {
 
     const handleSingleSelection = (currentId, isSelected) => {
         if (isSelected) {
-            setSelectedItem([currentId]);
+            setSelectedItemKeys([currentId]);
         }
         else {
-            setSelectedItem([]);
+            setSelectedItemKeys([]);
         }
     };
 
@@ -54,14 +50,49 @@ export function Results(props) {
         );
     };
 
-    useLayoutEffect(() => {
-        onSelect(selectedItem);
-    }, [selectedItem]);
+    const currentItems = useMemo(() => {
 
-    return items.length > 0 ? (
+        if (disableFilter) {
+            return items;
+        }
+
+        if (searchValue.length > 0) {
+
+            const re = new RegExp(escapeRegex(searchValue), 'i');
+
+            return items.map((item) => {
+
+                const text = itemFilterName.reduce((str, filterKey) => {
+
+                    const text = findObjectValue(item, filterKey);
+                    str.push(text)
+                    return str
+                }, []).join(' ')
+
+                return re.test(text) ? item : false;
+            }).filter(Boolean);
+        }
+
+        return items
+
+    }, [searchValue, items, disableFilter]);
+
+    const selectedItems = useMemo(() => {
+        return items.map((item) => {
+            const key = findObjectValue(item, itemKeyName);
+            return (selectedItemKeys.includes(key) || selectedItemKeys.includes(key?.toString())) ? item : false;
+        }).filter(Boolean);
+
+    }, [selectedItemKeys, currentItems]);
+
+    useLayoutEffect(() => {
+        onSelect(selectedItemKeys, selectedItems);
+    }, [selectedItemKeys, selectedItems]);
+
+    return currentItems.length > 0 ? (
         <div className="results-wrapper">
             <ul>
-                {items.map((item, index) => {
+                {currentItems.map((item, index) => {
                     const key   = findObjectValue(item, itemKeyName);
                     const value = findObjectValue(item, itemValueName);
                     const meta  = findObjectValue(item, itemMetaName);
@@ -73,7 +104,7 @@ export function Results(props) {
                             className="result-item"
                         >
                             <input
-                                checked={handleChecked(selectedItem, key)}
+                                checked={handleChecked(selectedItemKeys, key)}
                                 onChange={handleSelected}
                                 id={id}
                                 name={inputName}

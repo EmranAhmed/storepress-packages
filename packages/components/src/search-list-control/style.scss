@@ -62,10 +62,17 @@ $components-color-accent: var(--wp-components-color-accent, var(--wp-admin-theme
 
       > button {
         all: unset;
+
+        &.components-button {
+          cursor: pointer;
+        }
       }
 
       > svg {
         margin: $grid-unit-10 0;
+        &.components-spinner{
+          cursor: wait;
+        }
       }
     }
   }
@@ -111,7 +118,7 @@ $components-color-accent: var(--wp-components-color-accent, var(--wp-admin-theme
 
         &[type="radio"] {
           box-shadow: none;
-          -webkit-appearance: auto;
+          -webkit-appearance: radio;
 
           &:before {
             display: none;

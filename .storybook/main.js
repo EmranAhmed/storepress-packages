@@ -1,4 +1,4 @@
-import path, { join, dirname } from "path";
+import path from "path";
 
 /**
  * WordPress dependencies
@@ -42,6 +42,7 @@ const config = {
     addons       : [
         getAbsolutePath("@storybook/addon-links"),
         getAbsolutePath("@storybook/addon-essentials"),
+        // getAbsolutePath("@storybook/addon-actions"),
         //getAbsolutePath("@storybook/addon-interactions"),
     ],
     framework    : {

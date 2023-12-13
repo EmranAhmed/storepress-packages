@@ -1,57 +1,41 @@
 /**
  * External dependencies
  */
-import { useState, useMemo } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import PropTypes from 'prop-types';
+import { BaseControl, useBaseControlProps } from "@wordpress/components";
+import { useInstanceId } from "@wordpress/compose";
 
 /**
  * Internal dependencies
  */
-import { findObjectValue, escapeRegex } from './utils'
 import { Input } from './input'
 import { Results } from './results'
 
-const SearchListControl = (props) => {
+function SearchListControl(props) {
 
-    const {items, itemValueName, searchString, onSearch} = props;
+    const {id, searchString} = props;
+
+    const idProps = useInstanceId(SearchListControl, 'search-list-control', id);
+
+    const {baseControlProps, controlProps} = useBaseControlProps({...props, id : idProps});
 
     const [searchValue, setSearchValue] = useState(searchString || '');
 
-    const onTyping = (input) => {
-        setSearchValue(input);
-    };
-
-    const filteredItems = useMemo(() => {
-
-        if (searchValue.length > 0) {
-
-            if (typeof onSearch === 'function') {
-                return onSearch(searchValue);
-            }
-
-            const re = new RegExp(escapeRegex(searchValue), 'i');
-
-            return items.map((item) => {
-                const text = findObjectValue(item, itemValueName);
-                return re.test(text) ? item : false;
-            }).filter(Boolean);
-        }
-
-        return items
-
-    }, [searchValue, items, onSearch]);
-
     return (
-        <div className="storepress-component-search-list">
-            <Input onTyping={onTyping} searchValue={searchValue} {...props} />
-            <Results {...props} items={filteredItems}/>
-        </div>
+        <BaseControl {...baseControlProps}>
+            <div className="storepress-component-search-list">
+                <Input searchValue={searchValue} setSearchValue={setSearchValue} controlProps={controlProps} {...baseControlProps} />
+                <Results searchValue={searchValue} {...baseControlProps}/>
+            </div>
+        </BaseControl>
     );
-};
+}
 
 SearchListControl.defaultProps = {
     items            : [],
     selected         : [],
+    disableFilter    : false,
     isLoading        : false,
     isMultiSelect    : false,
     hideSearchBox    : false,
@@ -62,20 +46,37 @@ SearchListControl.defaultProps = {
     itemKeyName      : 'id',
     itemValueName    : 'name',
     itemMetaName     : '',
-    onSearch         : (input) => ([]),
-    onSelect         : (input) => ([]),
+    itemFilterName   : ['name'],
+    onSearch         : (searchString) => {},
+    onSelect         : (selectedKeys, selectedItems) => {},
     onClear          : () => {},
 }
 
 SearchListControl.propTypes = {
 
+    id : PropTypes.string,
+
+    label : PropTypes.string,
+
+    help : PropTypes.string,
+
+    hideLabelFromVision : PropTypes.bool,
+
     className : PropTypes.string,
+
+    items : PropTypes.array.isRequired,
+
+    selected : PropTypes.array,
+
+    disableFilter : PropTypes.bool,
 
     itemKeyName : PropTypes.string,
 
     itemValueName : PropTypes.string,
 
     itemMetaName : PropTypes.string,
+
+    itemFilterName : PropTypes.array,
 
     placeholder : PropTypes.string,
 
@@ -87,19 +88,11 @@ SearchListControl.propTypes = {
 
     isMultiSelect : PropTypes.bool,
 
-    items : PropTypes.array.isRequired,
-
-    selected : PropTypes.array.isRequired,
-
-    /**
-     * Return filtered values useful for api based filter.
-     */
     onSearch : PropTypes.func,
 
     onSelect : PropTypes.func,
 
     onClear : PropTypes.func
-
 }
 
 export default SearchListControl;

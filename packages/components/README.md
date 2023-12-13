@@ -15,6 +15,6 @@ _This package assumes that your code will run in an **ES2015+** environment. If 
 ## Usage
 
 ```jsx
-import { SearchList } from '@storepress/components';
-import '@storepress/components/build-style/search-list.scss';
+import { SearchListControl } from '@storepress/components';
+import '@storepress/components/build-style/search-list-control.scss';
 ```
