@@ -19,6 +19,8 @@
   },
   "scripts": {
     "storybook": "storybook dev -p 6006",
+    "storybook-docs": "storybook dev --docs",
+    "build-storybook-docs": "storybook build --docs",
     "build-storybook": "storybook build",
     "build": "npm run build --workspaces --if-present",
     "postbuild": "node ./bin/build-style.js"
