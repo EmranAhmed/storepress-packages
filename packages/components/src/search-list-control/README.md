@@ -76,14 +76,14 @@ Unique key from item single object.
 -   Default: `id`
 -   Required: no if `id`
 
-#### `itemValueName`: `string`
+#### `itemValueName`: `array`
 
 Value key from item single object.
 
--   Default: `name`
--   Required: no if `name`
+-   Default: `[name]`
+-   Required: no if `[name]`
 
-#### `itemMetaName`: `string`
+#### `itemMetaName`: `array`
 
 Extra data key from item single object.
 

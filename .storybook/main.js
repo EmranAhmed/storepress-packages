@@ -1,4 +1,4 @@
-import path from "path";
+import path, { join, dirname } from "path";
 
 /**
  * WordPress dependencies

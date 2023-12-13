@@ -93,10 +93,26 @@ export function Results(props) {
         <div className="results-wrapper">
             <ul>
                 {currentItems.map((item, index) => {
-                    const key   = findObjectValue(item, itemKeyName);
-                    const value = findObjectValue(item, itemValueName);
-                    const meta  = findObjectValue(item, itemMetaName);
-                    const id    = `${inputName}-${index}`
+                    const key = findObjectValue(item, itemKeyName);
+                    // const value = findObjectValue(item, itemValueName);
+
+                    const meta = itemMetaName.reduce((metas, currentMeta) => {
+
+                        const m = findObjectValue(item, currentMeta);
+                        metas.push(m)
+                        return metas;
+
+                    }, []).join(', ');
+
+                    const value = itemValueName.reduce((values, currentValue) => {
+
+                        const m = findObjectValue(item, currentValue);
+                        values.push(m)
+                        return values;
+
+                    }, []).join(' - ')
+
+                    const id = `${inputName}-${index}`
 
                     return (
                         <li

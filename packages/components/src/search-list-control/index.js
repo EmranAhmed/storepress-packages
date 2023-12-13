@@ -14,13 +14,13 @@ import { Results } from './results'
 
 function SearchListControl(props) {
 
-    const {id, searchString} = props;
+    const {id} = props;
 
     const idProps = useInstanceId(SearchListControl, 'search-list-control', id);
 
     const {baseControlProps, controlProps} = useBaseControlProps({...props, id : idProps});
 
-    const [searchValue, setSearchValue] = useState(searchString || '');
+    const [searchValue, setSearchValue] = useState('');
 
     return (
         <BaseControl {...baseControlProps}>
@@ -39,20 +39,19 @@ SearchListControl.defaultProps = {
     isLoading        : false,
     isMultiSelect    : false,
     hideSearchBox    : false,
-    searchString     : '',
     placeholder      : '',
     clearText        : '',
     noItemsFoundText : '',
     itemKeyName      : 'id',
-    itemValueName    : 'name',
-    itemMetaName     : '',
+    itemValueName    : ['name'],
+    itemMetaName     : [],
     itemFilterName   : ['name'],
     onSearch         : (searchString) => {},
     onSelect         : (selectedKeys, selectedItems) => {},
     onClear          : () => {},
 }
-
-SearchListControl.propTypes = {
+// @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
+SearchListControl.propTypes    = {
 
     id : PropTypes.string,
 
@@ -72,9 +71,9 @@ SearchListControl.propTypes = {
 
     itemKeyName : PropTypes.string,
 
-    itemValueName : PropTypes.string,
+    itemValueName : PropTypes.array,
 
-    itemMetaName : PropTypes.string,
+    itemMetaName : PropTypes.array,
 
     itemFilterName : PropTypes.array,
 

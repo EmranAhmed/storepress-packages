@@ -24,8 +24,8 @@ export const Basic = {
 
     args      : {
         itemKeyName      : 'value',
-        itemValueName    : 'label',
-        itemMetaName     : 'price',
+        itemValueName    : ['label'],
+        itemMetaName     : ['price'],
         itemFilterName   : ['label'],
         placeholder      : 'Search available fruits.',
         items            : [{label : '🍏 Apple', value : 'apple', price : '$100'}, {label : '🍌 Banana', value : 'banana', price : '$50'}, {label : '🍇 Grapes', value : 'grapes', price : '$60'}, {label : '🍍 Pineapple', value : 'pineapple', price : '$20'}, {label : '🍊 Orange', value : 'orange', price : '$50'}, {label : '🍉 Watermelon', value : 'watermelon', price : '$30'}, {label : '🍓 Strawberry', value : 'strawberry', price : '$50'}, {label : '🍑 Peach', value : 'peach', price : '$60'},],
@@ -51,8 +51,8 @@ export const Remote = {
 
     args : {
         itemKeyName      : 'id',
-        itemValueName    : 'name',
-        itemMetaName     : 'email',
+        itemValueName    : ['name'],
+        itemMetaName     : ['email', 'address.city'],
         itemFilterName   : ['name', 'email'],
         placeholder      : 'Search users',
         noItemsFoundText : 'User not available',
