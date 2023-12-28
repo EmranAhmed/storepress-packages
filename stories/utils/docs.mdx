@@ -1,0 +1,214 @@
+import { Meta, Title, IconGallery, IconItem } from '@storybook/blocks';
+import * as icons from '@storepress/icons/src';
+
+<Meta title="Utils/Plugin Example" />
+
+## Install
+
+```shell
+npm i @storepress/icons --save
+```
+
+## Usage
+
+```jsx
+import { getOptionsFromAttribute, createPluginInstance } from '@storepress/utils';
+```
+
+## Example Plugin `Plugin.js`
+```js
+/**
+ * External dependencies
+ */
+import { getOptionsFromAttribute } from '@storepress/utils';
+
+function Plugin(element, options) {
+    // Default Settings
+    const DEFAULTS = {
+        pointerSize: 20,
+    };
+
+    // Collecting settings from html attribute
+    const ATTRIBUTE = 'slider-settings';
+
+    // Do what you need and return expose fn.
+    const init = () => {
+        this.element = element;
+        this.settings = Object.assign(
+            {},
+            DEFAULTS,
+            options,
+            getOptionsFromAttribute(this.element, ATTRIBUTE)
+        );
+
+        addEvents();
+
+        return expose();
+    };
+
+    const addPointer = (event) => {
+        window.console.log(event.target.value);
+    };
+
+    const addEvents = () => {
+        this.element.querySelectorAll('input').forEach((el) => {
+            el.addEventListener('input', addPointer);
+        });
+    };
+
+    const removeEvents = () => {
+        this.element.querySelectorAll('input').forEach((el) => {
+            el.removeEventListener('input', addPointer);
+        });
+    };
+
+    // Expose to public.
+    const expose = () => ({
+        removeEvents,
+    });
+
+    return (() => init())();
+}
+
+export { Plugin };
+```
+## Make Plugin Instance `frontend.js`
+```js
+/**
+ * External dependencies
+ */
+import domReady from '@wordpress/dom-ready';
+import { createPluginInstance } from '@storepress/utils';
+
+/**
+ * Internal dependencies
+ */
+import { Plugin } from './Plugin';
+
+domReady(function () {
+	const Slider = {
+		getInstance(element, options) {
+			return createPluginInstance(element, options, Plugin);
+		},
+
+		initWith(el, options) {
+			const instance = this.getInstance(el, options);
+
+			for (const { element, removeEvents } of instance) {
+				element.addEventListener('destroy', removeEvents);
+			}
+		},
+
+		init(options) {
+			const instance = this.getInstance('.inp', options);
+			for (const { element, removeEvents } of instance) {
+				element.addEventListener('destroy', removeEvents);
+			}
+		},
+
+		destroyWith(el) {
+			for (const { destroy } of this.getInstance(el)) {
+				destroy();
+			}
+		},
+
+		destroy() {
+			for (const { destroy } of this.getInstance('.inp')) {
+				destroy();
+			}
+		}
+	};
+});
+```
+
+## Method: 01
+- If you want to access `Slider` globally. Attach `Slider` with `Window` like:
+
+```js
+/**
+ * External dependencies
+ */
+import domReady from '@wordpress/dom-ready';
+
+domReady(function () {
+	// Attach with window to access Slider globally.
+	window.Slider = { ... }
+
+    // Slider.init()
+    // Slider.destroy()
+})
+```
+## Method: 02
+- If you don't want to access `Slider` globally. Use event.
+
+```js
+/**
+ * External dependencies
+ */
+import domReady from '@wordpress/dom-ready';
+
+domReady(function () {
+	// Attach with window to access Slider globally.
+	const Slider = { ... }
+
+
+    // Add event like this:
+    document.addEventListener('slider_init_with_options', (event) => {
+        const defaultSettings = { pointerSize: 30 };
+        const settings = { ...defaultSettings, ...event.detail?.settings };
+
+        Slider.init(settings);
+    });
+
+    // Dispatch / trigger Events:
+
+    const slider_init_with_options = new CustomEvent('slider_init_with_options', {
+            detail: {
+                settings: {
+                    pointerSize: 80
+                }
+            }
+        });
+
+    // document.dispatchEvent(slider_init_with_options)
+
+    /// OR
+
+    document.addEventListener('slider_init', (event) => {
+        Slider.init();
+    });
+
+    // Dispatch / Trigger Events:
+
+    // document.dispatchEvent(new Event('slider_init'));
+
+    // Destroy instance
+
+    document.addEventListener('slider_destroy', (event) => {
+        Slider.destroy();
+    });
+
+    // Dispatch / Trigger Events:
+    // document.dispatchEvent(new Event('slider_destroy')) //  run when you want to destroy slider instances
+    })
+```
+
+## Example HTML
+
+```html
+<div id="container">
+    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 40}">
+        <a>1</a>
+        <form>
+            <input type="text" placeholder="Location X">
+        </form>
+    </div>
+
+    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 30}">
+        <a>2</a>
+        <form>
+            <input type="text" placeholder="Location Y">
+        </form>
+    </div>
+</div>
+```
