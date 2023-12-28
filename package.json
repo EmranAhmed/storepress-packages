@@ -15,7 +15,7 @@
   "dependencies" : {
     "@storepress/components" : "file:packages/components",
     "@storepress/icons" : "file:packages/icons",
-    "@storepress/plugin" : "file:packages/plugin",
+    "@storepress/utils" : "file:packages/utils",
     "@wordpress/api-fetch" : "^6.44.0"
   },
   "scripts" : {
