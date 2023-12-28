@@ -1,6 +1,6 @@
 # Utils
 
-StorePress Icons Library.
+StorePress Utils Library.
 
 ## Installation
 
