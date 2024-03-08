@@ -11,7 +11,7 @@ npm i @storepress/utils --save
 ## Usage
 
 ```jsx
-import { getOptionsFromAttribute, createPluginInstance } from '@storepress/utils';
+import { getOptionsFromAttribute, createPluginInstance, getPluginInstance } from '@storepress/utils';
 ```
 
 ## Example Plugin `Plugin.js`
@@ -76,48 +76,50 @@ export { Plugin };
 /**
  * External dependencies
  */
-import domReady from '@wordpress/dom-ready';
-import { createPluginInstance } from '@storepress/utils';
+import domReady from '@wordpress/dom-ready'
+import { createPluginInstance } from '@storepress/utils'
 
 /**
  * Internal dependencies
  */
-import { Plugin } from './Plugin';
+import { Plugin } from './Plugin'
 
 domReady(function () {
 	const Slider = {
 		getInstance(element, options) {
-			return createPluginInstance(element, options, Plugin);
+			return createPluginInstance(element, options, Plugin)
 		},
 
 		initWith(el, options) {
-			const instance = this.getInstance(el, options);
+			const instance = this.getInstance(el, options)
 
-			for (const { element, removeEvents } of instance) {
-				element.addEventListener('destroy', removeEvents);
+			for (const { element, removeEvents } of instance) { // exposed functions from Plugin.js
+				element.addEventListener('destroy', removeEvents)
 			}
 		},
 
 		init(options) {
-			const instance = this.getInstance('.inp', options);
+			const instance = this.getInstance('.inp', options)
 			for (const { element, removeEvents } of instance) {
-				element.addEventListener('destroy', removeEvents);
+				element.addEventListener('destroy', removeEvents)
 			}
 		},
 
 		destroyWith(el) {
-			for (const { destroy } of this.getInstance(el)) {
-				destroy();
+			for (const { destroy, removeEvents } of this.getInstance(el)) {
+				removeEvents()
+				destroy()
 			}
 		},
 
 		destroy() {
-			for (const { destroy } of this.getInstance('.inp')) {
-				destroy();
+			for (const { destroy, removeEvents } of this.getInstance('.inp')) {
+				removeEvents()
+				destroy()
 			}
-		}
-	};
-});
+		},
+	}
+})
 ```
 
 ## Method: 01
@@ -155,14 +157,18 @@ domReady(function () {
     document.addEventListener('slider_init_with_options', (event) => {
         const defaultSettings = { pointerSize: 30 };
         const settings = { ...defaultSettings, ...event.detail?.settings };
+        const element = event.detail?.element;
 
         Slider.init(settings);
+        // or
+       // Slider.initWith(element, settings)
     });
 
     // Dispatch / trigger Events:
 
     const slider_init_with_options = new CustomEvent('slider_init_with_options', {
             detail: {
+                element: '.inp',
                 settings: {
                     pointerSize: 80
                 }
@@ -171,7 +177,7 @@ domReady(function () {
 
     // document.dispatchEvent(slider_init_with_options)
 
-    /// OR
+    // OR
 
     document.addEventListener('slider_init', (event) => {
         Slider.init();

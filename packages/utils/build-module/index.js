@@ -1,5 +1,10 @@
 const weakMap = new WeakMap();
 export function getElements(selectors) {
+  // empty
+  if (!selectors) {
+    return [];
+  }
+
   // querySelector
   if (typeof selectors === 'string') {
     return document.querySelectorAll(selectors);
@@ -49,6 +54,20 @@ export function createPluginInstance(selectors, options, plugin) {
       weakMap.set(element, instance);
     }
     instances.push(instance);
+  }
+  return instances;
+}
+export function getPluginInstance(selectors) {
+  const elements = getElements(selectors);
+  const instances = [];
+  if (elements.length === 0) {
+    return instances;
+  }
+  for (const element of elements) {
+    if (weakMap.has(element)) {
+      const instance = weakMap.get(element);
+      instances.push(instance);
+    }
   }
   return instances;
 }

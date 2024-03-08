@@ -121,6 +121,7 @@ domReady(function () {
 				'.inp'
 			)) {
 				destroy();
+                removeEvents();
 			}
 		},
 	};
