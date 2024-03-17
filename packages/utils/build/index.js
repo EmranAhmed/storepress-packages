@@ -136,8 +136,8 @@ function getPluginInstance(selectors) {
  * Trigger Custom Event.
  *
  * @param {Element} target     - HTML Element.
- * @param {string} eventType - Callback Function Handler
- * @param {Object} eventDetails - Pass Event details to use on event listener function..
+ * @param {string}  eventType   - Callback Function Handler
+ * @param {Object}  eventDetails - Pass Event details to use on event listener function..
  * @return {boolean} - Dispatched event return.
  */
 function triggerEvent(target, eventType) {
@@ -153,10 +153,10 @@ function triggerEvent(target, eventType) {
 /**
  * Swipe Event.
  *
- * @param {Element}                              target     - HTML Element.
+ * @param {Element|Document}                     target     - HTML Element.
  * @param {function(event):void}                 listenerFn - Callback Function Handler
  * @param {{offset: number, touchOnly: boolean}} options    - Options.
- * @return {unregister} - Return unregister function for cleanup events.
+ * @return {unregister} - Return `unregister` function for cleanup events.
  */
 function swipeEvent(target, listenerFn) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
