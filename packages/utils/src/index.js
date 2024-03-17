@@ -1,5 +1,24 @@
 const weakMap = new WeakMap()
 
+export function getElement (selector) {
+
+  // empty
+  if (!selector) {
+    return null
+  }
+
+  // querySelector
+  if (typeof selector === 'string') {
+    return document.querySelector(selector)
+  }
+
+  // HTMLElement
+  if (selector instanceof window.HTMLElement) {
+    return selector
+  }
+  return selector
+}
+
 export function getElements (selectors) {
 
   // empty
@@ -7,12 +26,12 @@ export function getElements (selectors) {
     return []
   }
 
-  // querySelector
+  // querySelectorAll
   if (typeof selectors === 'string') {
     return document.querySelectorAll(selectors)
   }
 
-  // HTMLElement
+  // HTMLElements
   if (selectors instanceof window.HTMLElement) {
     return [selectors]
   }
@@ -78,4 +97,12 @@ export function getPluginInstance (selectors) {
     }
   }
   return instances
+}
+
+export function triggerEvent (target, eventType, eventDetails = {}) {
+  return target.dispatchEvent(
+    new CustomEvent(eventType, {
+      detail: { ...eventDetails },
+    }),
+  )
 }

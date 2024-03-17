@@ -19,57 +19,76 @@ import { getOptionsFromAttribute, createPluginInstance, getPluginInstance } from
 /**
  * External dependencies
  */
-import { getOptionsFromAttribute } from '@storepress/utils';
+import { getOptionsFromAttribute } from '@storepress/utils'
 
 function Plugin(element, options) {
     // Default Settings
     const DEFAULTS = {
-        pointerSize: 20,
-    };
+        size: 20,
+    }
 
     // Collecting settings from html attribute
-    const ATTRIBUTE = 'slider-settings';
+    const ATTRIBUTE = 'slider-settings'
 
     // Do what you need and return expose fn.
-    const init = () => {
-        this.element = element;
+    const register = () => {
+        this.$element = element
         this.settings = Object.assign(
             {},
             DEFAULTS,
             options,
-            getOptionsFromAttribute(this.element, ATTRIBUTE)
-        );
+            getOptionsFromAttribute(this.$element, ATTRIBUTE)
+        )
 
-        addEvents();
+        addClass()
 
-        return expose();
-    };
+        addEvents()
 
-    const addPointer = (event) => {
-        window.console.log(event.target.value);
-    };
+        return expose()
+    }
+
+    const handleInput = (event) => {
+        window.console.log(event.target.value)
+    }
 
     const addEvents = () => {
-        this.element.querySelectorAll('input').forEach((el) => {
-            el.addEventListener('input', addPointer);
-        });
-    };
+        this.$element.querySelectorAll('input').forEach(($el) => {
+            $el.addEventListener('input', handleInput)
+        })
+    }
+
+    const addClass = () => {
+       this.$element.querySelectorAll('input').forEach(($el) => {
+            $el.classList.add('example-input-class')
+        })
+    }
+
+    const removeClass = () => {
+      this.$element.querySelectorAll('input').forEach(($el) => {
+            $el.classList.remove('example-input-class')
+      })
+    }
 
     const removeEvents = () => {
-        this.element.querySelectorAll('input').forEach((el) => {
-            el.removeEventListener('input', addPointer);
-        });
-    };
+        this.$element.querySelectorAll('input').forEach(($el) => {
+            $el.removeEventListener('input', handleInput)
+        })
+    }
+
+    const unregister = () => {
+        removeEvents()
+        removeClass()
+    }
 
     // Expose to public.
     const expose = () => ({
-        removeEvents,
-    });
+        unregister,
+    })
 
-    return (() => init())();
+    return register()
 }
 
-export { Plugin };
+export { Plugin }
 ```
 ## Make Plugin Instance `frontend.js`
 ```js
@@ -93,31 +112,29 @@ domReady(function () {
 		initWith(el, options) {
 			const instance = this.getInstance(el, options)
 
-			for (const { element, removeEvents } of instance) { // exposed functions from Plugin.js
-				element.addEventListener('destroy', removeEvents)
+			for (const { element, unregister } of instance) { // exposed functions from Plugin.js
+				element.addEventListener('destroy', unregister)
 			}
 		},
 
 		init(options) {
 			const instance = this.getInstance('.inp', options)
-			for (const { element, removeEvents } of instance) {
-				element.addEventListener('destroy', removeEvents)
+			for (const { element, unregister } of instance) { // exposed functions from Plugin.js
+				element.addEventListener('destroy', unregister)
 			}
 		},
 
 		destroyWith(el) {
-			for (const { destroy, removeEvents } of this.getInstance(el)) {
-				removeEvents()
-				destroy()
+			for (const { destroy } of this.getInstance(el)) {
+				destroy() // trigger destroy event.
 			}
 		},
 
 		destroy() {
-			for (const { destroy, removeEvents } of this.getInstance('.inp')) {
-				removeEvents()
-				destroy()
+			for (const { destroy } of this.getInstance('.inp')) {
+				destroy() // trigger destroy event.
 			}
-		},
+		}
 	}
 })
 ```
@@ -147,15 +164,15 @@ domReady(function () {
  * External dependencies
  */
 import domReady from '@wordpress/dom-ready';
+import { triggerEvent } from '@storepress/utils';
 
 domReady(function () {
 	// Attach with window to access Slider globally.
 	const Slider = { ... }
 
-
     // Add event like this:
     document.addEventListener('slider_init_with_options', (event) => {
-        const defaultSettings = { pointerSize: 30 };
+        const defaultSettings = { size: 30 };
         const settings = { ...defaultSettings, ...event.detail?.settings };
         const element = event.detail?.element;
 
@@ -166,6 +183,14 @@ domReady(function () {
 
     // Dispatch / trigger Events:
 
+    triggerEvent(document, 'slider_init_with_options', {
+                element: '.inp',
+                settings: {
+                    pointerSize: 80
+                }
+    });
+
+    // OR
     const slider_init_with_options = new CustomEvent('slider_init_with_options', {
             detail: {
                 element: '.inp',
@@ -202,14 +227,14 @@ domReady(function () {
 
 ```html
 <div id="container">
-    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 40}">
+    <div class="slider-wrapper inp" data-slider-settings="{'size': 40}">
         <a>1</a>
         <form>
             <input type="text" placeholder="Location X">
         </form>
     </div>
 
-    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 30}">
+    <div class="slider-wrapper inp" data-slider-settings="{'size': 30}">
         <a>2</a>
         <form>
             <input type="text" placeholder="Location Y">
