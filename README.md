@@ -12,6 +12,4 @@
 
 ## Publish
 
-- `npx lerna publish --no-private`
-
-- `npx lerna publish from-package`
+- `npx lerna publish from-package --no-private`
