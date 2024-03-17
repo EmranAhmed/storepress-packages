@@ -9,6 +9,7 @@ exports.getElement = getElement;
 exports.getElements = getElements;
 exports.getOptionsFromAttribute = getOptionsFromAttribute;
 exports.getPluginInstance = getPluginInstance;
+exports.swipeEvent = swipeEvent;
 exports.toCamelCase = toCamelCase;
 exports.triggerEvent = triggerEvent;
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
@@ -130,9 +131,163 @@ function getPluginInstance(selectors) {
   }
   return instances;
 }
+
+/**
+ * Trigger Custom Event.
+ *
+ * @param {Element} target     - HTML Element.
+ * @param {string} eventType - Callback Function Handler
+ * @param {Object} eventDetails - Pass Event details to use on event listener function..
+ * @return {boolean} - Dispatched event return.
+ */
 function triggerEvent(target, eventType) {
   var eventDetails = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   return target.dispatchEvent(new CustomEvent(eventType, {
     detail: _objectSpread({}, eventDetails)
   }));
+}
+
+/**
+ * @typedef {Function} unregister
+ */
+/**
+ * Swipe Event.
+ *
+ * @param {Element}                              target     - HTML Element.
+ * @param {function(event):void}                 listenerFn - Callback Function Handler
+ * @param {{offset: number, touchOnly: boolean}} options    - Options.
+ * @return {unregister} - Return unregister function for cleanup events.
+ */
+function swipeEvent(target, listenerFn) {
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var readyToMove = false;
+  var isMoved = false;
+  var xStart = 0;
+  var yStart = 0;
+  var isTouchEvent = false;
+  var defaults = {
+    offset: 10,
+    touchOnly: false
+  };
+  var settings = _objectSpread(_objectSpread({}, defaults), options);
+  var start = function start(event) {
+    readyToMove = true;
+    isMoved = false;
+    xStart = event.x;
+    yStart = event.y;
+    isTouchEvent = event.type === 'touchstart';
+    if (event.type === 'pointerdown' && isTouchEvent) {
+      return false;
+    }
+    if (isTouchEvent) {
+      var _event$changedTouches = event.changedTouches[0],
+        clientX = _event$changedTouches.clientX,
+        clientY = _event$changedTouches.clientY;
+      xStart = clientX;
+      yStart = clientY;
+    }
+  };
+  var move = function move(event) {
+    if (!readyToMove) {
+      return;
+    }
+    if (event.type === 'pointermove' && isTouchEvent) {
+      return false;
+    }
+    var horizontalDiff = event.x - xStart;
+    var verticalDiff = event.y - yStart;
+    if (isTouchEvent) {
+      var touch = event.changedTouches[0];
+      horizontalDiff = touch.clientX - xStart;
+      verticalDiff = touch.clientY - yStart;
+    }
+    isMoved = true;
+    var details = {
+      x: horizontalDiff,
+      y: verticalDiff,
+      top: verticalDiff + settings.offset < 0,
+      // to top
+      bottom: verticalDiff - settings.offset > 0,
+      // to bottom
+      left: horizontalDiff + settings.offset < 0,
+      // to left
+      right: horizontalDiff - settings.offset > 0,
+      // to right
+      moving: true,
+      done: false
+    };
+    triggerEvent(target, 'swipe', details);
+  };
+  var end = function end(event) {
+    if (!readyToMove) {
+      return;
+    }
+    var isPointerEvent = event.type === 'pointerleave' || event.type === 'pointerup';
+    if (isPointerEvent && isTouchEvent) {
+      return false;
+    }
+    var horizontalDiff = event.x - xStart;
+    var verticalDiff = event.y - yStart;
+    if (isTouchEvent) {
+      var _event$changedTouches2 = event.changedTouches[0],
+        clientX = _event$changedTouches2.clientX,
+        clientY = _event$changedTouches2.clientY;
+      horizontalDiff = clientX - xStart;
+      verticalDiff = clientY - yStart;
+    }
+    if (isMoved) {
+      var details = {
+        x: horizontalDiff,
+        y: verticalDiff,
+        top: verticalDiff + settings.offset < 0,
+        // to top
+        bottom: verticalDiff - settings.offset > 0,
+        // to bottom
+        left: horizontalDiff + settings.offset < 0,
+        // to left
+        right: horizontalDiff - settings.offset > 0,
+        // to right
+        moving: false,
+        done: true
+      };
+      triggerEvent(target, 'swipe', details);
+    }
+    isMoved = false;
+    isTouchEvent = false;
+    readyToMove = false;
+  };
+  var unregister = function unregister() {
+    target.removeEventListener('touchstart', start);
+    target.removeEventListener('touchmove', move);
+    target.removeEventListener('touchend', end);
+    target.removeEventListener('touchcancel', end);
+    if (!settings.touchOnly) {
+      target.removeEventListener('pointerdown', start);
+      target.removeEventListener('pointermove', move);
+      target.removeEventListener('pointerup', end);
+      target.removeEventListener('pointerleave', end);
+    }
+    target.removeEventListener('swipe', listenerFn);
+  };
+  var register = function register() {
+    target.addEventListener('touchstart', start, {
+      passive: true
+    });
+    target.addEventListener('touchmove', move, {
+      passive: true
+    });
+    target.addEventListener('touchend', end, {
+      passive: true
+    });
+    target.addEventListener('touchcancel', end);
+    if (!settings.touchOnly) {
+      target.addEventListener('pointerdown', start);
+      target.addEventListener('pointermove', move);
+      target.addEventListener('pointerup', end);
+      target.addEventListener('pointerleave', end);
+    }
+    target.addEventListener('swipe', listenerFn);
+    return unregister;
+  };
+  return register();
 }
