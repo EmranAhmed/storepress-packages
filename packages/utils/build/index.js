@@ -135,7 +135,7 @@ function getPluginInstance(selectors) {
 /**
  * Trigger Custom Event.
  *
- * @param {Element} target     - HTML Element.
+ * @param {Element|Document} target     - HTML Element.
  * @param {string}  eventType   - Callback Function Handler
  * @param {Object}  eventDetails - Pass Event details to use on event listener function..
  * @return {boolean} - Dispatched event return.
