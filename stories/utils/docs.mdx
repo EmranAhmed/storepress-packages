@@ -33,12 +33,11 @@ function Plugin(element, options) {
     // Do what you need and return expose fn.
     const register = () => {
         this.$element = element
-        this.settings = Object.assign(
-            {},
-            DEFAULTS,
-            options,
-            getOptionsFromAttribute(this.$element, ATTRIBUTE)
-        )
+        this.settings = {
+              ...DEFAULTS,
+              ...options,
+              ...getOptionsFromAttribute( this.$element, ATTRIBUTE, ['size']), // will override size Setting Value from slider-settings--size
+            };
 
         addClass()
 
@@ -82,7 +81,7 @@ function Plugin(element, options) {
 
     // Expose to public.
     const expose = () => ({
-        unregister,
+        unregister
     })
 
     return register()

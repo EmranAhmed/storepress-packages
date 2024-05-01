@@ -45,7 +45,14 @@ export function toCamelCase (string) {
   })
 }
 
-export function getOptionsFromAttribute (element, attributeName) {
+export function toUpperCamelCase (string) {
+  return string.replace(/^([a-z])|[\s-_](\w)/g, (match, p1, p2) => {
+    if (p2) return p2.toUpperCase()
+    return p1.toUpperCase()
+  })
+}
+
+export function getOptionsFromAttribute (element, attributeName, overrideKeys = []) {
   const attributeKey = toCamelCase(attributeName)
   const rawSettings = element.dataset[attributeKey] // undefined if not found
 
@@ -54,7 +61,44 @@ export function getOptionsFromAttribute (element, attributeName) {
   }
   const settings = rawSettings.replace(/\'/g, '"')
   try {
-    return JSON.parse(settings)
+
+    const data = JSON.parse(settings)
+    const boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N']
+    const truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y']
+
+    const override = overrideKeys.reduce((values, current) => {
+      const settingKey = toCamelCase(current)
+      const valueKey = toUpperCamelCase(current)
+      const dataKey = `${attributeKey}-${valueKey}`
+      const rawValue = element.dataset[dataKey] // undefined if not found
+
+      if (rawValue) {
+
+        const isBool = boolValues.includes(rawValue)
+        const isJSON = rawValue.charAt(0) === '{'
+        const isNumber = isNaN(Number(rawValue)) === false
+
+        values[settingKey] = rawValue
+
+        if (isJSON) {
+          values[settingKey] = JSON.parse(rawValue)
+        }
+
+        if (isNumber) {
+          values[settingKey] = Number(rawValue)
+        }
+
+        if (isBool) {
+          values[settingKey] = truthyValues.includes(rawValue)
+        }
+      }
+
+      return values
+
+    }, {})
+
+    return { ...data, ...override }
+
   } catch (error) {
     // {'a': 'AAA', 'b': 'BBB'} == valid
     // {a: 'AAA', b: 'BBB'} == Invalid. Key should wrap with single (') or double (") quotes.

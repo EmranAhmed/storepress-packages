@@ -26,51 +26,71 @@ import { getOptionsFromAttribute, createPluginInstance } from '@storepress/utils
 import { getOptionsFromAttribute } from '@storepress/utils';
 
 function Plugin(element, options) {
-    // Default Settings
-    const DEFAULTS = {
-        pointerSize: 20,
+  // Default Settings
+  const DEFAULTS = {
+    item: 3,
+    size: 20,
+  }
+
+  // Collecting settings from html attribute
+  const ATTRIBUTE = 'slider-settings'
+
+  // Do what you need and return expose fn.
+  const register = () => {
+    this.$element = element
+    this.settings = {
+      ...DEFAULTS,
+      ...options,
+      ...getOptionsFromAttribute( this.$element, ATTRIBUTE, ['size']), 
+      // will override size Setting Value from slider-settings--size
     };
 
-    // Collecting settings from html attribute
-    const ATTRIBUTE = 'slider-settings';
+    addClass()
 
-    // Do what you need and return expose fn.
-    const init = () => {
-        this.element = element;
-        this.settings = Object.assign(
-            {},
-            DEFAULTS,
-            options,
-            getOptionsFromAttribute(this.element, ATTRIBUTE)
-        );
-        //  console.log('init')
-        addEvents();
+    addEvents()
 
-        return expose();
-    };
+    return expose()
+  }
 
-    const addPointer = (event) => {
-        window.console.log(event.target.value);
-    };
+  const handleInput = (event) => {
+    window.console.log(event.target.value)
+  }
 
-    const addEvents = () => {
-        this.element.querySelectorAll('input').forEach((el) => {
-            el.addEventListener('input', addPointer);
-        });
-    };
+  const addEvents = () => {
+    this.$element.querySelectorAll('input').forEach(($el) => {
+      $el.addEventListener('input', handleInput)
+    })
+  }
 
-    const removeEvents = () => {
-        this.element.querySelectorAll('input').forEach((el) => {
-            el.removeEventListener('input', addPointer);
-        });
-    };
+  const addClass = () => {
+    this.$element.querySelectorAll('input').forEach(($el) => {
+      $el.classList.add('example-input-class')
+    })
+  }
 
-    // Expose to public.
-    const expose = () => ({
-        removeEvents,
-    });
+  const removeClass = () => {
+    this.$element.querySelectorAll('input').forEach(($el) => {
+      $el.classList.remove('example-input-class')
+    })
+  }
 
-    return (() => init())();
+  const removeEvents = () => {
+    this.$element.querySelectorAll('input').forEach(($el) => {
+      $el.removeEventListener('input', handleInput)
+    })
+  }
+
+  const unregister = () => {
+    removeEvents()
+    removeClass()
+  }
+
+  // Expose to public.
+  const expose = () => ({
+    unregister
+  })
+
+  return register()
 }
 
 export { Plugin };
