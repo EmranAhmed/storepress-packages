@@ -41,8 +41,7 @@ function Plugin(element, options) {
     this.settings = {
       ...DEFAULTS,
       ...options,
-      ...getOptionsFromAttribute( this.$element, ATTRIBUTE, ['size']), 
-      // will override size Setting Value from slider-settings--size
+      ...getOptionsFromAttribute( this.$element, ATTRIBUTE)
     };
 
     addClass()
@@ -167,7 +166,7 @@ domReady(function () {
 		{
 			detail: {
 				settings: {
-					pointerSize: 80,
+					size: 80,
 				},
 			},
 		}
@@ -197,14 +196,14 @@ domReady(function () {
 ```html
 <div id="container">
 
-    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 40}">
+    <div class="slider-wrapper inp" data-slider-settings="{'size': 40}">
         <a>1</a>
         <form>
             <input type="text" placeholder="Location X">
         </form>
     </div>
 
-    <div class="slider-wrapper inp" data-slider-settings="{'pointerSize': 30}">
+    <div class="slider-wrapper inp" data-slider-settings--size="30">
         <a>2</a>
         <form>
             <input type="text" placeholder="Location Y">

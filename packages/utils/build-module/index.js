@@ -45,40 +45,44 @@ export function toUpperCamelCase(string) {
     return p1.toUpperCase();
   });
 }
-export function getOptionsFromAttribute(element, attributeName, overrideKeys = []) {
+/**
+ * Get Option from HTML Attribute
+ *
+ * @param {Element} element         - HTML Element.
+ * @param {string}  attributeName   - Attribute Name
+ * @return {Object}                 - Return Object.
+ */
+export function getOptionsFromAttribute(element, attributeName) {
   const attributeKey = toCamelCase(attributeName);
-  const rawSettings = element.dataset[attributeKey]; // undefined if not found
-
-  if (!rawSettings) {
-    return {};
-  }
-  const settings = rawSettings.replace(/\'/g, '"');
+  const attributeSubKey = `${attributeKey}-`;
+  const dataset = {
+    ...element.dataset
+  };
+  const settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}';
+  const boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N'];
+  const truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y'];
   try {
     const data = JSON.parse(settings);
-    const boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N'];
-    const truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y'];
-    const override = overrideKeys.reduce((values, current) => {
-      const settingKey = toCamelCase(current);
-      const valueKey = toUpperCamelCase(current);
-      const dataKey = `${attributeKey}-${valueKey}`;
-      const rawValue = element.dataset[dataKey]; // undefined if not found
-
-      if (rawValue) {
-        const isBool = boolValues.includes(rawValue);
-        const isJSON = rawValue.charAt(0) === '{';
-        const isNumber = isNaN(Number(rawValue)) === false;
-        values[settingKey] = rawValue;
-        if (isJSON) {
-          values[settingKey] = JSON.parse(rawValue);
-        }
-        if (isNumber) {
-          values[settingKey] = Number(rawValue);
-        }
-        if (isBool) {
-          values[settingKey] = truthyValues.includes(rawValue);
-        }
+    const overrideAttrs = Object.keys(dataset).filter(key => {
+      return key.startsWith(attributeSubKey);
+    });
+    const override = overrideAttrs.reduce((options, key) => {
+      const settingKey = toCamelCase(key.replace(attributeSubKey, ''));
+      const rawValue = element.dataset[key];
+      const isBool = boolValues.includes(rawValue);
+      const isJSON = rawValue.charAt(0) === '{';
+      const isNumber = isNaN(Number(rawValue)) === false;
+      options[settingKey] = rawValue;
+      if (isJSON) {
+        options[settingKey] = JSON.parse(rawValue);
       }
-      return values;
+      if (isNumber) {
+        options[settingKey] = Number(rawValue);
+      }
+      if (isBool) {
+        options[settingKey] = truthyValues.includes(rawValue);
+      }
+      return options;
     }, {});
     return {
       ...data,

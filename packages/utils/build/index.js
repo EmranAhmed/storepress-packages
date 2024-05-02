@@ -68,41 +68,42 @@ function toUpperCamelCase(string) {
     return p1.toUpperCase();
   });
 }
+/**
+ * Get Option from HTML Attribute
+ *
+ * @param {Element} element         - HTML Element.
+ * @param {string}  attributeName   - Attribute Name
+ * @return {Object}                 - Return Object.
+ */
 function getOptionsFromAttribute(element, attributeName) {
-  var overrideKeys = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
   var attributeKey = toCamelCase(attributeName);
-  var rawSettings = element.dataset[attributeKey]; // undefined if not found
-
-  if (!rawSettings) {
-    return {};
-  }
-  var settings = rawSettings.replace(/\'/g, '"');
+  var attributeSubKey = "".concat(attributeKey, "-");
+  var dataset = _objectSpread({}, element.dataset);
+  var settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}';
+  var boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N'];
+  var truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y'];
   try {
     var data = JSON.parse(settings);
-    var boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N'];
-    var truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y'];
-    var override = overrideKeys.reduce(function (values, current) {
-      var settingKey = toCamelCase(current);
-      var valueKey = toUpperCamelCase(current);
-      var dataKey = "".concat(attributeKey, "-").concat(valueKey);
-      var rawValue = element.dataset[dataKey]; // undefined if not found
-
-      if (rawValue) {
-        var isBool = boolValues.includes(rawValue);
-        var isJSON = rawValue.charAt(0) === '{';
-        var isNumber = isNaN(Number(rawValue)) === false;
-        values[settingKey] = rawValue;
-        if (isJSON) {
-          values[settingKey] = JSON.parse(rawValue);
-        }
-        if (isNumber) {
-          values[settingKey] = Number(rawValue);
-        }
-        if (isBool) {
-          values[settingKey] = truthyValues.includes(rawValue);
-        }
+    var overrideAttrs = Object.keys(dataset).filter(function (key) {
+      return key.startsWith(attributeSubKey);
+    });
+    var override = overrideAttrs.reduce(function (options, key) {
+      var settingKey = toCamelCase(key.replace(attributeSubKey, ''));
+      var rawValue = element.dataset[key];
+      var isBool = boolValues.includes(rawValue);
+      var isJSON = rawValue.charAt(0) === '{';
+      var isNumber = isNaN(Number(rawValue)) === false;
+      options[settingKey] = rawValue;
+      if (isJSON) {
+        options[settingKey] = JSON.parse(rawValue);
       }
-      return values;
+      if (isNumber) {
+        options[settingKey] = Number(rawValue);
+      }
+      if (isBool) {
+        options[settingKey] = truthyValues.includes(rawValue);
+      }
+      return options;
     }, {});
     return _objectSpread(_objectSpread({}, data), override);
   } catch (error) {
