@@ -34,7 +34,8 @@ export const Basic = {
         onSearch         : fn(),
         onSelect         : fn(),
         onClear          : fn(),
-    }, render : (args) => {
+    },
+    render : (args) => {
         return <SearchListControl {...args} />;
     }
 }

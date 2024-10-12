@@ -1,6 +1,6 @@
-import { createElement } from "react";
 import { useLayoutEffect, useMemo, useState } from "@wordpress/element";
 import { escapeRegex, findObjectValue } from "./utils";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 export function Results(props) {
   const {
     id,
@@ -75,42 +75,49 @@ export function Results(props) {
   useLayoutEffect(() => {
     onSelect(selectedItemKeys, selectedItems);
   }, [selectedItemKeys, selectedItems]);
-  return currentItems.length > 0 ? createElement("div", {
-    className: "results-wrapper"
-  }, createElement("ul", null, currentItems.map((item, index) => {
-    const key = findObjectValue(item, itemKeyName);
-    // const value = findObjectValue(item, itemValueName);
+  return currentItems.length > 0 ? /*#__PURE__*/_jsx("div", {
+    className: "results-wrapper",
+    children: /*#__PURE__*/_jsx("ul", {
+      children: currentItems.map((item, index) => {
+        const key = findObjectValue(item, itemKeyName);
+        // const value = findObjectValue(item, itemValueName);
 
-    const meta = itemMetaName.reduce((metas, currentMeta) => {
-      const m = findObjectValue(item, currentMeta);
-      metas.push(m);
-      return metas;
-    }, []).join(', ');
-    const value = itemValueName.reduce((values, currentValue) => {
-      const m = findObjectValue(item, currentValue);
-      values.push(m);
-      return values;
-    }, []).join(' - ');
-    const id = `${inputName}-${index}`;
-    return createElement("li", {
-      key: index,
-      className: "result-item"
-    }, createElement("input", {
-      checked: handleChecked(selectedItemKeys, key),
-      onChange: handleSelected,
-      id: id,
-      name: inputName,
-      value: key,
-      type: isMultiSelect ? 'checkbox' : 'radio'
-    }), createElement("label", {
-      htmlFor: id,
-      className: "result-item__label"
-    }, createElement("span", {
-      className: "result-item__title"
-    }, value)), meta && createElement("small", {
-      className: "result-item__meta"
-    }, meta));
-  }))) : createElement("div", {
-    className: "results-wrapper error not-found"
-  }, noItemsFoundText);
+        const meta = itemMetaName.reduce((metas, currentMeta) => {
+          const m = findObjectValue(item, currentMeta);
+          metas.push(m);
+          return metas;
+        }, []).join(', ');
+        const value = itemValueName.reduce((values, currentValue) => {
+          const m = findObjectValue(item, currentValue);
+          values.push(m);
+          return values;
+        }, []).join(' - ');
+        const id = `${inputName}-${index}`;
+        return /*#__PURE__*/_jsxs("li", {
+          className: "result-item",
+          children: [/*#__PURE__*/_jsx("input", {
+            checked: handleChecked(selectedItemKeys, key),
+            onChange: handleSelected,
+            id: id,
+            name: inputName,
+            value: key,
+            type: isMultiSelect ? 'checkbox' : 'radio'
+          }), /*#__PURE__*/_jsx("label", {
+            htmlFor: id,
+            className: "result-item__label",
+            children: /*#__PURE__*/_jsx("span", {
+              className: "result-item__title",
+              children: value
+            })
+          }), meta && /*#__PURE__*/_jsx("small", {
+            className: "result-item__meta",
+            children: meta
+          })]
+        }, index);
+      })
+    })
+  }) : /*#__PURE__*/_jsx("div", {
+    className: "results-wrapper error not-found",
+    children: noItemsFoundText
+  });
 }

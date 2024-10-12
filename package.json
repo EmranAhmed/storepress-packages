@@ -1,6 +1,6 @@
 {
   "name": "storepress-packages",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "StorePress Packages",
   "author": "StorePress",
@@ -15,8 +15,9 @@
   "dependencies": {
     "@storepress/components": "file:packages/components",
     "@storepress/icons": "file:packages/icons",
+    "@storepress/tooltip": "^0.0.7",
     "@storepress/utils": "file:packages/utils",
-    "@wordpress/api-fetch": "^6.44.0"
+    "@wordpress/api-fetch": "^7.9.0"
   },
   "scripts": {
     "storybook": "storybook dev -p 6006",
@@ -27,37 +28,36 @@
     "postbuild": "node ./bin/build-style.js"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.23.5",
-    "@babel/preset-react": "^7.23.3",
-    "@storybook/addon-actions": "^7.6.4",
-    "@storybook/addon-essentials": "^7.6.4",
-    "@storybook/addon-interactions": "^7.6.4",
-    "@storybook/addon-links": "^7.6.4",
-    "@storybook/blocks": "^7.6.4",
-    "@storybook/client-api": "^7.6.4",
-    "@storybook/manager-api": "^7.6.17",
-    "@storybook/react": "^7.6.4",
-    "@storybook/react-webpack5": "^7.6.4",
-    "@storybook/test": "^7.6.4",
-    "@storybook/theming": "^7.6.17",
-    "@wordpress/components": "^25.13.0",
-    "@wordpress/postcss-plugins-preset": "^4.31.0",
-    "css-loader": "^6.8.1",
+    "@babel/preset-env": "^7.25.8",
+    "@babel/preset-react": "^7.25.7",
+    "@storybook/addon-actions": "^7.6.19",
+    "@storybook/addon-essentials": "^7.6.19",
+    "@storybook/addon-interactions": "^7.6.19",
+    "@storybook/addon-links": "^7.6.19",
+    "@storybook/blocks": "^7.6.19",
+    "@storybook/client-api": "^7.6.19",
+    "@storybook/manager-api": "^7.6.19",
+    "@storybook/react": "^7.6.19",
+    "@storybook/react-webpack5": "^7.6.19",
+    "@storybook/test": "^7.6.19",
+    "@storybook/theming": "^7.6.19",
+    "@wordpress/postcss-plugins-preset": "^5.9.0",
+    "css-loader": "^7.1.2",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
-    "lerna": "^8.1.2",
-    "postcss": "^8.4.32",
-    "postcss-loader": "^7.3.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "lerna": "^8.1.8",
+    "postcss": "^8.4.47",
+    "postcss-loader": "^8.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rimraf": "3.0.2",
     "sass": "^1.69.5",
     "sass-loader": "^13.3.2",
-    "storybook": "^7.6.4",
-    "style-loader": "^3.3.3"
+    "storybook": "^7.6.19",
+    "style-loader": "^4.0.0"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

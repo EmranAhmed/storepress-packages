@@ -1,4 +1,3 @@
-import { createElement } from "react";
 /**
  * External dependencies
  */
@@ -12,6 +11,7 @@ import { useInstanceId } from "@wordpress/compose";
  */
 import { Input } from './input';
 import { Results } from './results';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 function SearchListControl(props) {
   const {
     id
@@ -25,19 +25,21 @@ function SearchListControl(props) {
     id: idProps
   });
   const [searchValue, setSearchValue] = useState('');
-  return createElement(BaseControl, {
-    ...baseControlProps
-  }, createElement("div", {
-    className: "storepress-component-search-list"
-  }, createElement(Input, {
-    searchValue: searchValue,
-    setSearchValue: setSearchValue,
-    controlProps: controlProps,
-    ...baseControlProps
-  }), createElement(Results, {
-    searchValue: searchValue,
-    ...baseControlProps
-  })));
+  return /*#__PURE__*/_jsx(BaseControl, {
+    ...baseControlProps,
+    children: /*#__PURE__*/_jsxs("div", {
+      className: "storepress-component-search-list",
+      children: [/*#__PURE__*/_jsx(Input, {
+        searchValue: searchValue,
+        setSearchValue: setSearchValue,
+        controlProps: controlProps,
+        ...baseControlProps
+      }), /*#__PURE__*/_jsx(Results, {
+        searchValue: searchValue,
+        ...baseControlProps
+      })]
+    })
+  });
 }
 SearchListControl.defaultProps = {
   items: [],

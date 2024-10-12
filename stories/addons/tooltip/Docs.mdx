@@ -1,0 +1,76 @@
+import { Meta, Story, Source, Controls, Canvas } from '@storybook/blocks';
+import * as Stories from './index.stories';
+
+<Meta title="Addons/Tooltip" of={Stories}/>
+
+## Install
+
+```shell
+npm i @storepress/tooltip @storepress/utils --save
+```
+
+## Usage
+
+```js
+/**
+ * External dependencies
+ */
+import StorePressTooltip from '@storepress/tooltip';
+import { triggerEvent } from '@storepress/utils';
+import '@storepress/tooltip/src/style.scss';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup tooltip
+  StorePressTooltip();
+
+  // Init tooltip
+  triggerEvent(document, 'storepress_tooltip_init')
+});
+```
+
+
+## Example
+
+{ /* <Canvas of={Stories.Basic} /> */ }
+
+<Story of={Stories.Basic} />
+
+<Source of={Stories.Basic} />
+
+## Customized Tooltip
+
+```html
+<span class="tooltip" data-tooltip="Tooltip text"></span>
+```
+
+```scss
+
+// style.scss
+
+@import "~@storepress/tooltip/src/mixins";
+
+span.tooltip {
+  @include storepress-tooltip-init("data-tooltip")
+}
+```
+
+```js
+/**
+ * External dependencies
+ */
+import StorePressTooltip from '@storepress/tooltip';
+import { triggerEvent } from '@storepress/utils';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup tooltip
+  StorePressTooltip();
+
+  // Init tooltip
+  triggerEvent(document, 'storepress_tooltip_init_with', {
+    element: '.tooltip'
+  })
+});
+```
+
+
+

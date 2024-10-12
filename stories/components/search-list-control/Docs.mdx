@@ -1,4 +1,4 @@
-import { Meta, Story, Source, Controls } from '@storybook/blocks';
+import { Meta, Story, Source, Controls, Canvas } from '@storybook/blocks';
 import * as Stories from './index.stories';
 
 <Meta title="Components/Search List" of={Stories}/>
@@ -23,7 +23,9 @@ import '@storepress/components/build-style/search-list-control.scss';
 
 ## Basic
 
-<Story of={Stories.Basic} />
+<Canvas of={Stories.Basic} />
+
+{ /* <Story of={Stories.Basic} /> */ }
 
 <Controls of={Stories.Basic} />
 
@@ -31,7 +33,8 @@ import '@storepress/components/build-style/search-list-control.scss';
 
 ## Remote
 
-<Story of={Stories.Remote} />
+{ /*<Story of={Stories.Remote} />*/ }
+<Canvas of={Stories.Remote} />
 
 <Controls of={Stories.Remote} />
 

@@ -39,16 +39,19 @@ const config = {
         "../stories/**/*.mdx",
         "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)",
     ],
+
     addons       : [
         getAbsolutePath("@storybook/addon-links"),
-        getAbsolutePath("@storybook/addon-essentials"),
         // getAbsolutePath("@storybook/addon-actions"),
-        //getAbsolutePath("@storybook/addon-interactions"),
+        getAbsolutePath("@storybook/addon-interactions"),
+        getAbsolutePath("@storybook/addon-essentials")
     ],
+
     framework    : {
         name    : getAbsolutePath("@storybook/react-webpack5"),
         options : {},
     },
+
     features     : {
         babelModeV7  : true,
         emotionAlias : false,
@@ -67,5 +70,9 @@ const config = {
 
         return config;
     },
+
+/*    typescript: {
+        reactDocgen: 'react-docgen-typescript'
+    }*/
 };
 export default config;

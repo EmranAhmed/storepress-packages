@@ -31,4 +31,4 @@ var _storepress = _interopRequireDefault(require("./library/storepress"));
 var _popup = _interopRequireDefault(require("./library/popup"));
 var _slider = _interopRequireDefault(require("./library/slider"));
 var _archiveProduct = _interopRequireDefault(require("./library/archive-product"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
