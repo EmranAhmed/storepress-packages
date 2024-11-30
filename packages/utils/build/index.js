@@ -127,7 +127,7 @@ function createPluginInstance(selectors, options, plugin) {
         instance.element = element;
         instance.destroy = function () {
           weakMap["delete"](element);
-          element.dispatchEvent(new Event('destroy'));
+          triggerEvent(element, 'destroy');
         };
         weakMap.set(element, instance);
       }
