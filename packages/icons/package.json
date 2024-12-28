@@ -30,8 +30,8 @@
   },
   "dependencies" : {
     "@babel/runtime" : "^7.25.7",
-    "@wordpress/icons" : "^10.9.0",
-    "@wordpress/primitives" : "^4.9.0"
+    "@wordpress/icons" : "^10.14.0",
+    "@wordpress/primitives" : "^4.14.0"
   },
   "publishConfig" : {
     "access" : "public"
@@ -39,7 +39,7 @@
   "devDependencies" : {
     "@babel/cli" : "^7.25.7",
     "@babel/preset-react" : "^7.25.7",
-    "@wordpress/babel-preset-default" : "^8.9.0"
+    "@wordpress/babel-preset-default" : "^8.14.0"
   },
   "peerDependencies" : {
     "react" : "^18.3.1",

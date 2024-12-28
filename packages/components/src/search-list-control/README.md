@@ -17,9 +17,144 @@ _This package assumes that your code will run in an **ES2015+** environment. If 
 ### Usage
 
 ```jsx
+import { useState } from '@wordpress/element';
 import { SearchListControl } from '@storepress/components';
+
 import '@storepress/components/build-style/search-list-control.scss';
+
+import { __ } from '@wordpress/i18n';
+import { PanelBody } from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
+import { addQueryArgs } from '@wordpress/url';
+import { debounce } from '@wordpress/compose';
+
+export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
+  const { query: { productId = 0 } = {} } = attributes;
+
+  const [ queryProductsList, setQueryProductsList ] = useState( [] );
+  const [ queryProductSearch, setQueryProductSearch ] = useState( '' );
+  const [ isLoading, setIsLoading ] = useState( false );
+
+  const fetchSearchResult = useCallback( async () => {
+    setIsLoading( true );
+    const perPage = 20;
+
+    const searchResults = await apiFetch( {
+      path: addQueryArgs( 'wc/store/v1/products', {
+        search: queryProductSearch,
+        per_page: perPage,
+      } ),
+    } ).finally( () => {
+      setIsLoading( false );
+    } );
+
+    const productResult = await apiFetch( {
+      path: addQueryArgs( 'wc/store/v1/products', {
+        include: productId,
+        per_page: perPage,
+      } ),
+    } ).finally( () => {
+      setIsLoading( false );
+    } );
+
+    const currentProduct = [ ...productResult ].at( 0 ) || {};
+
+    const currentProductOption =
+      currentProduct.id > 0 ? [ currentProduct ] : [];
+
+    const results = searchResults.reduce( ( products, product ) => {
+      if ( product.id === currentProduct?.id ) {
+        return products;
+      }
+
+      products.push( product );
+
+      return products;
+    }, [] );
+
+    return [ ...currentProductOption, ...results ];
+  }, [ queryProductSearch ] );
+
+  const onProductSearch = useCallback( ( search ) => {
+    // setIsLoading(true);
+    setQueryProductSearch( search );
+  }, [] );
+
+  const debouncedOnProductSearch = debounce( onProductSearch, 800 );
+
+  const onChangeSearchList = ( id ) => {
+    setAttributes( {
+      query: {
+        ...attributes.query,
+        productId: parseInt( id.at( 0 ), 10 ),
+      },
+    } );
+  };
+
+  useEffect( () => {
+    ( async () => {
+      const products = await fetchSearchResult();
+
+      setQueryProductsList( products );
+      setIsLoading( false );
+    } )();
+  }, [ fetchSearchResult ] );
+
+  return (
+    <PanelBody title={ __( 'Product Settings', 'textdomain' ) }>
+      <SearchListControl
+        disableFilter={ true }
+        itemMetaName={ [ 'type' ] }
+        items={ queryProductsList }
+        selected={ [ productId ] }
+        onSelect={ onChangeSearchList }
+        onSearch={ debouncedOnProductSearch }
+        isLoading={ isLoading }
+        placeholder={ __('Search Product', 'textdomain') }
+      />
+    </PanelBody>
+  );
+};
+
+export const Example = () => {
+  const [sugessionList, setSugessionList] = useState([])
+  const [loding, setLoading]              = useState(true)
+  
+// Fetch Attributes
+  useEffect(() => {
+    apiFetch({
+      path : 'wc/store/v1/products/attributes',
+    }).then((result) => {
+      if (result && result.length > 0) {
+        setLoading(false)
+        setSugessionList(result)
+      }
+    })
+  }, []);
+
+  return (
+      <SearchListControl
+        selected={['17', '23', '36']}
+        itemKeyName="id"
+        itemValueName="title.rendared"
+        hideSearchBox={false}
+        isMultiSelect={true}
+        isLoading={loding}
+        onSearch={(searchString) => {
+          // return filtered values.
+        }}
+        onSelect={(selectedKeys, selectedItems) => {
+
+        }}
+        onClear={() => {
+          console.log()
+        }}
+        items={sugessionList}
+      />
+  );
+}
 ```
+
 
 ### Props
 
@@ -154,52 +289,3 @@ A function execute when clear button clicked.
 
 -   Required: no
 
-
-### Example:
-
-```js
-import { useState } from '@wordpress/element';
-import { SearchListControl } from '@storepress/components';
-const [sugessionList, setSugessionList] = useState([])
-const [loding, setLoading]              = useState(true)
-
-const blockProps = useBlockProps();
-
-const innerBlockProps = useInnerBlocksProps();
-
-// Fetch Attributes
-useEffect(() => {
-  apiFetch({
-     path : 'wc/store/v1/products/attributes',
-  }).then((result) => {
-    if (result && result.length > 0) {
-      setLoading(false)
-      setSugessionList(result)
-    }
-  })
-}, []);
-
-return (
-  <div {...blockProps}>
-    <SearchListControl
-      selected={['17', '23', '36']}
-      itemKeyName="id"
-      itemValueName="title.rendared"
-      hideSearchBox={false}
-      isMultiSelect={true}
-      isLoading={loding}
-      onSearch={(searchString) => {
-          // return filtered values.
-      }}
-      onSelect={(selectedKeys, selectedItems) => {
-          
-      }}
-      onClear={() => {
-        console.log()
-      }}
-      items={sugessionList}
-    />
-    <div {...innerBlockProps} />
-  </div>
-);
-```

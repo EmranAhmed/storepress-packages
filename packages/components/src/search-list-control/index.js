@@ -32,7 +32,7 @@ function SearchListControl(props) {
     );
 }
 
-SearchListControl.defaultProps = {
+/*SearchListControl.defaultProps = {
     items            : [],
     selected         : [],
     disableFilter    : false,
@@ -49,7 +49,7 @@ SearchListControl.defaultProps = {
     onSearch         : (searchString) => {},
     onSelect         : (selectedKeys, selectedItems) => {},
     onClear          : () => {},
-}
+}*/
 // @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
 SearchListControl.propTypes    = {
 

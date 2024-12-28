@@ -13,7 +13,7 @@ import { SearchListControl } from '@storepress/components/src';
 import '@storepress/components/src/search-list-control/style.scss';
 
 export default {
-    title      : 'Components/Search List Control',
+    title      : 'Components/SearchListControl',
     component  : SearchListControl,
     parameters : {
         controls : {expanded : true},

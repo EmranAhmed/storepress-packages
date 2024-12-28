@@ -1,0 +1,36 @@
+import { Meta, Story, Source, Controls, Canvas } from '@storybook/blocks';
+import * as Stories from './index.stories';
+
+<Meta title="Components/UnitRangeControl" of={Stories}/>
+
+## Install
+
+```shell
+npm i @storepress/components --save
+```
+
+## Usage
+
+```jsx
+import { UnitRangeControl } from '@storepress/components';
+```
+
+## Basic
+
+<Canvas of={Stories.Basic} />
+
+{ /* <Story of={Stories.Basic} /> */ }
+
+<Controls of={Stories.Basic} />
+
+<Source of={Stories.Basic} />
+
+## Custom
+
+<Canvas of={Stories.Custom} />
+
+{ /* <Story of={Stories.Custom} /> */ }
+
+<Controls of={Stories.Custom} />
+
+<Source of={Stories.Custom} />
