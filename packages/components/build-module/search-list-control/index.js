@@ -41,24 +41,25 @@ function SearchListControl(props) {
     })
   });
 }
-SearchListControl.defaultProps = {
-  items: [],
-  selected: [],
-  disableFilter: false,
-  isLoading: false,
-  isMultiSelect: false,
-  hideSearchBox: false,
-  placeholder: '',
-  clearText: '',
-  noItemsFoundText: '',
-  itemKeyName: 'id',
-  itemValueName: ['name'],
-  itemMetaName: [],
-  itemFilterName: ['name'],
-  onSearch: searchString => {},
-  onSelect: (selectedKeys, selectedItems) => {},
-  onClear: () => {}
-};
+
+/*SearchListControl.defaultProps = {
+    items            : [],
+    selected         : [],
+    disableFilter    : false,
+    isLoading        : false,
+    isMultiSelect    : false,
+    hideSearchBox    : false,
+    placeholder      : '',
+    clearText        : '',
+    noItemsFoundText : '',
+    itemKeyName      : 'id',
+    itemValueName    : ['name'],
+    itemMetaName     : [],
+    itemFilterName   : ['name'],
+    onSearch         : (searchString) => {},
+    onSelect         : (selectedKeys, selectedItems) => {},
+    onClear          : () => {},
+}*/
 // @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
 SearchListControl.propTypes = {
   id: PropTypes.string,
