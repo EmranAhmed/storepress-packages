@@ -51,6 +51,7 @@ export function toUpperCamelCase (string) {
     return p1.toUpperCase()
   })
 }
+
 /**
  * Get Option from HTML Attribute
  *
@@ -153,17 +154,24 @@ export function getPluginInstance (selectors) {
 /**
  * Trigger Custom Event.
  *
- * @param {Element|Document} target     - HTML Element.
+ * @param {Element|Document} target - HTML Element.
  * @param {string}  eventType   - Callback Function Handler
- * @param {Object}  eventDetails - Pass Event details to use on event listener function..
+ * @param {Object}  eventDetails - Pass Event details to use on event listener function.
+ * @param {{ bubbles: boolean, cancelable: boolean, composed: boolean }}  options - Pass Event options Default: { bubbles: boolean, cancelable: boolean, composed: boolean }.
  * @return {boolean} - Dispatched event return.
+ * @see: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
  */
-export function triggerEvent (target, eventType, eventDetails = {}) {
-  return target.dispatchEvent(
-    new CustomEvent(eventType, {
-      detail: { ...eventDetails },
-    }),
-  )
+export function triggerEvent (target, eventType, eventDetails = {}, options = {}) {
+
+  const defaultOptions = { bubbles: false, cancelable: false, composed: false }
+  const availableOptions = { ...defaultOptions, ...options }
+
+  return target.dispatchEvent(new CustomEvent(eventType, {
+    ...availableOptions,
+    detail: {
+      ...eventDetails,
+    },
+  }))
 }
 
 /**

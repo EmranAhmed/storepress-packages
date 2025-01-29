@@ -15,7 +15,14 @@ _This package assumes that your code will run in an **ES2015+** environment. If 
 ## Usage
 
 ```js
-import { getOptionsFromAttribute, createPluginInstance } from '@storepress/utils';
+import { getOptionsFromAttribute, createPluginInstance, triggerEvent } from '@storepress/utils';
+```
+
+```js
+
+// Global Availability.
+
+StorePress.Utils.triggerEvent(...);
 ```
 
 ## Example Plugin `Plugin.js`
