@@ -1,4 +1,4 @@
-# StorePress Packages
+# StorePress JavaScript Packages
 
 - Check docs: https://emranahmed.github.io/storepress-packages/
 

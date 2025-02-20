@@ -1,43 +1,48 @@
+/**
+ * WeakMap to store plugin instances associated with DOM elements
+ * @type {WeakMap<HTMLElement, any>}
+ */
 const weakMap = new WeakMap()
 
-export function getElement (selector) {
-
-  // empty
-  if (!selector) {
-    return null
-  }
-
-  // querySelector
-  if (typeof selector === 'string') {
-    return document.querySelector(selector)
-  }
-
-  // HTMLElement
-  if (selector instanceof window.HTMLElement) {
-    return selector
-  }
-  return selector
+/**
+ * Retrieves a single DOM element based on the provided selector.
+ *
+ * @param {string|HTMLElement|null} [selector=null] - CSS selector string or HTMLElement
+ * @returns {HTMLElement|null} The found element or null if not found/invalid
+ *
+ * @example
+ * // Get element by ID
+ * const element1 = getElement('#myId');
+ *
+ * // Pass HTMLElement directly
+ * const element2 = getElement(document.body);
+ *
+ * // Invalid selector returns null
+ * const element3 = getElement(null); // returns null
+ */
+export function getElement (selector = null) {
+  if (null === selector) return null
+  if (typeof selector === 'string') return document.querySelector(selector)
+  return selector instanceof HTMLElement ? selector : null
 }
 
-export function getElements (selectors) {
+/**
+ * Gets multiple DOM elements based on the provided selector
+ * @param {string|HTMLElement|NodeList|Array<HTMLElement>} [selectors=[]] - CSS selector string, HTMLElement, or NodeList
+ * @returns {NodeList|Array<HTMLElement>} Array of found elements or empty array
+ */
+export function getElements (selectors = []) {
 
-  // empty
-  if (!selectors) {
-    return []
-  }
-
-  // querySelectorAll
-  if (typeof selectors === 'string') {
-    return document.querySelectorAll(selectors)
-  }
-
-  // HTMLElements
-  if (selectors instanceof window.HTMLElement) {
-    return [selectors]
-  }
-  return selectors
+  if (selectors.length === 0) return []
+  if (typeof selectors === 'string') return document.querySelectorAll(selectors)
+  return selectors instanceof HTMLElement ? [selectors] : selectors
 }
 
+/**
+ * Converts a string to camelCase
+ * @param {string} string - String to convert
+ * @returns {string} Converted camelCase string
+ */
 export function toCamelCase (string) {
   return string.replace(/^([A-Z])|[\s-_](\w)/g, (match, p1, p2) => {
     if (p2) return p2.toUpperCase()
@@ -45,6 +50,11 @@ export function toCamelCase (string) {
   })
 }
 
+/**
+ * Converts a string to PascalCase (UpperCamelCase)
+ * @param {string} string - String to convert
+ * @returns {string} Converted PascalCase string
+ */
 export function toUpperCamelCase (string) {
   return string.replace(/^([a-z])|[\s-_](\w)/g, (match, p1, p2) => {
     if (p2) return p2.toUpperCase()
@@ -53,11 +63,10 @@ export function toUpperCamelCase (string) {
 }
 
 /**
- * Get Option from HTML Attribute
- *
- * @param {Element} element         - HTML Element.
- * @param {string}  attributeName   - Attribute Name
- * @return {Object}                 - Return Object.
+ * Parses options from a data attribute
+ * @param {HTMLElement} element - DOM element containing the attributes
+ * @param {string} attributeName - Name of the attribute to parse
+ * @returns {Object} Parsed options object
  */
 export function getOptionsFromAttribute (element, attributeName) {
 
@@ -115,40 +124,36 @@ export function getOptionsFromAttribute (element, attributeName) {
   }
 }
 
+/**
+ * Creates plugin instances for selected elements
+ * @param {string|HTMLElement|NodeList} selectors - Elements to create plugins for
+ * @param {Object} options - Plugin options
+ * @param {Function} plugin - Plugin constructor
+ * @returns {Array} Array of plugin instances
+ */
 export function createPluginInstance (selectors, options, plugin) {
-  const elements = getElements(selectors)
-  const instances = []
-  for (const element of elements) {
-    let instance = weakMap.get(element)
-    if (!weakMap.has(element)) {
-      instance = new plugin(element, options)
-      instance.element = element
-      instance.destroy = () => {
-        weakMap.delete(element)
-        triggerEvent(element, 'destroy')
-      }
-      weakMap.set(element, instance)
+  return Array.from(getElements(selectors)).map(element => {
+    if (weakMap.has(element)) return weakMap.get(element)
+
+    const instance = new plugin(element, options)
+    instance.element = element
+    instance.destroy = () => {
+      weakMap.delete(element)
+      triggerEvent(element, 'destroy')
     }
-    instances.push(instance)
-  }
-  return instances
+
+    weakMap.set(element, instance)
+    return instance
+  })
 }
 
+/**
+ * Gets existing plugin instances for selected elements
+ * @param {string|HTMLElement|NodeList} selectors - Elements to get plugins for
+ * @returns {Array} Array of plugin instances
+ */
 export function getPluginInstance (selectors) {
-  const elements = getElements(selectors)
-  const instances = []
-
-  if (elements.length === 0) {
-    return instances
-  }
-
-  for (const element of elements) {
-    if (weakMap.has(element)) {
-      const instance = weakMap.get(element)
-      instances.push(instance)
-    }
-  }
-  return instances
+  return Array.from(getElements(selectors)).filter(element => weakMap.has(element)).map(element => weakMap.get(element))
 }
 
 /**
@@ -175,15 +180,26 @@ export function triggerEvent (target, eventType, eventDetails = {}, options = {}
 }
 
 /**
- * @typedef {Function} unregister
+ * @typedef {Object} SwipeOptions
+ * @property {number} [offset=10] - Minimum distance to trigger swipe detection
+ * @property {boolean} [touchOnly=false] - Whether to listen for touch events only
  */
+
 /**
- * Swipe Event.
+ * Creates a swipe event handler for an element with support for both touch and pointer events.
  *
- * @param {Element|Document}                     target     - HTML Element.
- * @param {function(event):void}                 listenerFn - Callback Function Handler
- * @param {{offset: number, touchOnly: boolean}} options    - Options.
- * @return {unregister} - Return `unregister` function for cleanup events.
+ * @param {HTMLElement} target - Element to attach swipe detection to
+ * @param {function(CustomEvent)} listenerFn - Callback function for swipe events
+ * @param {SwipeOptions} [options={}] - Configuration options
+ * @returns {function(): void} Cleanup function to remove event listeners
+ *
+ * @example
+ * const element = document.getElementById('swipeArea');
+ * const cleanup = swipeEvent(element, (e) => {
+ *   if (e.detail.right) console.log('Swiped right!');
+ * });
+ *
+ * // Later: cleanup();
  */
 export function swipeEvent (target, listenerFn, options = {}) {
   let readyToMove = false
@@ -193,6 +209,8 @@ export function swipeEvent (target, listenerFn, options = {}) {
   let isTouchEvent = false
   const defaults = { offset: 10, touchOnly: false }
   const settings = { ...defaults, ...options }
+  const controller = new AbortController()
+  const { signal } = controller
 
   const start = (event) => {
     readyToMove = true
@@ -289,38 +307,71 @@ export function swipeEvent (target, listenerFn, options = {}) {
   }
 
   const unregister = () => {
-    target.removeEventListener('touchstart', start)
-    target.removeEventListener('touchmove', move)
-    target.removeEventListener('touchend', end)
-    target.removeEventListener('touchcancel', end)
-
-    if (!settings.touchOnly) {
-      target.removeEventListener('pointerdown', start)
-      target.removeEventListener('pointermove', move)
-      target.removeEventListener('pointerup', end)
-      target.removeEventListener('pointerleave', end)
-    }
-
-    target.removeEventListener('swipe', listenerFn)
+    controller.abort()
   }
 
   const register = () => {
-    target.addEventListener('touchstart', start, { passive: true })
-    target.addEventListener('touchmove', move, { passive: true })
-    target.addEventListener('touchend', end, { passive: true })
-    target.addEventListener('touchcancel', end)
+    target.addEventListener('touchstart', start, { passive: true, signal })
+    target.addEventListener('touchmove', move, { passive: true, signal })
+    target.addEventListener('touchend', end, { passive: true, signal })
+    target.addEventListener('touchcancel', end, { signal })
 
     if (!settings.touchOnly) {
-      target.addEventListener('pointerdown', start)
-      target.addEventListener('pointermove', move)
-      target.addEventListener('pointerup', end)
-      target.addEventListener('pointerleave', end)
+      target.addEventListener('pointerdown', start, { signal })
+      target.addEventListener('pointermove', move, { signal })
+      target.addEventListener('pointerup', end, { signal })
+      target.addEventListener('pointerleave', end, { signal })
     }
 
-    target.addEventListener('swipe', listenerFn)
+    target.addEventListener('swipe', listenerFn, { signal })
 
     return unregister
   }
 
   return register()
+}
+
+/**
+ * Asynchronously waits for the specified duration without blocking the UI thread.
+ * Uses setTimeout internally to create a non-blocking delay.
+ *
+ * @param {number} milliseconds - The duration to wait in milliseconds
+ * @returns {Promise<void>} A promise that resolves after the specified duration
+ *
+ * @example
+ * // Wait for 2 seconds asynchronously
+ * await waitAsync(2000);
+ * console.log('Continued after 2 seconds without blocking UI');
+ *
+ * @example
+ * // Using in an async function
+ * async function example() {
+ *   console.log('Starting');
+ *   await waitAsync(1000);
+ *   console.log('1 second passed');
+ * }
+ */
+export function waitAsync (milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+/**
+ * Synchronously waits for the specified duration, blocking the UI thread.
+ * Uses a busy-wait loop to create a blocking delay.
+ * WARNING: This will freeze the UI during execution.
+ *
+ * @param {number} milliseconds - The duration to wait in milliseconds
+ * @returns {void}
+ *
+ * @example
+ * // Wait for 2 seconds synchronously (NOT RECOMMENDED)
+ * waitSync(2000);
+ * console.log('Continued after 2 seconds of blocking');
+ *
+ * @throws {Error} Implicitly may throw if milliseconds is negative or non-numeric
+ * @warning This function blocks the main thread and should be used with extreme caution
+ */
+export function waitSync (milliseconds) {
+  const start = Date.now()
+  while (Date.now() - start < milliseconds) {}
 }
