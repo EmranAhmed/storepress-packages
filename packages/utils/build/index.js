@@ -95,7 +95,9 @@ function getOptionsFromAttribute(element, attributeName) {
   var attributeKey = toCamelCase(attributeName);
   var attributeSubKey = "".concat(attributeKey, "-");
   var dataset = _objectSpread({}, element.dataset);
-  var settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}';
+
+  // const settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}'
+  var settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"').replace(/\\/g, '\\\\') : '{}';
   var boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N'];
   var truthyValues = ['true', 'TRUE', 'yes', 'YES', 'y', 'Y'];
   try {

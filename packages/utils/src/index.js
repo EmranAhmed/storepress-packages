@@ -76,7 +76,8 @@ export function getOptionsFromAttribute (element, attributeName) {
 
   const dataset = { ...element.dataset }
 
-  const settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}'
+  // const settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"') : '{}'
+  const settings = dataset[attributeKey] ? dataset[attributeKey].replace(/\'/g, '"').replace(/\\/g, '\\\\') : '{}';
 
   const boolValues = ['true', 'TRUE', 'false', 'FALSE', 'yes', 'YES', 'no', 'NO', 'y', 'Y', 'n', 'N']
 
