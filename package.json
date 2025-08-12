@@ -15,9 +15,9 @@
   "dependencies": {
     "@storepress/components": "file:packages/components",
     "@storepress/icons": "file:packages/icons",
-    "@storepress/tooltip": "^0.0.7",
+    "@storepress/tooltip": "^0.2.0",
     "@storepress/utils": "file:packages/utils",
-    "@wordpress/api-fetch": "^7.9.0"
+    "@wordpress/api-fetch": "^7.28.0"
   },
   "scripts": {
     "storybook": "storybook dev -p 6006",
