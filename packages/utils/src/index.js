@@ -5,20 +5,174 @@
 const weakMap = new WeakMap()
 
 /**
- * Retrieves a single DOM element based on the provided selector.
+ * Normalizes different selector input types into a single HTMLElement or null.
  *
- * @param {string|HTMLElement|null} [selector=null] - CSS selector string or HTMLElement
- * @returns {HTMLElement|null} The found element or null if not found/invalid
+ * This utility function provides a consistent way to handle element selection by accepting
+ * either a CSS selector string or an existing HTMLElement. It's commonly used in library
+ * functions where you want to provide flexibility in how users specify target elements.
+ *
+ * @param {string|HTMLElement|null} [selector=null] - The element selector or element itself
+ * @returns {HTMLElement|null} The resolved HTMLElement, or null if not found/invalid
  *
  * @example
- * // Get element by ID
- * const element1 = getElement('#myId');
+ * // Using CSS selector string
+ * const element1 = getElement('#my-button');
+ * console.log(element1); // <button id="my-button">...</button> or null
  *
- * // Pass HTMLElement directly
- * const element2 = getElement(document.body);
+ * const element2 = getElement('.sidebar');
+ * console.log(element2); // First element with class 'sidebar' or null
  *
- * // Invalid selector returns null
- * const element3 = getElement(null); // returns null
+ * @example
+ * // Passing an existing HTMLElement (returns the same element)
+ * const existingElement = document.getElementById('header');
+ * const element = getElement(existingElement);
+ * console.log(element === existingElement); // true
+ *
+ * @example
+ * // Handling null/undefined input
+ * const element1 = getElement(null);
+ * console.log(element1); // null
+ *
+ * const element2 = getElement();
+ * console.log(element2); // null (default parameter)
+ *
+ * @example
+ * // Invalid input handling
+ * const element1 = getElement(123);
+ * console.log(element1); // null
+ *
+ * const element2 = getElement({});
+ * console.log(element2); // null
+ *
+ * const element3 = getElement('non-existent-selector');
+ * console.log(element3); // null (element not found)
+ *
+ * @example
+ * // Use case: Flexible component initialization
+ * class Modal {
+ *   constructor(target, options = {}) {
+ *     this.element = getElement(target);
+ *
+ *     if (!this.element) {
+ *       throw new Error('Modal target element not found');
+ *     }
+ *
+ *     this.init(options);
+ *   }
+ *
+ *   init(options) {
+ *     // Initialize modal functionality
+ *   }
+ * }
+ *
+ * // All of these work:
+ * new Modal('#modal1');                          // CSS selector
+ * new Modal(document.getElementById('modal2'));  // HTMLElement
+ * new Modal(document.querySelector('.modal'));  // HTMLElement from query
+ *
+ * @example
+ * // Use case: Event handler utility
+ * function addClickHandler(target, callback) {
+ *   const element = getElement(target);
+ *
+ *   if (element) {
+ *     element.addEventListener('click', callback);
+ *     return true; // Success
+ *   }
+ *
+ *   console.warn('Element not found for click handler');
+ *   return false; // Failed
+ * }
+ *
+ * // Flexible usage
+ * addClickHandler('#submit-btn', () => console.log('Clicked!'));
+ * addClickHandler(myButtonElement, handleClick);
+ *
+ * @example
+ * // Use case: DOM manipulation utility
+ * function toggleClass(target, className) {
+ *   const element = getElement(target);
+ *
+ *   if (element) {
+ *     element.classList.toggle(className);
+ *   }
+ * }
+ *
+ * // Works with both selectors and elements
+ * toggleClass('.menu-toggle', 'active');
+ * toggleClass(menuElement, 'visible');
+ *
+ * @example
+ * // Use case: Form validation helper
+ * function validateField(fieldSelector, validator) {
+ *   const field = getElement(fieldSelector);
+ *
+ *   if (!field) {
+ *     console.warn(`Field ${fieldSelector} not found`);
+ *     return false;
+ *   }
+ *
+ *   const isValid = validator(field.value);
+ *   field.classList.toggle('invalid', !isValid);
+ *
+ *   return isValid;
+ * }
+ *
+ * // Usage
+ * validateField('#email', value => value.includes('@'));
+ * validateField(passwordField, value => value.length >= 8);
+ *
+ * @example
+ * // Use case: Plugin architecture with flexible targeting
+ * class Tooltip {
+ *   static attach(target, content) {
+ *     const element = getElement(target);
+ *
+ *     if (!element) {
+ *       console.warn('Tooltip target not found:', target);
+ *       return null;
+ *     }
+ *
+ *     return new Tooltip(element, content);
+ *   }
+ *
+ *   constructor(element, content) {
+ *     this.element = element;
+ *     this.content = content;
+ *     this.init();
+ *   }
+ * }
+ *
+ * // Multiple ways to create tooltips
+ * Tooltip.attach('#help-icon', 'Click for help');
+ * Tooltip.attach(document.querySelector('.info'), 'Additional info');
+ *
+ * @example
+ * // Use case: Animation utility
+ * function fadeOut(target, duration = 300) {
+ *   const element = getElement(target);
+ *
+ *   if (!element) return Promise.reject('Element not found');
+ *
+ *   element.style.transition = `opacity ${duration}ms`;
+ *   element.style.opacity = '0';
+ *
+ *   return new Promise(resolve => {
+ *     setTimeout(() => {
+ *       element.style.display = 'none';
+ *       resolve(element);
+ *     }, duration);
+ *   });
+ * }
+ *
+ * // Flexible element targeting
+ * fadeOut('.notification').then(() => console.log('Faded out'));
+ * fadeOut(alertElement).catch(console.error);
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector Document.querySelector()
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement HTMLElement
+ *
+ * @since 0.3.0
  */
 export function getElement (selector = null) {
   if (null === selector) return null
@@ -27,9 +181,234 @@ export function getElement (selector = null) {
 }
 
 /**
- * Gets multiple DOM elements based on the provided selector
- * @param {string|HTMLElement|NodeList|Array<HTMLElement>} [selectors=[]] - CSS selector string, HTMLElement, or NodeList
- * @returns {NodeList|Array<HTMLElement>} Array of found elements or empty array
+ * Normalizes different selector input types into a collection of HTMLElements.
+ *
+ * This utility function provides a flexible way to handle multiple element selection by accepting
+ * CSS selector strings, individual HTMLElements, or arrays of elements. It ensures consistent
+ * output format for functions that need to operate on multiple elements while providing
+ * flexibility in input types.
+ *
+ * @param {string|HTMLElement|HTMLElement[]|NodeList|Array} [selectors=[]] - The element selector(s) or element(s)
+ * @returns {HTMLElement[]|NodeList|Array} Collection of HTMLElements, empty array if no matches
+ *
+ * @example
+ * // Using CSS selector string (returns NodeList)
+ * const elements1 = getElements('.button');
+ * console.log(elements1); // NodeList of all elements with class 'button'
+ *
+ * const elements2 = getElements('#container > div');
+ * console.log(elements2); // NodeList of direct div children of #container
+ *
+ * @example
+ * // Single HTMLElement (wrapped in array)
+ * const singleElement = document.getElementById('header');
+ * const elements = getElements(singleElement);
+ * console.log(elements); // [<div id="header">...</div>]
+ *
+ * @example
+ * // Array of HTMLElements (passed through)
+ * const elementArray = [
+ *   document.getElementById('btn1'),
+ *   document.getElementById('btn2')
+ * ];
+ * const elements = getElements(elementArray);
+ * console.log(elements === elementArray); // true (same reference)
+ *
+ * @example
+ * // NodeList (passed through)
+ * const nodeList = document.querySelectorAll('.item');
+ * const elements = getElements(nodeList);
+ * console.log(elements === nodeList); // true (same reference)
+ *
+ * @example
+ * // Empty input handling
+ * const elements1 = getElements();
+ * console.log(elements1); // []
+ *
+ * const elements2 = getElements([]);
+ * console.log(elements2); // []
+ *
+ * const elements3 = getElements('');
+ * console.log(elements3); // NodeList (empty)
+ *
+ * @example
+ * // Use case: Bulk event handler attachment
+ * function addEventListeners(targets, eventType, handler) {
+ *   const elements = getElements(targets);
+ *
+ *   // Convert to array if NodeList for easier iteration
+ *   const elementsArray = Array.from(elements);
+ *
+ *   elementsArray.forEach(element => {
+ *     if (element && element.addEventListener) {
+ *       element.addEventListener(eventType, handler);
+ *     }
+ *   });
+ *
+ *   return elementsArray.length; // Return count of elements processed
+ * }
+ *
+ * // Flexible usage
+ * addEventListeners('.nav-link', 'click', handleNavClick);
+ * addEventListeners([btn1, btn2, btn3], 'click', handleButtonClick);
+ * addEventListeners(singleButton, 'click', handleSingleClick);
+ *
+ * @example
+ * // Use case: Bulk style manipulation
+ * function setStyles(targets, styles) {
+ *   const elements = getElements(targets);
+ *
+ *   Array.from(elements).forEach(element => {
+ *     if (element && element.style) {
+ *       Object.assign(element.style, styles);
+ *     }
+ *   });
+ * }
+ *
+ * // Apply styles to multiple elements
+ * setStyles('.card', { opacity: '0.8', transition: 'all 0.3s' });
+ * setStyles([header, footer], { backgroundColor: '#f5f5f5' });
+ * setStyles(mainContent, { padding: '20px' });
+ *
+ * @example
+ * // Use case: Form field validation
+ * function validateFields(fieldSelectors, validator) {
+ *   const fields = getElements(fieldSelectors);
+ *   const results = [];
+ *
+ *   Array.from(fields).forEach(field => {
+ *     if (field && field.value !== undefined) {
+ *       const isValid = validator(field.value);
+ *       field.classList.toggle('invalid', !isValid);
+ *       field.classList.toggle('valid', isValid);
+ *
+ *       results.push({
+ *         element: field,
+ *         valid: isValid,
+ *         value: field.value
+ *       });
+ *     }
+ *   });
+ *
+ *   return results;
+ * }
+ *
+ * // Validate different input types
+ * validateFields('.required-field', value => value.trim().length > 0);
+ * validateFields([emailField, phoneField], value => value.includes('@') || /^\d+$/.test(value));
+ *
+ * @example
+ * // Use case: Animation sequences
+ * function animateElements(targets, animation, delay = 0) {
+ *   const elements = getElements(targets);
+ *   const promises = [];
+ *
+ *   Array.from(elements).forEach((element, index) => {
+ *     if (element && element.animate) {
+ *       const promise = new Promise(resolve => {
+ *         setTimeout(() => {
+ *           element.animate(animation.keyframes, animation.options)
+ *             .addEventListener('finish', resolve);
+ *         }, delay * index);
+ *       });
+ *       promises.push(promise);
+ *     }
+ *   });
+ *
+ *   return Promise.all(promises);
+ * }
+ *
+ * // Staggered animations
+ * const fadeIn = {
+ *   keyframes: [{ opacity: 0 }, { opacity: 1 }],
+ *   options: { duration: 500 }
+ * };
+ *
+ * animateElements('.list-item', fadeIn, 100); // 100ms stagger
+ *
+ * @example
+ * // Use case: Component initialization
+ * class Tooltip {
+ *   static attachToAll(targets, options = {}) {
+ *     const elements = getElements(targets);
+ *     const instances = [];
+ *
+ *     Array.from(elements).forEach(element => {
+ *       if (element) {
+ *         instances.push(new Tooltip(element, options));
+ *       }
+ *     });
+ *
+ *     return instances;
+ *   }
+ *
+ *   constructor(element, options) {
+ *     this.element = element;
+ *     this.options = options;
+ *     this.init();
+ *   }
+ * }
+ *
+ * // Initialize tooltips on multiple elements
+ * Tooltip.attachToAll('[data-tooltip]', { placement: 'top' });
+ * Tooltip.attachToAll([helpIcon, infoIcon], { theme: 'dark' });
+ *
+ * @example
+ * // Use case: Data collection and processing
+ * function collectElementData(targets, dataExtractor) {
+ *   const elements = getElements(targets);
+ *   const data = [];
+ *
+ *   Array.from(elements).forEach(element => {
+ *     if (element) {
+ *       const elementData = dataExtractor(element);
+ *       if (elementData !== null && elementData !== undefined) {
+ *         data.push(elementData);
+ *       }
+ *     }
+ *   });
+ *
+ *   return data;
+ * }
+ *
+ * // Extract data from form fields
+ * const formData = collectElementData('.form-field', el => ({
+ *   name: el.name,
+ *   value: el.value,
+ *   type: el.type
+ * }));
+ *
+ * // Extract text content from multiple elements
+ * const textContent = collectElementData('.content-section', el => el.textContent);
+ *
+ * @example
+ * // Use case: Conditional operations based on element state
+ * function toggleVisibility(targets, condition = null) {
+ *   const elements = getElements(targets);
+ *   let toggledCount = 0;
+ *
+ *   Array.from(elements).forEach(element => {
+ *     if (element) {
+ *       const shouldShow = condition ? condition(element) :
+ *         element.style.display === 'none';
+ *
+ *       element.style.display = shouldShow ? '' : 'none';
+ *       toggledCount++;
+ *     }
+ *   });
+ *
+ *   return toggledCount;
+ * }
+ *
+ * // Toggle multiple elements
+ * toggleVisibility('.sidebar-item');
+ * toggleVisibility([menu, dropdown], el => el.classList.contains('active'));
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll Document.querySelectorAll()
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/NodeList NodeList
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from Array.from()
+ *
+ * @since 0.3.0
  */
 export function getElements (selectors = []) {
 
@@ -39,9 +418,328 @@ export function getElements (selectors = []) {
 }
 
 /**
- * Converts a string to camelCase
- * @param {string} string - String to convert
- * @returns {string} Converted camelCase string
+ * Converts a string to camelCase format by lowercasing the first letter and capitalizing
+ * every letter that follows a space, hyphen, or underscore, then removing the separators.
+ *
+ * This function transforms strings from various naming conventions (kebab-case, snake_case,
+ * PascalCase, space-separated, etc.) into camelCase format, which is the standard naming
+ * convention for variables, properties, and method names in JavaScript.
+ *
+ * @param {string} string - The string to convert to camelCase
+ * @returns {string} The converted string in camelCase format
+ *
+ * @example
+ * // Basic conversions from different formats
+ * console.log(toCamelCase('hello world')); // 'helloWorld'
+ * console.log(toCamelCase('user-profile')); // 'userProfile'
+ * console.log(toCamelCase('api_endpoint')); // 'apiEndpoint'
+ * console.log(toCamelCase('my-custom-component')); // 'myCustomComponent'
+ *
+ * @example
+ * // Converting from PascalCase to camelCase
+ * console.log(toCamelCase('UserProfile')); // 'userProfile'
+ * console.log(toCamelCase('APIEndpoint')); // 'aPIEndpoint'
+ * console.log(toCamelCase('MyCustomComponent')); // 'myCustomComponent'
+ *
+ * @example
+ * // Mixed separators and complex cases
+ * console.log(toCamelCase('data-api_handler')); // 'dataApiHandler'
+ * console.log(toCamelCase('multi word-string_test')); // 'multiWordStringTest'
+ * console.log(toCamelCase('HTTP-Status_Code')); // 'hTTPStatusCode'
+ * console.log(toCamelCase('already-camelCased')); // 'alreadyCamelCased'
+ *
+ * @example
+ * // Edge cases and empty inputs
+ * console.log(toCamelCase('')); // ''
+ * console.log(toCamelCase('a')); // 'a'
+ * console.log(toCamelCase('A')); // 'a'
+ * console.log(toCamelCase('a-b')); // 'aB'
+ * console.log(toCamelCase('---')); // ''
+ *
+ * @example
+ * // Use case: HTML data attribute parsing
+ * function parseDataAttributes(element) {
+ *   const attributes = {};
+ *
+ *   Array.from(element.attributes).forEach(attr => {
+ *     if (attr.name.startsWith('data-')) {
+ *       // Convert data-user-name to userName
+ *       const key = toCamelCase(attr.name.replace('data-', ''));
+ *       attributes[key] = attr.value;
+ *     }
+ *   });
+ *
+ *   return attributes;
+ * }
+ *
+ * // HTML: <div data-user-name="John" data-max-items="10" data-is-active="true">
+ * const attrs = parseDataAttributes(element);
+ * // Result: { userName: "John", maxItems: "10", isActive: "true" }
+ *
+ * @example
+ * // Use case: CSS property name conversion
+ * function setStyles(element, styleObject) {
+ *   Object.entries(styleObject).forEach(([key, value]) => {
+ *     // Convert kebab-case CSS properties to camelCase
+ *     const camelKey = toCamelCase(key);
+ *     element.style[camelKey] = value;
+ *   });
+ * }
+ *
+ * // Usage
+ * setStyles(element, {
+ *   'background-color': '#fff',
+ *   'margin-top': '20px',
+ *   'border-radius': '5px',
+ *   'font-size': '14px'
+ * });
+ * // Sets: backgroundColor, marginTop, borderRadius, fontSize
+ *
+ * @example
+ * // Use case: Configuration object normalization
+ * function normalizeConfig(config) {
+ *   const normalized = {};
+ *
+ *   Object.entries(config).forEach(([key, value]) => {
+ *     const camelKey = toCamelCase(key);
+ *
+ *     if (typeof value === 'object' && value !== null) {
+ *       normalized[camelKey] = normalizeConfig(value); // Recursive
+ *     } else {
+ *       normalized[camelKey] = value;
+ *     }
+ *   });
+ *
+ *   return normalized;
+ * }
+ *
+ * // Input with mixed naming conventions
+ * const config = {
+ *   'user-name': 'John',
+ *   'api_endpoint': '/api/users',
+ *   'MaxRetries': 3,
+ *   'cache_settings': {
+ *     'time-to-live': 300,
+ *     'max_size': 1000
+ *   }
+ * };
+ *
+ * const normalized = normalizeConfig(config);
+ * // Result: {
+ * //   userName: 'John',
+ * //   apiEndpoint: '/api/users',
+ * //   maxRetries: 3,
+ * //   cacheSettings: {
+ * //     timeToLive: 300,
+ * //     maxSize: 1000
+ * //   }
+ * // }
+ *
+ * @example
+ * // Use case: API response transformation
+ * function transformApiResponse(response) {
+ *   if (Array.isArray(response)) {
+ *     return response.map(item => transformApiResponse(item));
+ *   }
+ *
+ *   if (typeof response === 'object' && response !== null) {
+ *     const transformed = {};
+ *
+ *     Object.entries(response).forEach(([key, value]) => {
+ *       // Convert snake_case API keys to camelCase
+ *       const camelKey = toCamelCase(key);
+ *       transformed[camelKey] = transformApiResponse(value);
+ *     });
+ *
+ *     return transformed;
+ *   }
+ *
+ *   return response;
+ * }
+ *
+ * // API response with snake_case
+ * const apiResponse = {
+ *   user_id: 123,
+ *   first_name: 'John',
+ *   last_name: 'Doe',
+ *   account_settings: {
+ *     email_notifications: true,
+ *     privacy_level: 'public'
+ *   },
+ *   recent_orders: [
+ *     { order_id: 1, created_at: '2023-01-01' }
+ *   ]
+ * };
+ *
+ * const jsResponse = transformApiResponse(apiResponse);
+ * // Result: {
+ * //   userId: 123,
+ * //   firstName: 'John',
+ * //   lastName: 'Doe',
+ * //   accountSettings: {
+ * //     emailNotifications: true,
+ * //     privacyLevel: 'public'
+ * //   },
+ * //   recentOrders: [
+ * //     { orderId: 1, createdAt: '2023-01-01' }
+ * //   ]
+ * // }
+ *
+ * @example
+ * // Use case: Form field name mapping
+ * function createFormHandler(fieldMappings) {
+ *   return function(formData) {
+ *     const processedData = {};
+ *
+ *     formData.forEach((value, key) => {
+ *       // Convert form field names to camelCase property names
+ *       const propName = toCamelCase(key);
+ *
+ *       // Apply field mapping if exists
+ *       const mappedName = fieldMappings[propName] || propName;
+ *       processedData[mappedName] = value;
+ *     });
+ *
+ *     return processedData;
+ *   };
+ * }
+ *
+ * // Form with kebab-case field names
+ * // <input name="first-name" value="John">
+ * // <input name="email-address" value="john@example.com">
+ * // <input name="phone-number" value="123-456-7890">
+ *
+ * const handler = createFormHandler({
+ *   emailAddress: 'email',
+ *   phoneNumber: 'phone'
+ * });
+ *
+ * const result = handler(formData);
+ * // Result: { firstName: 'John', email: 'john@example.com', phone: '123-456-7890' }
+ *
+ * @example
+ * // Use case: Event name normalization for listeners
+ * class EventEmitter {
+ *   constructor() {
+ *     this.listeners = {};
+ *   }
+ *
+ *   on(eventName, callback) {
+ *     // Normalize event names to camelCase
+ *     const normalizedName = toCamelCase(eventName);
+ *
+ *     if (!this.listeners[normalizedName]) {
+ *       this.listeners[normalizedName] = [];
+ *     }
+ *
+ *     this.listeners[normalizedName].push(callback);
+ *   }
+ *
+ *   emit(eventName, ...args) {
+ *     const normalizedName = toCamelCase(eventName);
+ *     const callbacks = this.listeners[normalizedName] || [];
+ *
+ *     callbacks.forEach(callback => callback(...args));
+ *   }
+ * }
+ *
+ * // Usage with different naming conventions
+ * const emitter = new EventEmitter();
+ *
+ * emitter.on('user-login', (user) => console.log('Login:', user));
+ * emitter.on('user_logout', () => console.log('Logout'));
+ * emitter.on('DataLoaded', (data) => console.log('Data:', data));
+ *
+ * // All these trigger the same normalized event
+ * emitter.emit('user-login', { id: 1 });
+ * emitter.emit('userLogin', { id: 1 });
+ * emitter.emit('UserLogin', { id: 1 });
+ *
+ * @example
+ * // Use case: Environment variable processing
+ * function loadEnvConfig(envPrefix = 'APP_') {
+ *   const config = {};
+ *
+ *   Object.entries(process.env).forEach(([key, value]) => {
+ *     if (key.startsWith(envPrefix)) {
+ *       // Convert APP_DATABASE_URL to databaseUrl
+ *       const configKey = toCamelCase(
+ *         key.replace(envPrefix, '').toLowerCase().replace(/_/g, '-')
+ *       );
+ *
+ *       config[configKey] = value;
+ *     }
+ *   });
+ *
+ *   return config;
+ * }
+ *
+ * // Environment variables:
+ * // APP_DATABASE_URL=postgresql://...
+ * // APP_REDIS_HOST=localhost
+ * // APP_MAX_CONNECTIONS=10
+ *
+ * const config = loadEnvConfig();
+ * // Result: {
+ * //   databaseUrl: 'postgresql://...',
+ * //   redisHost: 'localhost',
+ * //   maxConnections: '10'
+ * // }
+ *
+ * @example
+ * // Use case: GraphQL field name transformation
+ * function transformGraphQLResponse(data, schema) {
+ *   if (Array.isArray(data)) {
+ *     return data.map(item => transformGraphQLResponse(item, schema));
+ *   }
+ *
+ *   if (typeof data === 'object' && data !== null) {
+ *     const transformed = {};
+ *
+ *     Object.entries(data).forEach(([key, value]) => {
+ *       // Convert GraphQL field names to camelCase
+ *       const jsKey = toCamelCase(key);
+ *
+ *       if (schema && schema[jsKey]) {
+ *         transformed[jsKey] = transformGraphQLResponse(value, schema[jsKey]);
+ *       } else {
+ *         transformed[jsKey] = value;
+ *       }
+ *     });
+ *
+ *     return transformed;
+ *   }
+ *
+ *   return data;
+ * }
+ *
+ * // GraphQL response
+ * const gqlResponse = {
+ *   user_profile: {
+ *     first_name: 'John',
+ *     profile_image_url: 'https://...',
+ *     social_links: [
+ *       { platform_name: 'twitter', profile_url: 'https://...' }
+ *     ]
+ *   }
+ * };
+ *
+ * const jsResponse = transformGraphQLResponse(gqlResponse);
+ * // Result: {
+ * //   userProfile: {
+ * //     firstName: 'John',
+ * //     profileImageUrl: 'https://...',
+ * //     socialLinks: [
+ * //       { platformName: 'twitter', profileUrl: 'https://...' }
+ * //     ]
+ * //   }
+ * // }
+ *
+ * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
+ * @see https://google.github.io/styleguide/jsguide.html#naming-camel-case Google JavaScript Style Guide - Camel Case
+ *
+ * @since 0.3.0
  */
 export function toCamelCase (string) {
   return string.replace(/^([A-Z])|[\s-_](\w)/g, (match, p1, p2) => {
@@ -223,6 +921,7 @@ export function toCamelCase (string) {
  * console.log(deepMerge({})); // {}
  * console.log(deepMerge({ a: 1 })); // { a: 1 }
  * console.log(deepMerge({}, { b: 2 }, {})); // { b: 2 }
+ * @since 0.6.0
  */
 export function deepMerge (...sources) {
   const result = {}
@@ -249,9 +948,215 @@ export function deepMerge (...sources) {
 }
 
 /**
- * Converts a string to PascalCase (UpperCamelCase)
- * @param {string} string - String to convert
- * @returns {string} Converted PascalCase string
+ * Converts a string to UpperCamelCase (PascalCase) format by capitalizing the first letter
+ * and every letter that follows a space, hyphen, or underscore, then removing the separators.
+ *
+ * This function transforms strings from various naming conventions (kebab-case, snake_case,
+ * space-separated, etc.) into UpperCamelCase format, which is commonly used for class names,
+ * constructor functions, and component names in JavaScript.
+ *
+ * @param {string} string - The string to convert to UpperCamelCase
+ * @returns {string} The converted string in UpperCamelCase format
+ *
+ * @example
+ * // Basic conversions from different formats
+ * console.log(toUpperCamelCase('hello world')); // 'HelloWorld'
+ * console.log(toUpperCamelCase('user-profile')); // 'UserProfile'
+ * console.log(toUpperCamelCase('api_endpoint')); // 'ApiEndpoint'
+ * console.log(toUpperCamelCase('my-custom-component')); // 'MyCustomComponent'
+ *
+ * @example
+ * // Mixed separators and edge cases
+ * console.log(toUpperCamelCase('data-api_handler')); // 'DataApiHandler'
+ * console.log(toUpperCamelCase('multi word-string_test')); // 'MultiWordStringTest'
+ * console.log(toUpperCamelCase('single')); // 'Single'
+ * console.log(toUpperCamelCase('already-Capitalized')); // 'AlreadyCapitalized'
+ *
+ * @example
+ * // Empty and edge case inputs
+ * console.log(toUpperCamelCase('')); // ''
+ * console.log(toUpperCamelCase('a')); // 'A'
+ * console.log(toUpperCamelCase('a-b')); // 'AB'
+ * console.log(toUpperCamelCase('---')); // ''
+ *
+ * @example
+ * // Use case: Class name generation from configuration
+ * function createComponentClass(componentName, options = {}) {
+ *   const className = toUpperCamelCase(componentName);
+ *
+ *   // Dynamic class creation
+ *   const ComponentClass = class {
+ *     constructor(element) {
+ *       this.element = element;
+ *       this.name = className;
+ *       this.init(options);
+ *     }
+ *
+ *     init(options) {
+ *       console.log(`Initializing ${this.name} component`);
+ *     }
+ *   };
+ *
+ *   // Set the class name for debugging
+ *   Object.defineProperty(ComponentClass, 'name', { value: className });
+ *
+ *   return ComponentClass;
+ * }
+ *
+ * // Usage
+ * const ModalComponent = createComponentClass('modal-dialog');
+ * const TabsComponent = createComponentClass('navigation_tabs');
+ * const SliderComponent = createComponentClass('image slider');
+ *
+ * @example
+ * // Use case: CSS class name to constructor mapping
+ * const componentRegistry = {};
+ *
+ * function registerComponent(cssClass, implementation) {
+ *   const constructorName = toUpperCamelCase(cssClass);
+ *   componentRegistry[constructorName] = implementation;
+ * }
+ *
+ * function createComponent(cssClass, element) {
+ *   const constructorName = toUpperCamelCase(cssClass);
+ *   const ComponentClass = componentRegistry[constructorName];
+ *
+ *   if (ComponentClass) {
+ *     return new ComponentClass(element);
+ *   }
+ *
+ *   throw new Error(`Component ${constructorName} not found`);
+ * }
+ *
+ * // Register components
+ * registerComponent('dropdown-menu', DropdownMenuComponent);
+ * registerComponent('date_picker', DatePickerComponent);
+ *
+ * // Create instances
+ * const dropdown = createComponent('dropdown-menu', dropdownElement);
+ * const datePicker = createComponent('date_picker', dateElement);
+ *
+ * @example
+ * // Use case: API endpoint to service class mapping
+ * function createServiceClass(endpointName) {
+ *   const serviceName = toUpperCamelCase(endpointName) + 'Service';
+ *
+ *   return class {
+ *     constructor(baseUrl) {
+ *       this.baseUrl = baseUrl;
+ *       this.endpoint = endpointName;
+ *     }
+ *
+ *     async get(id) {
+ *       const response = await fetch(`${this.baseUrl}/${this.endpoint}/${id}`);
+ *       return response.json();
+ *     }
+ *
+ *     toString() {
+ *       return serviceName;
+ *     }
+ *   };
+ * }
+ *
+ * // Generate service classes
+ * const UserService = createServiceClass('user-profile');
+ * const OrderService = createServiceClass('order_history');
+ * const ProductService = createServiceClass('product catalog');
+ *
+ * @example
+ * // Use case: Template name to component name conversion
+ * function loadTemplate(templateName) {
+ *   const componentName = toUpperCamelCase(templateName);
+ *
+ *   return {
+ *     name: componentName,
+ *     template: `templates/${templateName}.html`,
+ *     component: `components/${componentName}.js`,
+ *     styles: `styles/${templateName}.css`
+ *   };
+ * }
+ *
+ * // Usage
+ * const modal = loadTemplate('modal-dialog');
+ * // Result: {
+ * //   name: 'ModalDialog',
+ * //   template: 'templates/modal-dialog.html',
+ * //   component: 'components/ModalDialog.js',
+ * //   styles: 'styles/modal-dialog.css'
+ * // }
+ *
+ * @example
+ * // Use case: Form field name to validator class
+ * const validators = {
+ *   EmailValidator: class {  }, // email validation logic
+ *   PasswordValidator: class { }, // password validation logic
+ *   PhoneNumberValidator: class { } // phone validation logic
+ * };
+ *
+ * function getValidator(fieldName) {
+ *   const validatorName = toUpperCamelCase(fieldName) + 'Validator';
+ *   return validators[validatorName] || null;
+ * }
+ *
+ * // Usage
+ * const emailValidator = getValidator('email-field');
+ * const passwordValidator = getValidator('password_confirmation');
+ * const phoneValidator = getValidator('phone number');
+ *
+ * @example
+ * // Use case: Module name normalization for dynamic imports
+ * async function loadModule(moduleName) {
+ *   const normalizedName = toUpperCamelCase(moduleName);
+ *
+ *   try {
+ *     const module = await import(`./modules/${normalizedName}.js`);
+ *     return module.default || module;
+ *   } catch (error) {
+ *     console.error(`Failed to load module ${normalizedName}:`, error);
+ *     return null;
+ *   }
+ * }
+ *
+ * // Load modules with consistent naming
+ * const chartModule = await loadModule('chart-renderer');
+ * const dataModule = await loadModule('data_processor');
+ * const utilModule = await loadModule('utility helpers');
+ *
+ * @example
+ * // Use case: Event handler method generation
+ * class EventManager {
+ *   constructor() {
+ *     this.handlers = {};
+ *   }
+ *
+ *   on(eventName, callback) {
+ *     const methodName = 'handle' + toUpperCamelCase(eventName);
+ *
+ *     this[methodName] = callback;
+ *     this.handlers[eventName] = methodName;
+ *
+ *     console.log(`Registered ${methodName} for ${eventName}`);
+ *   }
+ *
+ *   trigger(eventName, ...args) {
+ *     const methodName = this.handlers[eventName];
+ *     if (methodName && this[methodName]) {
+ *       this[methodName](...args);
+ *     }
+ *   }
+ * }
+ *
+ * // Usage
+ * const events = new EventManager();
+ * events.on('user-login', (user) => console.log('User logged in:', user));
+ * events.on('data_loaded', (data) => console.log('Data loaded:', data));
+ *
+ * // Creates methods: handleUserLogin, handleDataLoaded
+ *
+ * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
+ *
+ * @since 0.3.0
  */
 export function toUpperCamelCase (string) {
   return string.replace(/^([a-z])|[\s-_](\w)/g, (match, p1, p2) => {
@@ -269,10 +1174,16 @@ export function toUpperCamelCase (string) {
  * 2. Override attributes using hyphenated keys for nested properties
  * 3. Automatic type conversion for strings, numbers, booleans, arrays, objects, and regex
  *
- * @param {HTMLElement} $element - The DOM element to extract data attributes from
+ * @param {HTMLElement} $element - The DOM element containing the data attributes
  * @param {string} dataAttributeName - The base name of the data attribute (without 'data-' prefix)
- * @param {Object} [defaults={}] - Default options object to merge with extracted options
- * @returns {Object} Merged configuration object with defaults, main options, and overrides
+ * @param {Object} [userFeatures={}] - Configuration object to customize parsing behavior
+ * @param {boolean} [userFeatures.parseNumber=true] - Whether to convert numeric strings to numbers
+ * @param {boolean} [userFeatures.parseBoolean=true] - Whether to convert boolean strings to booleans
+ * @param {string[]} [userFeatures.truthyStrings=['yes', 'true']] - Strings that should be parsed as true
+ * @param {string[]} [userFeatures.falsyStrings=['no', 'false']] - Strings that should be parsed as false
+ * @param {boolean} [userFeatures.parseRegex=true] - Whether to parse regex patterns like /pattern/flags
+ *
+ * @returns {Object} The parsed configuration object with all options merged and type-converted
  *
  * @example
  * // Basic usage with JSON in data attribute
@@ -315,30 +1226,6 @@ export function toUpperCamelCase (string) {
  * //   items: ["a", "b", "c"]  // array
  * // }
  *
- * @example
- * // Using defaults and priority order
- * const defaults = {
- *   speed: 300,
- *   autoplay: false,
- *   navigation: {
- *     arrows: true,
- *     dots: false
- *   }
- * };
- *
- * // HTML: <div data-carousel='{"autoplay": true}'
- * //            data-carousel-navigation-dots="true"></div>
- * const element = document.querySelector('div');
- * const options = getOptionsFromAttribute(element, 'carousel', defaults);
- * console.log(options);
- * // Result: {
- * //   speed: 300,        // from defaults
- * //   autoplay: true,    // from main data attribute (overrides default)
- * //   navigation: {
- * //     arrows: true,    // from defaults
- * //     dots: true       // from override attribute
- * //   }
- * // }
  *
  * @example
  * // Complex nested structure with multiple override levels
@@ -384,16 +1271,20 @@ export function toUpperCamelCase (string) {
  * //   inactive: false
  * // }
  *
- * @example
- * // Error handling - invalid JSON falls back gracefully
- * // HTML: <div data-config='{"invalid": json}'></div>
- * const element = document.querySelector('div');
- * const options = getOptionsFromAttribute(element, 'config', {fallback: true});
- * console.log(options); // { fallback: true } - defaults only due to parsing error
- *
  * @throws {Error} Throws error if all JSON parsing strategies fail for nested data
+ * @since 0.6.0
  */
-function getOptionsFromAttribute ($element, dataAttributeName, defaults = {}) {
+export function getOptionsFromAttribute ($element, dataAttributeName, userFeatures = {}) {
+
+  const defaultFeatures = {
+    parseNumber: true, // true | false
+    parseBoolean: true,  // true | false
+    truthyStrings: ['yes', 'true'], // yes | true | y
+    falsyStrings: ['no', 'false'], // no | false | n
+    parseRegex: true, // true | false
+  }
+
+  const FEATURES = { ...defaultFeatures, ...userFeatures }
 
   const getValue = (value) => {
     if (typeof value !== 'string') {
@@ -405,11 +1296,11 @@ function getOptionsFromAttribute ($element, dataAttributeName, defaults = {}) {
     const isNumber = isNaN(Number(value)) === false
 
     // Check for boolean values
-    if (['true', 'yes', 'y'].includes(lowerValue)) {
+    if (FEATURES.parseBoolean && FEATURES.truthyStrings.includes(lowerValue)) {
       return true
     }
 
-    if (['false', 'no', 'n'].includes(lowerValue)) {
+    if (FEATURES.parseBoolean && FEATURES.falsyStrings.includes(lowerValue)) {
       return false
     }
 
@@ -420,7 +1311,7 @@ function getOptionsFromAttribute ($element, dataAttributeName, defaults = {}) {
 
     // Check for regex pattern: /pattern/flags
     const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/)
-    if (regexMatch) {
+    if (FEATURES.parseRegex && regexMatch) {
       try {
         const [, pattern, flags] = regexMatch
         return new RegExp(pattern, flags)
@@ -431,7 +1322,7 @@ function getOptionsFromAttribute ($element, dataAttributeName, defaults = {}) {
     }
 
     // Check for numeric values
-    if (isNumber) {
+    if (FEATURES.parseNumber && isNumber) {
       return Number(value)
     }
 
@@ -567,7 +1458,113 @@ function getOptionsFromAttribute ($element, dataAttributeName, defaults = {}) {
   const overrideOptions = getOverrideOptions(overrideAttrs, dataset)
 
   // Merge base options with override options (overrides take precedence)
-  return deepMerge(defaults, options, overrideOptions)
+  return deepMerge(options, overrideOptions)
+}
+
+/**
+ * Escapes special regular expression characters in a string to make it safe for use in regex patterns.
+ *
+ * This function takes a string that may contain special regex characters and escapes them with backslashes
+ * so they will be treated as literal characters rather than regex metacharacters. It uses the native
+ * `RegExp.escape()` method if available (future JavaScript feature), otherwise falls back to a manual
+ * replacement approach.
+ *
+ * @param {string} string - The string containing characters to escape for regex use
+ * @returns {string} The escaped string safe for use in regular expression patterns
+ *
+ * @example
+ * // Basic escaping of common regex metacharacters
+ * const userInput = "What is $100 + $200?";
+ * const escaped = escapeRegex(userInput);
+ * console.log(escaped); // "What is \\$100 \\+ \\$200\\?"
+ *
+ * const regex = new RegExp(escaped);
+ * console.log(regex.test("What is $100 + $200?")); // true
+ *
+ * @example
+ * // Escaping special characters for literal matching
+ * const specialChars = "[.*+?^${}()|[]\\";
+ * const escaped = escapeRegex(specialChars);
+ * console.log(escaped); // "\\[\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\"
+ *
+ * @example
+ * // Use case: Creating dynamic regex patterns from user input
+ * function createSearchRegex(searchTerm, flags = 'gi') {
+ *   const escaped = escapeRegex(searchTerm);
+ *   return new RegExp(escaped, flags);
+ * }
+ *
+ * const userSearch = "C++ (programming)";
+ * const searchRegex = createSearchRegex(userSearch);
+ * console.log(searchRegex); // /C\+\+ \(programming\)/gi
+ *
+ * const text = "Learn C++ (programming) basics";
+ * console.log(searchRegex.test(text)); // true
+ *
+ * @example
+ * // Building complex patterns with escaped literal parts
+ * const filename = "data.backup.2023-12-01.json";
+ * const escapedFilename = escapeRegex(filename);
+ *
+ * // Create pattern that matches the filename with any extension
+ * const pattern = escapedFilename.replace(/\\\..+$/, '\\..+');
+ * const regex = new RegExp(pattern);
+ *
+ * console.log(regex.test("data.backup.2023-12-01.txt")); // true
+ * console.log(regex.test("data.backup.2023-12-01.xml")); // true
+ *
+ * @example
+ * // Safe string replacement using escaped patterns
+ * function replaceAllLiteral(text, searchValue, replaceValue) {
+ *   const escaped = escapeRegex(searchValue);
+ *   const regex = new RegExp(escaped, 'g');
+ *   return text.replace(regex, replaceValue);
+ * }
+ *
+ * const text = "Price: $50.99 (was $75.99)";
+ * const result = replaceAllLiteral(text, "$50.99", "$45.99");
+ * console.log(result); // "Price: $45.99 (was $75.99)"
+ *
+ * @example
+ * // Email validation with escaped domain
+ * function createEmailRegex(domain) {
+ *   const escapedDomain = escapeRegex(domain);
+ *   return new RegExp(`^[\\w.-]+@${escapedDomain}$`, 'i');
+ * }
+ *
+ * const companyRegex = createEmailRegex("my-company.co.uk");
+ * console.log(companyRegex.test("user@my-company.co.uk")); // true
+ * console.log(companyRegex.test("user@other-company.co.uk")); // false
+ *
+ * @example
+ * // Highlighting search terms in text
+ * function highlightSearchTerm(text, searchTerm) {
+ *   const escaped = escapeRegex(searchTerm);
+ *   const regex = new RegExp(`(${escaped})`, 'gi');
+ *   return text.replace(regex, '<mark>$1</mark>');
+ * }
+ *
+ * const content = "JavaScript (JS) is great. I love JS!";
+ * const highlighted = highlightSearchTerm(content, "JS");
+ * console.log(highlighted);
+ * // "JavaScript (<mark>JS</mark>) is great. I love <mark>JS</mark>!"
+ *
+ * @example
+ * // Path matching with escaped separators
+ * const basePath = "C:\\Users\\John\\Documents";
+ * const escapedPath = escapeRegex(basePath);
+ * const pathRegex = new RegExp(`^${escapedPath}`);
+ *
+ * console.log(pathRegex.test("C:\\Users\\John\\Documents\\file.txt")); // true
+ * console.log(pathRegex.test("C:\\Users\\Jane\\Documents\\file.txt")); // false
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping MDN - Escaping in Regular Expressions
+ * @see https://github.com/tc39/proposal-regex-escaping TC39 Proposal for RegExp.escape
+ *
+ * @since 0.6.0
+ */
+export function escapeRegex (string) {
+  return typeof RegExp.escape === 'function' ? RegExp.escape(string) : string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
 }
 
 /**
@@ -1025,6 +2022,412 @@ export function swipeEvent (target, listenerFn, options = {}) {
   }
 
   return register()
+}
+
+/**
+ * Safely retrieves a nested value from an object using customizable path notation formats.
+ *
+ * This utility function provides safe access to deeply nested object properties without throwing
+ * errors when intermediate properties don't exist. It supports flexible notation formats through
+ * a configurable separator system, allowing you to specify which characters should be treated
+ * as path separators. The function handles dot notation, hyphen notation, underscore notation,
+ * bracket notation for arrays, and any custom separator combinations.
+ * If the specified path doesn't exist, it returns a default value instead of throwing an error.
+ *
+ * @param {Object|Array} obj - The object or array to search in
+ * @param {string|string[]} path - The property path as a string (using specified notation) or array of keys
+ * @param {*} [defaultValue] - The default value to return if the path doesn't exist or resolves to undefined
+ * @param {string|string[]} [notation=['.', '-', '_']] - The separator(s) to use for parsing the path string
+ * @returns {*} The value at the specified path, or the default value if not found
+ *
+ * @example
+ * // Basic usage with default notation (supports ., -, and _ separators)
+ * const user = {
+ *   name: 'John',
+ *   profile: {
+ *     email: 'john@example.com',
+ *     settings: { theme: 'dark' }
+ *   }
+ * };
+ *
+ * console.log(findObjectValue(user, 'name')); // 'John'
+ * console.log(findObjectValue(user, 'profile.email')); // 'john@example.com'
+ * console.log(findObjectValue(user, 'profile-email')); // 'john@example.com'
+ * console.log(findObjectValue(user, 'profile_email')); // 'john@example.com'
+ * console.log(findObjectValue(user, 'profile.settings.theme')); // 'dark'
+ * console.log(findObjectValue(user, 'profile-settings-theme')); // 'dark'
+ * console.log(findObjectValue(user, 'profile_settings_theme')); // 'dark'
+ *
+ * @example
+ * // Using specific single notation
+ * const config = {
+ *   database: {
+ *     host: 'localhost',
+ *     port: 5432,
+ *     ssl: { enabled: true }
+ *   }
+ * };
+ *
+ * // Dot notation only
+ * console.log(findObjectValue(config, 'database.host', 'defaulthost', '.')); // 'localhost'
+ * console.log(findObjectValue(config, 'database.ssl.enabled', false, '.')); // true
+ *
+ * // Hyphen notation only
+ * console.log(findObjectValue(config, 'database-host', 'defaulthost', '-')); // 'localhost'
+ * console.log(findObjectValue(config, 'database-ssl-enabled', false, '-')); // true
+ *
+ * // Underscore notation only
+ * console.log(findObjectValue(config, 'database_host', 'defaulthost', '_')); // 'localhost'
+ * console.log(findObjectValue(config, 'database_ssl_enabled', false, '_')); // true
+ *
+ * @example
+ * // Using mixed notation (multiple separators)
+ * const data = {
+ *   api: {
+ *     endpoints: {
+ *       users: '/api/users',
+ *       posts: '/api/posts'
+ *     }
+ *   }
+ * };
+ *
+ * // Mixed dot and hyphen notation
+ * console.log(findObjectValue(data, 'api.endpoints-users', '', ['.', '-'])); // '/api/users'
+ * console.log(findObjectValue(data, 'api-endpoints.posts', '', ['.', '-'])); // '/api/posts'
+ *
+ * // Mixed underscore and dot notation
+ * console.log(findObjectValue(data, 'api_endpoints.users', '', ['_', '.'])); // '/api/users'
+ * console.log(findObjectValue(data, 'api.endpoints_posts', '', ['_', '.'])); // '/api/posts'
+ *
+ * @example
+ * // Array access with bracket notation and custom separators
+ * const dataset = {
+ *   users: ['Alice', 'Bob', 'Charlie'],
+ *   posts: [
+ *     { title: 'Post 1', author: { name: 'John', id: 1 } },
+ *     { title: 'Post 2', author: { name: 'Jane', id: 2 } }
+ *   ]
+ * };
+ *
+ * // Array access with different separators
+ * console.log(findObjectValue(dataset, 'users[0]', '', '.')); // 'Alice'
+ * console.log(findObjectValue(dataset, 'posts[0].title', '', '.')); // 'Post 1'
+ * console.log(findObjectValue(dataset, 'posts[0]-title', '', '-')); // 'Post 1'
+ * console.log(findObjectValue(dataset, 'posts[1]_author_name', '', '_')); // 'Jane'
+ * console.log(findObjectValue(dataset, 'posts[1].author-id', '', ['.', '-'])); // 2
+ *
+ * @example
+ * // Using array paths (bypasses notation parsing)
+ * const obj = { a: { b: { c: 'deep value' } } };
+ *
+ * console.log(findObjectValue(obj, ['a', 'b', 'c'])); // 'deep value'
+ * console.log(findObjectValue(obj, ['a', 'b', 'c'], 'default')); // 'deep value'
+ * console.log(findObjectValue(obj, ['a', 'x', 'y'], 'not found')); // 'not found'
+ *
+ * @example
+ * // Safe access with non-existent paths and default values
+ * const user = { name: 'John' };
+ *
+ * // Using default notation
+ * console.log(findObjectValue(user, 'profile.email', 'no-email@example.com')); // 'no-email@example.com'
+ * console.log(findObjectValue(user, 'settings.theme', 'light')); // 'light'
+ *
+ * // Using specific notation
+ * console.log(findObjectValue(user, 'profile-email', 'no-email@example.com', '-')); // 'no-email@example.com'
+ * console.log(findObjectValue(user, 'settings_theme', 'light', '_')); // 'light'
+ *
+ * @example
+ * // Use case: Flexible API response handling
+ * function extractUserData(apiResponse, pathNotation = '.') {
+ *   return {
+ *     id: findObjectValue(apiResponse, 'data.user.id', null, pathNotation),
+ *     name: findObjectValue(apiResponse, 'data.user.profile.displayName', 'Anonymous', pathNotation),
+ *     email: findObjectValue(apiResponse, 'data.user.contact.email', '', pathNotation),
+ *     avatar: findObjectValue(apiResponse, 'data.user.avatar.large.url', '/default-avatar.png', pathNotation),
+ *     preferences: {
+ *       theme: findObjectValue(apiResponse, 'data.user.settings.theme', 'light', pathNotation),
+ *       language: findObjectValue(apiResponse, 'data.user.settings.language', 'en', pathNotation),
+ *       notifications: findObjectValue(apiResponse, 'data.user.settings.notifications.enabled', true, pathNotation)
+ *     },
+ *     metadata: {
+ *       lastLogin: findObjectValue(apiResponse, 'data.user.metadata.lastLoginAt', null, pathNotation),
+ *       isVerified: findObjectValue(apiResponse, 'data.user.verification.email.verified', false, pathNotation)
+ *     }
+ *   };
+ * }
+ *
+ * // Usage with different API response formats
+ * const dotNotationAPI = { data: { user: { id: 1, profile: { displayName: 'John' } } } };
+ * const hyphenNotationAPI = { data: { user: { id: 1, profile: { displayName: 'John' } } } };
+ *
+ * const userData1 = extractUserData(dotNotationAPI, '.');
+ * const userData2 = extractUserData(hyphenNotationAPI, '-');
+ *
+ * @example
+ * // Use case: Multi-format configuration system
+ * class ConfigManager {
+ *   constructor(config, notation = ['.', '-', '_']) {
+ *     this.config = config;
+ *     this.notation = notation;
+ *   }
+ *
+ *   get(path, defaultValue) {
+ *     return findObjectValue(this.config, path, defaultValue, this.notation);
+ *   }
+ *
+ *   // Support for different path formats
+ *   getDotPath(path, defaultValue) {
+ *     return findObjectValue(this.config, path, defaultValue, '.');
+ *   }
+ *
+ *   getHyphenPath(path, defaultValue) {
+ *     return findObjectValue(this.config, path, defaultValue, '-');
+ *   }
+ *
+ *   getUnderscorePath(path, defaultValue) {
+ *     return findObjectValue(this.config, path, defaultValue, '_');
+ *   }
+ *
+ *   // Environment-specific getters
+ *   getDatabaseConfig() {
+ *     return {
+ *       host: this.get('database.host', 'localhost'),
+ *       port: this.get('database_port', 5432),
+ *       ssl: this.get('database-ssl-enabled', false)
+ *     };
+ *   }
+ * }
+ *
+ * const config = new ConfigManager({
+ *   database: {
+ *     host: 'prod-db.example.com',
+ *     port: 5432,
+ *     ssl: { enabled: true }
+ *   },
+ *   features: {
+ *     auth: { enabled: true },
+ *     cache: { redis: { url: 'redis://localhost' } }
+ *   }
+ * });
+ *
+ * // Different access patterns
+ * console.log(config.get('database.host')); // 'prod-db.example.com'
+ * console.log(config.get('database-ssl-enabled')); // true
+ * console.log(config.get('features_auth_enabled')); // true
+ *
+ * @example
+ * // Use case: Form data processing with flexible field naming
+ * function processFormData(formData, fieldNotation = '.') {
+ *   const extractField = (path, defaultVal = '') =>
+ *     findObjectValue(formData, path, defaultVal, fieldNotation);
+ *
+ *   return {
+ *     // Personal information
+ *     personal: {
+ *       firstName: extractField('fields.personal.firstName.value'),
+ *       lastName: extractField('fields.personal.lastName.value'),
+ *       email: extractField('fields.contact.email.value'),
+ *       phone: extractField('fields.contact.phone.value')
+ *     },
+ *
+ *     // Address information
+ *     address: {
+ *       street: extractField('fields.address.street.value'),
+ *       city: extractField('fields.address.city.value'),
+ *       state: extractField('fields.address.state.value'),
+ *       country: extractField('fields.address.country.value', 'US')
+ *     },
+ *
+ *     // Preferences
+ *     preferences: {
+ *       newsletter: extractField('fields.preferences.newsletter.checked', false),
+ *       marketing: extractField('fields.preferences.marketing.checked', false),
+ *       theme: extractField('fields.preferences.theme.value', 'light')
+ *     },
+ *
+ *     // Validation info
+ *     validation: {
+ *       isValid: extractField('validation.isValid', false),
+ *       errors: extractField('validation.errors', []),
+ *       warnings: extractField('validation.warnings', [])
+ *     },
+ *
+ *     // Metadata
+ *     metadata: {
+ *       submittedAt: extractField('metadata.timestamp', new Date().toISOString()),
+ *       userAgent: extractField('metadata.userAgent', 'unknown'),
+ *       sessionId: extractField('metadata.sessionId')
+ *     }
+ *   };
+ * }
+ *
+ * // Process form with dot notation
+ * const dotFormData = processFormData(formDataObject, '.');
+ * // Process form with hyphen notation
+ * const hyphenFormData = processFormData(formDataObject, '-');
+ * // Process form with mixed notation
+ * const mixedFormData = processFormData(formDataObject, ['.', '_']);
+ *
+ * @example
+ * // Use case: Template rendering with customizable path syntax
+ * function createTemplateRenderer(pathNotation = '.') {
+ *   return function renderTemplate(template, data) {
+ *     return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+ *       const value = findObjectValue(data, path.trim(), '', pathNotation);
+ *       return String(value);
+ *     });
+ *   };
+ * }
+ *
+ * // Create renderers for different notation styles
+ * const dotRenderer = createTemplateRenderer('.');
+ * const hyphenRenderer = createTemplateRenderer('-');
+ * const underscoreRenderer = createTemplateRenderer('_');
+ * const mixedRenderer = createTemplateRenderer(['.', '-', '_']);
+ *
+ * const templateData = {
+ *   user: {
+ *     name: 'John Doe',
+ *     profile: { email: 'john@example.com' },
+ *     preferences: { theme: 'dark' }
+ *   },
+ *   company: { name: 'Acme Corp' }
+ * };
+ *
+ * // Different template syntaxes
+ * const dotTemplate = 'Hello {{user.name}}, email: {{user.profile.email}}';
+ * const hyphenTemplate = 'Hello {{user-name}}, email: {{user-profile-email}}';
+ * const underscoreTemplate = 'Hello {{user_name}}, theme: {{user_preferences_theme}}';
+ * const mixedTemplate = 'Hello {{user.name}}, company: {{company-name}}, theme: {{user_preferences_theme}}';
+ *
+ * console.log(dotRenderer(dotTemplate, templateData));
+ * console.log(hyphenRenderer(hyphenTemplate, templateData));
+ * console.log(underscoreRenderer(underscoreTemplate, templateData));
+ * console.log(mixedRenderer(mixedTemplate, templateData));
+ *
+ * @example
+ * // Use case: Data transformation pipeline with notation preferences
+ * class DataTransformer {
+ *   constructor(inputNotation = '.', outputNotation = '.') {
+ *     this.inputNotation = inputNotation;
+ *     this.outputNotation = outputNotation;
+ *   }
+ *
+ *   transform(data, mappings) {
+ *     const result = {};
+ *
+ *     Object.entries(mappings).forEach(([outputPath, inputPath]) => {
+ *       const value = findObjectValue(data, inputPath, null, this.inputNotation);
+ *       if (value !== null) {
+ *         this.setNestedValue(result, outputPath, value);
+ *       }
+ *     });
+ *
+ *     return result;
+ *   }
+ *
+ *   setNestedValue(obj, path, value) {
+ *     const separators = Array.isArray(this.outputNotation) ? this.outputNotation : [this.outputNotation];
+ *     const escapedSeparators = separators.map(sep => sep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+ *     const regex = new RegExp(`[${escapedSeparators.join('')}]`);
+ *     const pathArray = path.split(regex);
+ *
+ *     let current = obj;
+ *     for (let i = 0; i < pathArray.length - 1; i++) {
+ *       const key = pathArray[i];
+ *       if (!(key in current)) {
+ *         current[key] = {};
+ *       }
+ *       current = current[key];
+ *     }
+ *     current[pathArray[pathArray.length - 1]] = value;
+ *   }
+ * }
+ *
+ * // Transform data from API format to internal format
+ * const transformer = new DataTransformer('_', '.');
+ *
+ * const apiData = {
+ *   user_profile: {
+ *     first_name: 'John',
+ *     last_name: 'Doe',
+ *     contact_info: {
+ *       email_address: 'john@example.com',
+ *       phone_number: '123-456-7890'
+ *     }
+ *   }
+ * };
+ *
+ * const mappings = {
+ *   'user.firstName': 'user_profile_first_name',
+ *   'user.lastName': 'user_profile_last_name',
+ *   'user.contact.email': 'user_profile_contact_info_email_address',
+ *   'user.contact.phone': 'user_profile_contact_info_phone_number'
+ * };
+ *
+ * const transformedData = transformer.transform(apiData, mappings);
+ * // Result: {
+ * //   user: {
+ * //     firstName: 'John',
+ * //     lastName: 'Doe',
+ * //     contact: {
+ * //       email: 'john@example.com',
+ * //       phone: '123-456-7890'
+ * //     }
+ * //   }
+ * // }
+ *
+ * @example
+ * // Use case: Custom separator for special use cases
+ * const specialData = {
+ *   'level1': {
+ *     'level2': {
+ *       'data': 'found it!'
+ *     }
+ *   }
+ * };
+ *
+ * // Using custom separators
+ * console.log(findObjectValue(specialData, 'level1|level2|data', 'not found', '|')); // 'found it!'
+ * console.log(findObjectValue(specialData, 'level1->level2->data', 'not found', '->')); // 'found it!'
+ * console.log(findObjectValue(specialData, 'level1::level2::data', 'not found', '::')); // 'found it!'
+ *
+ * // Using multiple custom separators
+ * const mixedData = { a: { b: { c: 'value' } } };
+ * console.log(findObjectValue(mixedData, 'a|b->c', 'not found', ['|', '->'])); // 'value'
+ *
+ * @throws {TypeError} If the first argument (obj) is null or undefined
+ * @see https://lodash.com/docs/4.17.15#get Deprecated Lodash get() - Similar functionality with different API
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce Array.reduce() - MDN
+ *
+ * @since 0.6.0
+ */
+export function findObjectValue (obj, path, defaultValue, notation = ['.', '-', '_']) {
+  // If path is not defined or it has false value
+  if (!path) return undefined
+
+  // If path is already an array, use it directly
+  if (Array.isArray(path)) {
+    const result = path.reduce((prevObj, key) => prevObj && prevObj[key], obj)
+    return result === undefined ? defaultValue : result
+  }
+
+  // Normalize notation to array
+  const separators = Array.isArray(notation) ? notation : [notation]
+
+  // Create regex pattern to match separators (escape special regex characters)
+  const escapedSeparators = separators.map(separator => escapeRegex(separator))
+  const separatorPattern = escapedSeparators.join('')
+
+  // Create regex to split on separators but not within brackets
+  const regex = new RegExp(`([^[${separatorPattern}\\]])+`, 'g')
+  const pathArray = path.match(regex) || []
+
+  // Find value
+  const result = pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj)
+
+  // If found value is undefined return default value; otherwise return the value
+  return result === undefined ? defaultValue : result
 }
 
 /**

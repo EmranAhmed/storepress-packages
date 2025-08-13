@@ -35,14 +35,18 @@ function getAbsolutePath(value) {
 
 /** @type { import('@storybook/react-webpack5').StorybookConfig } */
 const config = {
+    core: {
+        disableTelemetry: true,
+    },
+    staticDirs: [ './static' ],
     stories      : [
         "../stories/**/*.mdx",
         "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)",
     ],
 
     addons       : [
-        getAbsolutePath("@storybook/addon-links"),
-        getAbsolutePath("@storybook/addon-actions"),
+        // getAbsolutePath("@storybook/addon-links"),
+       // getAbsolutePath("@storybook/addon-actions"),
         getAbsolutePath("@storybook/addon-interactions"),
         getAbsolutePath("@storybook/addon-essentials")
     ],

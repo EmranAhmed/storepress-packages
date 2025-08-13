@@ -9,7 +9,6 @@ exports.unitOperations = void 0;
 var _element = require("@wordpress/element");
 var _components = require("@wordpress/components");
 var _propTypes = _interopRequireDefault(require("prop-types"));
-var _searchListControl = _interopRequireDefault(require("../search-list-control"));
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -197,7 +196,7 @@ function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
  *
  */
 function UnitRangeControl(_ref) {
-  var _units$, _unitSettings$selecte, _unitSettings$selecte2, _unitSettings$selecte3, _unitSettings$selecte4, _unitSettings$selecte5, _unitSettings$selecte6, _unitSettings$selecte7, _unitSettings$selecte8, _unitSettings$selecte9, _unitSettings$selecte10, _unitSettings$selecte11, _unitSettings$selecte12;
+  var _units$, _unitSettings$selecte, _unitSettings$selecte2, _unitSettings$selecte3, _unitSettings$selecte4, _unitSettings$selecte5, _unitSettings$selecte6, _unitSettings$selecte7, _unitSettings$selecte8, _unitSettings$selecte9, _unitSettings$selecte0, _unitSettings$selecte1, _unitSettings$selecte10;
   var label = _ref.label,
     onChange = _ref.onChange,
     value = _ref.value,
@@ -274,8 +273,8 @@ function UnitRangeControl(_ref) {
     __next40pxDefaultSize: true,
     value: customRangeValue,
     min: (_unitSettings$selecte7 = (_unitSettings$selecte8 = unitSettings[selectedUnit]) === null || _unitSettings$selecte8 === void 0 ? void 0 : _unitSettings$selecte8.min) !== null && _unitSettings$selecte7 !== void 0 ? _unitSettings$selecte7 : 0,
-    max: (_unitSettings$selecte9 = (_unitSettings$selecte10 = unitSettings[selectedUnit]) === null || _unitSettings$selecte10 === void 0 ? void 0 : _unitSettings$selecte10.max) !== null && _unitSettings$selecte9 !== void 0 ? _unitSettings$selecte9 : 100,
-    step: (_unitSettings$selecte11 = (_unitSettings$selecte12 = unitSettings[selectedUnit]) === null || _unitSettings$selecte12 === void 0 ? void 0 : _unitSettings$selecte12.step) !== null && _unitSettings$selecte11 !== void 0 ? _unitSettings$selecte11 : 0.1,
+    max: (_unitSettings$selecte9 = (_unitSettings$selecte0 = unitSettings[selectedUnit]) === null || _unitSettings$selecte0 === void 0 ? void 0 : _unitSettings$selecte0.max) !== null && _unitSettings$selecte9 !== void 0 ? _unitSettings$selecte9 : 100,
+    step: (_unitSettings$selecte1 = (_unitSettings$selecte10 = unitSettings[selectedUnit]) === null || _unitSettings$selecte10 === void 0 ? void 0 : _unitSettings$selecte10.step) !== null && _unitSettings$selecte1 !== void 0 ? _unitSettings$selecte1 : 0.1,
     withInputField: false,
     onChange: handleSliderChange,
     label: label,
@@ -286,16 +285,6 @@ function UnitRangeControl(_ref) {
     }
   })))));
 }
-
-/*UnitRangeControl.defaultProps = {
-  label: 'Range Control',
-  onChange: (updatedValue) => {},
-  value: '10px',
-  allowedUnits: ['%', 'px', 'em', 'rem'],
-  defaultUnits: availableUnits,
-  convertUnits: unitOperations,
-}*/
-
 UnitRangeControl.propTypes = {
   label: _propTypes["default"].string.isRequired,
   value: _propTypes["default"].string.isRequired,

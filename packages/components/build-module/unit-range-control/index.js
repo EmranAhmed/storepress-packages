@@ -12,7 +12,6 @@ __experimentalUnitControl as UnitControl,
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 __experimentalParseQuantityAndUnitFromRawValue as parseQuantityAndUnitFromRawValue } from '@wordpress/components';
 import PropTypes from 'prop-types';
-import SearchListControl from '../search-list-control';
 
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/components/src/unit-control/utils.ts
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/block-editor/src/components/height-control/index.js
@@ -270,16 +269,6 @@ function UnitRangeControl({
     })
   });
 }
-
-/*UnitRangeControl.defaultProps = {
-  label: 'Range Control',
-  onChange: (updatedValue) => {},
-  value: '10px',
-  allowedUnits: ['%', 'px', 'em', 'rem'],
-  defaultUnits: availableUnits,
-  convertUnits: unitOperations,
-}*/
-
 UnitRangeControl.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,

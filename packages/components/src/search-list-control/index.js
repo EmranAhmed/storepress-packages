@@ -32,66 +32,48 @@ function SearchListControl(props) {
     );
 }
 
-/*SearchListControl.defaultProps = {
-    items            : [],
-    selected         : [],
-    disableFilter    : false,
-    isLoading        : false,
-    isMultiSelect    : false,
-    hideSearchBox    : false,
-    placeholder      : '',
-    clearText        : '',
-    noItemsFoundText : '',
-    itemKeyName      : 'id',
-    itemValueName    : ['name'],
-    itemMetaName     : [],
-    itemFilterName   : ['name'],
-    onSearch         : (searchString) => {},
-    onSelect         : (selectedKeys, selectedItems) => {},
-    onClear          : () => {},
-}*/
 // @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
-SearchListControl.propTypes    = {
+SearchListControl.propTypes = {
 
-    id : PropTypes.string,
+    id: PropTypes.string,
 
-    label : PropTypes.string,
+    label: PropTypes.string,
 
-    help : PropTypes.string,
+    help: PropTypes.string,
 
-    hideLabelFromVision : PropTypes.bool,
+    hideLabelFromVision: PropTypes.bool,
 
-    className : PropTypes.string,
+    className: PropTypes.string,
 
-    items : PropTypes.array.isRequired,
+    items: PropTypes.array.isRequired,
 
-    selected : PropTypes.array,
+    selected: PropTypes.array,
 
-    disableFilter : PropTypes.bool,
+    disableFilter: PropTypes.bool,
 
-    itemKeyName : PropTypes.string,
+    itemKeyName: PropTypes.string,
 
-    itemValueName : PropTypes.array,
+    itemValueName: PropTypes.array,
 
-    itemMetaName : PropTypes.array,
+    itemMetaName: PropTypes.array,
 
-    itemFilterName : PropTypes.array,
+    itemFilterName: PropTypes.array,
 
-    placeholder : PropTypes.string,
+    placeholder: PropTypes.string,
 
-    noItemsFoundText : PropTypes.string,
+    noItemsFoundText: PropTypes.string,
 
-    isLoading : PropTypes.bool,
+    isLoading: PropTypes.bool,
 
-    hideSearchBox : PropTypes.bool,
+    hideSearchBox: PropTypes.bool,
 
-    isMultiSelect : PropTypes.bool,
+    isMultiSelect: PropTypes.bool,
 
-    onSearch : PropTypes.func,
+    onSearch: PropTypes.func,
 
-    onSelect : PropTypes.func,
+    onSelect: PropTypes.func,
 
-    onClear : PropTypes.func
+    onClear: PropTypes.func,
 }
 
 export default SearchListControl;

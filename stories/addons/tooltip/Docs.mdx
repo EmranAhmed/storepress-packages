@@ -47,10 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // style.scss
 
-@import "~@storepress/tooltip/src/mixins";
+@charset "UTF-8";
 
-span.tooltip {
-  @include storepress-tooltip-init("data-tooltip")
+@use "~@storepress/tooltip/src/mixins" as tooltip;
+
+:where([data-tooltip]) {
+  // $content-attribute is for tooltip text attribute.
+  @include tooltip.init("data-tooltip");
+}
+
+// Changing colors
+// See: "~@storepress/tooltip/src/mixins" variables() mixins.
+[data-tooltip] {
+  --tooltip-text-color: #ffffff;
+  --tooltip-background-color: #e31616;
 }
 ```
 
@@ -58,18 +68,15 @@ span.tooltip {
 /**
  * External dependencies
  */
-import StorePressTooltip from '@storepress/tooltip';
-import { triggerEvent } from '@storepress/utils';
+import StorePressTooltip from '@storepress/tooltip'
+import { triggerEvent } from '@storepress/utils'
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Setup tooltip
-  StorePressTooltip();
-
-  // Init tooltip
-  triggerEvent(document, 'storepress_tooltip_init_with', {
-    element: '.tooltip'
+  StorePressTooltip()
+  triggerEvent(document, 'storepress_tooltip_init', {
+    element: ['[data-tooltip]'],
   })
-});
+})
 ```
 
 

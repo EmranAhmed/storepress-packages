@@ -60,6 +60,7 @@ export const Remote = {
         onSearch         : fn(),
         onSelect         : fn(),
         onClear          : fn(),
+        selected         : [2],
     },
 
     render : (args, {loaded : {items}}) => {

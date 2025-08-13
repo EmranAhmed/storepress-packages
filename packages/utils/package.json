@@ -1,46 +1,47 @@
 {
-  "name" : "@storepress/utils",
-  "version" : "0.5.0",
-  "description" : "StorePress Utility Functions",
-  "author" : "StorePress",
-  "license" : "GPL-2.0-or-later",
-  "keywords" : [
+  "name": "@storepress/utils",
+  "version": "0.6.0",
+  "description": "StorePress Utility Functions",
+  "author": "StorePress",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
     "wordpress",
     "gutenberg",
     "utils",
     "storepress"
   ],
-  "homepage" : "https://github.com/EmranAhmed/storepress-packages/packages/utils/README.md",
-  "repository" : {
-    "type" : "git",
-    "url" : "git+https://github.com/EmranAhmed/storepress-packages.git",
-    "directory" : "packages/utils"
+  "homepage": "https://github.com/EmranAhmed/storepress-packages/packages/utils/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmranAhmed/storepress-packages.git",
+    "directory": "packages/utils"
   },
-  "sideEffects" : false,
-  "main" : "build/index.js",
-  "module" : "build-module/index.js",
-  "bugs" : {
-    "url" : "https://github.com/EmranAhmed/storepress-packages/issues"
+  "sideEffects": false,
+  "main": "build/index.js",
+  "module": "build-module/index.js",
+  "bugs": {
+    "url": "https://github.com/EmranAhmed/storepress-packages/issues"
   },
-  "scripts" : {
-    "prebuild" : "rimraf build-style && rimraf build-module && rimraf build",
-    "build:module" : "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
-    "build:core" : "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
-    "build" : "npm run build:core && npm run build:module"
+  "scripts": {
+    "prebuild": "rimraf build-style && rimraf build-module && rimraf build",
+    "build:module": "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
+    "build:core": "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
+    "build": "npm run build:core && npm run build:module"
   },
-  "dependencies" : {
-    "@babel/runtime" : "^7.25.7"
+  "dependencies": {
+    "@babel/runtime": "7.25.7"
   },
-  "publishConfig" : {
-    "access" : "public"
+  "publishConfig": {
+    "access": "public"
   },
-  "devDependencies" : {
-    "@babel/cli" : "^7.25.7",
-    "@babel/preset-react" : "^7.25.7",
-    "@wordpress/babel-preset-default" : "^8.14.0"
+  "devDependencies": {
+    "@babel/cli": "7.25.7",
+    "@babel/preset-env": "7.25.7",
+    "@babel/preset-react": "7.25.7",
+    "@wordpress/babel-preset-default": "^8.28.0"
   },
-  "peerDependencies" : {
-    "react" : "^18.3.1",
-    "react-dom" : "^18.3.1"
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

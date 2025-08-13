@@ -29,7 +29,7 @@ function Results(props) {
     selected = props.selected,
     onSelect = props.onSelect,
     noItemsFoundText = props.noItemsFoundText;
-  var _useState = (0, _element.useState)(selected),
+  var _useState = (0, _element.useState)(selected || []),
     _useState2 = _slicedToArray(_useState, 2),
     selectedItemKeys = _useState2[0],
     setSelectedItemKeys = _useState2[1];

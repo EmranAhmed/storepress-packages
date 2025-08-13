@@ -1,5 +1,5 @@
-import { useCallback, useLayoutEffect, useRef } from "@wordpress/element";
-import { Icon } from "./icon";
+import { useCallback, useLayoutEffect, useRef } from '@wordpress/element';
+import { Icon } from './icon';
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 export function Input(props) {
   const {

@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useState } from "@wordpress/element";
-import { escapeRegex, findObjectValue } from "./utils";
+import { useLayoutEffect, useMemo, useState } from '@wordpress/element';
+import { escapeRegex, findObjectValue } from './utils';
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 export function Results(props) {
   const {
@@ -16,7 +16,7 @@ export function Results(props) {
     onSelect,
     noItemsFoundText
   } = props;
-  const [selectedItemKeys, setSelectedItemKeys] = useState(selected);
+  const [selectedItemKeys, setSelectedItemKeys] = useState(selected || []);
   const inputName = `${id}-result-item`;
   const handleMultiSelection = (currentId, isSelected) => {
     if (isSelected) {
