@@ -1,8 +1,454 @@
+'use strict';
+
+const namespace = 'Utils';
+
 /**
- * WeakMap to store plugin instances associated with DOM elements
- * @type {WeakMap<HTMLElement, any>}
+ * Creates or retrieves a namespaced global WeakMap instance for safe data storage.
+ *
+ * This utility function provides a way to create and access globally shared WeakMap instances
+ * with StorePress-specific namespacing. It ensures that WeakMaps are only created once and
+ * reused across different parts of an application, preventing memory leaks and providing
+ * consistent data storage for DOM elements or objects. The function uses a naming convention
+ * that reduces the likelihood of naming conflicts with other libraries.
+ *
+ * @param {string} n - The namespace identifier used to create a unique WeakMap name
+ * @returns {WeakMap} A global WeakMap instance with the specified namespace
+ *
+ * @example
+ * // Basic usage - creating different WeakMaps for different purposes
+ * const tooltipMap = getWeakMap('Tooltip');
+ * const modalMap = getWeakMap('Modal');
+ * const sliderMap = getWeakMap('Slider');
+ *
+ * // Store data associated with DOM elements
+ * const button = document.getElementById('my-button');
+ * tooltipMap.set(button, { text: 'Click me!', position: 'top' });
+ *
+ * // Retrieve data later
+ * const tooltipData = tooltipMap.get(button);
+ * console.log(tooltipData); // { text: 'Click me!', position: 'top' }
+ *
+ * @example
+ * // Plugin instance management
+ * const pluginInstances = getWeakMap('PluginInstances');
+ *
+ * class MyPlugin {
+ *   constructor(element, options) {
+ *     this.element = element;
+ *     this.options = options;
+ *
+ *     // Store instance in global WeakMap
+ *     pluginInstances.set(element, this);
+ *   }
+ *
+ *   static getInstance(element) {
+ *     return pluginInstances.get(element);
+ *   }
+ *
+ *   destroy() {
+ *     pluginInstances.delete(this.element);
+ *   }
+ * }
+ *
+ * // Usage
+ * const element = document.querySelector('.my-element');
+ * const plugin = new MyPlugin(element, { autoStart: true });
+ *
+ * // Later, retrieve the instance from anywhere in the code
+ * const existingPlugin = MyPlugin.getInstance(element);
+ * console.log(existingPlugin === plugin); // true
+ *
+ * @example
+ * // Event listener management with cleanup tracking
+ * const eventListeners = getWeakMap('EventListeners');
+ *
+ * function addTrackedEventListener(element, eventType, handler, options = {}) {
+ *   // Get or create listener array for this element
+ *   if (!eventListeners.has(element)) {
+ *     eventListeners.set(element, []);
+ *   }
+ *
+ *   const listeners = eventListeners.get(element);
+ *
+ *   // Add event listener
+ *   element.addEventListener(eventType, handler, options);
+ *
+ *   // Track the listener for cleanup
+ *   listeners.push({ eventType, handler, options });
+ * }
+ *
+ * function removeAllEventListeners(element) {
+ *   const listeners = eventListeners.get(element);
+ *   if (listeners) {
+ *     listeners.forEach(({ eventType, handler, options }) => {
+ *       element.removeEventListener(eventType, handler, options);
+ *     });
+ *     eventListeners.delete(element);
+ *   }
+ * }
+ *
+ * // Usage
+ * const button = document.getElementById('tracked-button');
+ * addTrackedEventListener(button, 'click', () => console.log('Clicked!'));
+ * addTrackedEventListener(button, 'mouseenter', () => console.log('Hovered!'));
+ *
+ * // Later, clean up all listeners
+ * removeAllEventListeners(button);
+ *
+ * @example
+ * // Component state management across modules
+ * const componentStates = getWeakMap('ComponentStates');
+ *
+ * // Module A: Initialize component state
+ * function initializeComponent(element, initialState) {
+ *   componentStates.set(element, {
+ *     ...initialState,
+ *     initialized: true,
+ *     lastUpdated: Date.now()
+ *   });
+ * }
+ *
+ * // Module B: Update component state
+ * function updateComponentState(element, newState) {
+ *   const currentState = componentStates.get(element) || {};
+ *   componentStates.set(element, {
+ *     ...currentState,
+ *     ...newState,
+ *     lastUpdated: Date.now()
+ *   });
+ * }
+ *
+ * // Module C: Read component state
+ * function getComponentState(element) {
+ *   return componentStates.get(element);
+ * }
+ *
+ * // Usage across different modules
+ * const carousel = document.querySelector('.carousel');
+ * initializeComponent(carousel, { currentSlide: 0, autoplay: true });
+ * updateComponentState(carousel, { currentSlide: 2 });
+ *
+ * const state = getComponentState(carousel);
+ * console.log(state); // { currentSlide: 2, autoplay: true, initialized: true, lastUpdated: ... }
+ *
+ * @example
+ * // Caching expensive computations per element
+ * const computationCache = getWeakMap('ComputationCache');
+ *
+ * function getExpensiveData(element) {
+ *   // Check if we already computed this for this element
+ *   if (computationCache.has(element)) {
+ *     console.log('Returning cached result');
+ *     return computationCache.get(element);
+ *   }
+ *
+ *   console.log('Computing expensive operation...');
+ *   const result = performExpensiveComputation(element);
+ *
+ *   // Cache the result
+ *   computationCache.set(element, result);
+ *   return result;
+ * }
+ *
+ * function performExpensiveComputation(element) {
+ *   // Simulate expensive operation
+ *   const rect = element.getBoundingClientRect();
+ *   const style = window.getComputedStyle(element);
+ *
+ *   return {
+ *     dimensions: { width: rect.width, height: rect.height },
+ *     styles: {
+ *       fontSize: style.fontSize,
+ *       color: style.color,
+ *       backgroundColor: style.backgroundColor
+ *     },
+ *     computedAt: Date.now()
+ *   };
+ * }
+ *
+ * // Usage
+ * const element = document.querySelector('.complex-element');
+ * const data1 = getExpensiveData(element); // Computes and caches
+ * const data2 = getExpensiveData(element); // Returns cached result
+ * console.log(data1 === data2); // true
+ *
+ * @example
+ * // Different WeakMaps for different data types
+ * const tooltipData = getWeakMap('TooltipData');
+ * const validationErrors = getWeakMap('ValidationErrors');
+ * const formStates = getWeakMap('FormStates');
+ * const animationStates = getWeakMap('AnimationStates');
+ *
+ * function setupFormField(field) {
+ *   // Initialize different types of data for the same element
+ *   tooltipData.set(field, {
+ *     text: field.dataset.tooltip,
+ *     position: 'top'
+ *   });
+ *
+ *   validationErrors.set(field, []);
+ *
+ *   formStates.set(field, {
+ *     isDirty: false,
+ *     isTouched: false,
+ *     isValid: true
+ *   });
+ *
+ *   animationStates.set(field, {
+ *     isAnimating: false,
+ *     lastAnimation: null
+ *   });
+ * }
+ *
+ * function validateField(field, value) {
+ *   const errors = [];
+ *
+ *   if (!value.trim()) {
+ *     errors.push('Field is required');
+ *   }
+ *
+ *   if (field.type === 'email' && !value.includes('@')) {
+ *     errors.push('Invalid email format');
+ *   }
+ *
+ *   validationErrors.set(field, errors);
+ *
+ *   const formState = formStates.get(field);
+ *   formStates.set(field, {
+ *     ...formState,
+ *     isValid: errors.length === 0,
+ *     isDirty: true
+ *   });
+ *
+ *   return errors.length === 0;
+ * }
+ *
+ * @example
+ * // Shared WeakMap between different plugins/libraries
+ * // Library A
+ * const sharedStorage = getWeakMap('SharedPluginData');
+ *
+ * class PluginA {
+ *   constructor(element) {
+ *     this.element = element;
+ *
+ *     // Check if other plugins have stored data for this element
+ *     const existingData = sharedStorage.get(element) || {};
+ *
+ *     // Add our data to the shared storage
+ *     sharedStorage.set(element, {
+ *       ...existingData,
+ *       pluginA: {
+ *         initialized: true,
+ *         version: '1.0.0',
+ *         settings: { theme: 'dark' }
+ *       }
+ *     });
+ *   }
+ * }
+ *
+ * // Library B
+ * class PluginB {
+ *   constructor(element) {
+ *     this.element = element;
+ *
+ *     const existingData = sharedStorage.get(element) || {};
+ *
+ *     // Check if PluginA is already initialized
+ *     if (existingData.pluginA) {
+ *       console.log('PluginA is already active on this element');
+ *       // Adapt behavior based on other plugin presence
+ *     }
+ *
+ *     sharedStorage.set(element, {
+ *       ...existingData,
+ *       pluginB: {
+ *         initialized: true,
+ *         dependsOn: existingData.pluginA ? ['pluginA'] : []
+ *       }
+ *     });
+ *   }
+ * }
+ *
+ * @example
+ * // Performance monitoring and debugging
+ * const performanceData = getWeakMap('PerformanceData');
+ *
+ * function trackElementPerformance(element, operation, executionTime) {
+ *   if (!performanceData.has(element)) {
+ *     performanceData.set(element, {
+ *       operations: [],
+ *       totalTime: 0,
+ *       averageTime: 0
+ *     });
+ *   }
+ *
+ *   const data = performanceData.get(element);
+ *   data.operations.push({
+ *     operation,
+ *     executionTime,
+ *     timestamp: Date.now()
+ *   });
+ *
+ *   data.totalTime += executionTime;
+ *   data.averageTime = data.totalTime / data.operations.length;
+ *
+ *   performanceData.set(element, data);
+ * }
+ *
+ * function getElementPerformanceReport(element) {
+ *   const data = performanceData.get(element);
+ *   if (!data) return null;
+ *
+ *   return {
+ *     totalOperations: data.operations.length,
+ *     totalTime: data.totalTime,
+ *     averageTime: data.averageTime,
+ *     slowestOperation: data.operations.reduce((slowest, current) =>
+ *       current.executionTime > slowest.executionTime ? current : slowest
+ *     ),
+ *     recentOperations: data.operations.slice(-5)
+ *   };
+ * }
+ *
+ * // Usage with performance tracking
+ * function performOperationWithTracking(element, operationName, operation) {
+ *   const startTime = performance.now();
+ *   const result = operation();
+ *   const endTime = performance.now();
+ *
+ *   trackElementPerformance(element, operationName, endTime - startTime);
+ *   return result;
+ * }
+ *
+ * @example
+ * // Memory leak prevention in SPA routing
+ * const routeComponents = getWeakMap('RouteComponents');
+ *
+ * class SPARouter {
+ *   static registerComponent(element, componentData) {
+ *     routeComponents.set(element, {
+ *       ...componentData,
+ *       registeredAt: Date.now(),
+ *       route: window.location.pathname
+ *     });
+ *   }
+ *
+ *   static cleanupRoute(routePath) {
+ *     // Note: WeakMap doesn't have iteration, so we'd need additional tracking
+ *     // This is a conceptual example of how you might use it
+ *     console.log(`Cleaning up components for route: ${routePath}`);
+ *     // Components will be automatically garbage collected when DOM elements are removed
+ *   }
+ *
+ *   static getComponentData(element) {
+ *     return routeComponents.get(element);
+ *   }
+ * }
+ *
+ * // When navigating to a new route
+ * function handleRouteChange(newRoute) {
+ *   // Remove old DOM elements (WeakMap entries automatically cleaned up)
+ *   document.getElementById('app').innerHTML = '';
+ *
+ *   // Load new route content
+ *   loadRouteContent(newRoute);
+ *
+ *   // Register new components
+ *   document.querySelectorAll('.component').forEach(el => {
+ *     SPARouter.registerComponent(el, {
+ *       type: el.dataset.componentType,
+ *       props: JSON.parse(el.dataset.props || '{}')
+ *     });
+ *   });
+ * }
+ *
+ * @example
+ * // Integration with existing StorePress utilities
+ * import { createPluginInstance, getPluginInstance } from '@storepress/utils';
+ *
+ * // Use the same WeakMap pattern as other StorePress utilities
+ * const customPluginMap = getWeakMap('CustomPlugin');
+ *
+ * class CustomPlugin {
+ *   constructor(element, options) {
+ *     this.element = element;
+ *     this.options = options;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     // Plugin initialization
+ *     console.log('Custom plugin initialized');
+ *   }
+ *
+ *   destroy() {
+ *     // Cleanup logic
+ *     customPluginMap.delete(this.element);
+ *   }
+ * }
+ *
+ * function createCustomPluginInstance(selectors, options) {
+ *   return createPluginInstance(selectors, options, CustomPlugin);
+ * }
+ *
+ * function getCustomPluginInstance(selectors) {
+ *   return getPluginInstance(selectors);
+ * }
+ *
+ * // Usage that integrates with StorePress ecosystem
+ * const instances = createCustomPluginInstance('.custom-elements', {
+ *   setting1: 'value1',
+ *   setting2: 'value2'
+ * });
+ *
+ * @example
+ * // Namespace isolation for different versions or environments
+ * const devTooltips = getWeakMap('TooltipDev');
+ * const prodTooltips = getWeakMap('TooltipProd');
+ * const testTooltips = getWeakMap('TooltipTest');
+ *
+ * function getEnvironmentTooltipMap() {
+ *   const env = process.env.NODE_ENV || 'development';
+ *
+ *   switch (env) {
+ *     case 'development':
+ *       return devTooltips;
+ *     case 'production':
+ *       return prodTooltips;
+ *     case 'test':
+ *       return testTooltips;
+ *     default:
+ *       return devTooltips;
+ *   }
+ * }
+ *
+ * // Environment-specific tooltip behavior
+ * function addTooltip(element, config) {
+ *   const tooltipMap = getEnvironmentTooltipMap();
+ *
+ *   if (process.env.NODE_ENV === 'development') {
+ *     // Add debugging info in development
+ *     config.debug = true;
+ *     config.createdAt = new Date().toISOString();
+ *   }
+ *
+ *   tooltipMap.set(element, config);
+ * }
+ *
+ * @throws {TypeError} Throws if the global WeakMap constructor is not available
+ * @throws {ReferenceError} Throws if the window object is not available (Node.js environments)
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap WeakMap - MDN
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management JavaScript Memory Management - MDN
+ *
+ * @since 0.7.0
  */
-const weakMap = new WeakMap();
+export function getWeakMap(n) {
+  const name = `$StorePress${n}WeakMap`;
+  window[name] = window[name] || new window.WeakMap();
+  return window[name];
+}
 
 /**
  * Normalizes different selector input types into a single HTMLElement or null.
@@ -1541,13 +1987,396 @@ export function escapeRegex(string) {
 }
 
 /**
- * Creates plugin instances for selected elements
- * @param {string|HTMLElement|NodeList} selectors - Elements to create plugins for
- * @param {Object} options - Plugin options
- * @param {Function} plugin - Plugin constructor
- * @returns {Array} Array of plugin instances
+ * Creates plugin instances for selected DOM elements and manages them using WeakMap storage.
+ *
+ * This function provides a standardized way to instantiate plugins across multiple DOM elements
+ * while preventing memory leaks through WeakMap-based instance storage. It automatically handles
+ * element selection, instance creation, and provides built-in cleanup functionality. If an element
+ * already has a plugin instance, it returns the existing instance instead of creating a new one.
+ *
+ * @param {string|HTMLElement|NodeList|HTMLElement[]} selectors - Elements to create plugins for
+ * @param {Object} options - Configuration options to pass to the plugin constructor
+ * @param {Function} plugin - Plugin constructor function or class
+ * @returns {Array<Object>} Array of plugin instances, each with element reference and destroy method
+ *
+ * @example
+ * // Basic plugin creation with CSS selector
+ * class Modal {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = options;
+ *     this.isOpen = false;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     console.log('Modal initialized on', this.element.id);
+ *   }
+ *
+ *   open() {
+ *     this.isOpen = true;
+ *     this.element.style.display = 'block';
+ *   }
+ *
+ *   close() {
+ *     this.isOpen = false;
+ *     this.element.style.display = 'none';
+ *   }
+ * }
+ *
+ * // Create modal instances for all elements with class 'modal'
+ * const modalInstances = createPluginInstance('.modal', {
+ *   autoClose: true,
+ *   backdrop: true
+ * }, Modal);
+ *
+ * console.log(modalInstances.length); // Number of modal elements found
+ *
+ * @example
+ * // Creating instances on specific elements
+ * const button1 = document.getElementById('btn1');
+ * const button2 = document.getElementById('btn2');
+ *
+ * class Button {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = options;
+ *     this.clickCount = 0;
+ *     this.setupEventListeners();
+ *   }
+ *
+ *   setupEventListeners() {
+ *     this.element.addEventListener('click', () => {
+ *       this.clickCount++;
+ *       this.handleClick();
+ *     });
+ *   }
+ *
+ *   handleClick() {
+ *     console.log(`Button ${this.element.id} clicked ${this.clickCount} times`);
+ *   }
+ * }
+ *
+ * // Create instances on specific elements
+ * const buttonInstances = createPluginInstance([button1, button2], {
+ *   theme: 'primary',
+ *   size: 'large'
+ * }, Button);
+ *
+ * @example
+ * // Working with NodeList
+ * const accordionElements = document.querySelectorAll('.accordion');
+ *
+ * class Accordion {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { autoClose: true, ...options };
+ *     this.panels = element.querySelectorAll('.panel');
+ *     this.activePanel = null;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.panels.forEach((panel, index) => {
+ *       const header = panel.querySelector('.panel-header');
+ *       header.addEventListener('click', () => this.togglePanel(index));
+ *     });
+ *   }
+ *
+ *   togglePanel(index) {
+ *     const panel = this.panels[index];
+ *     const isActive = panel === this.activePanel;
+ *
+ *     if (this.options.autoClose && this.activePanel) {
+ *       this.closePanel(this.activePanel);
+ *     }
+ *
+ *     if (!isActive) {
+ *       this.openPanel(panel);
+ *       this.activePanel = panel;
+ *     } else {
+ *       this.activePanel = null;
+ *     }
+ *   }
+ *
+ *   openPanel(panel) {
+ *     panel.classList.add('active');
+ *   }
+ *
+ *   closePanel(panel) {
+ *     panel.classList.remove('active');
+ *   }
+ * }
+ *
+ * // Create accordion instances
+ * const accordionInstances = createPluginInstance(accordionElements, {
+ *   autoClose: false,
+ *   animationDuration: 300
+ * }, Accordion);
+ *
+ * @example
+ * // Plugin with data attributes configuration
+ * class Tooltip {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *
+ *     // Merge options with data attributes
+ *     const dataOptions = getOptionsFromAttribute(element, 'tooltip');
+ *     this.options = { placement: 'top', ...options, ...dataOptions };
+ *
+ *     this.tooltip = null;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.element.addEventListener('mouseenter', () => this.show());
+ *     this.element.addEventListener('mouseleave', () => this.hide());
+ *   }
+ *
+ *   show() {
+ *     if (!this.tooltip) {
+ *       this.createTooltip();
+ *     }
+ *     this.tooltip.style.display = 'block';
+ *   }
+ *
+ *   hide() {
+ *     if (this.tooltip) {
+ *       this.tooltip.style.display = 'none';
+ *     }
+ *   }
+ *
+ *   createTooltip() {
+ *     this.tooltip = document.createElement('div');
+ *     this.tooltip.className = 'tooltip';
+ *     this.tooltip.textContent = this.options.text || this.element.dataset.tooltipText;
+ *     document.body.appendChild(this.tooltip);
+ *   }
+ * }
+ *
+ * // HTML: <button data-tooltip='{"text": "Click me!", "placement": "bottom"}'>Hover</button>
+ * const tooltipInstances = createPluginInstance('[data-tooltip]', {
+ *   theme: 'dark'
+ * }, Tooltip);
+ *
+ * @example
+ * // Using the built-in destroy functionality
+ * class Slider {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { autoplay: true, interval: 3000, ...options };
+ *     this.currentSlide = 0;
+ *     this.slides = element.querySelectorAll('.slide');
+ *     this.autoplayTimer = null;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.setupNavigation();
+ *     if (this.options.autoplay) {
+ *       this.startAutoplay();
+ *     }
+ *   }
+ *
+ *   setupNavigation() {
+ *     const prevBtn = this.element.querySelector('.prev');
+ *     const nextBtn = this.element.querySelector('.next');
+ *
+ *     if (prevBtn) prevBtn.addEventListener('click', () => this.prev());
+ *     if (nextBtn) nextBtn.addEventListener('click', () => this.next());
+ *   }
+ *
+ *   next() {
+ *     this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+ *     this.updateSlide();
+ *   }
+ *
+ *   prev() {
+ *     this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+ *     this.updateSlide();
+ *   }
+ *
+ *   updateSlide() {
+ *     this.slides.forEach((slide, index) => {
+ *       slide.classList.toggle('active', index === this.currentSlide);
+ *     });
+ *   }
+ *
+ *   startAutoplay() {
+ *     this.autoplayTimer = setInterval(() => this.next(), this.options.interval);
+ *   }
+ *
+ *   stopAutoplay() {
+ *     if (this.autoplayTimer) {
+ *       clearInterval(this.autoplayTimer);
+ *       this.autoplayTimer = null;
+ *     }
+ *   }
+ *
+ *   // Custom cleanup method that will be called before destroy
+ *   cleanup() {
+ *     this.stopAutoplay();
+ *   }
+ * }
+ *
+ * const sliderInstances = createPluginInstance('.slider', {
+ *   autoplay: true,
+ *   interval: 5000
+ * }, Slider);
+ *
+ * // Later, destroy all slider instances
+ * sliderInstances.forEach(instance => {
+ *   if (instance.cleanup) instance.cleanup(); // Custom cleanup
+ *   instance.destroy(); // Built-in destroy method
+ * });
+ *
+ * @example
+ * // Preventing duplicate instances (returns existing instance)
+ * const element = document.getElementById('unique-modal');
+ *
+ * // First call creates new instance
+ * const instances1 = createPluginInstance(element, { theme: 'dark' }, Modal);
+ * console.log(instances1.length); // 1
+ *
+ * // Second call returns existing instance (no duplicate created)
+ * const instances2 = createPluginInstance(element, { theme: 'light' }, Modal);
+ * console.log(instances2.length); // 1
+ * console.log(instances1[0] === instances2[0]); // true (same instance)
+ *
+ * @example
+ * // Real-world use case: Image gallery with lightbox
+ * class ImageGallery {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = {
+ *       thumbnailSelector: '.thumbnail',
+ *       lightboxClass: 'lightbox',
+ *       showCaptions: true,
+ *       autoAdvance: false,
+ *       ...options
+ *     };
+ *
+ *     this.images = [];
+ *     this.currentIndex = 0;
+ *     this.lightbox = null;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.collectImages();
+ *     this.setupThumbnails();
+ *     this.createLightbox();
+ *   }
+ *
+ *   collectImages() {
+ *     const thumbnails = this.element.querySelectorAll(this.options.thumbnailSelector);
+ *     this.images = Array.from(thumbnails).map(thumb => ({
+ *       src: thumb.dataset.fullsize || thumb.src,
+ *       caption: thumb.alt || thumb.dataset.caption,
+ *       thumbnail: thumb
+ *     }));
+ *   }
+ *
+ *   setupThumbnails() {
+ *     this.images.forEach((image, index) => {
+ *       image.thumbnail.addEventListener('click', (e) => {
+ *         e.preventDefault();
+ *         this.openLightbox(index);
+ *       });
+ *     });
+ *   }
+ *
+ *   createLightbox() {
+ *     this.lightbox = document.createElement('div');
+ *     this.lightbox.className = this.options.lightboxClass;
+ *     this.lightbox.innerHTML = `
+ *       <div class="lightbox-content">
+ *         <img class="lightbox-image" src="" alt="">
+ *         <div class="lightbox-caption"></div>
+ *         <button class="lightbox-prev">‹</button>
+ *         <button class="lightbox-next">›</button>
+ *         <button class="lightbox-close">×</button>
+ *       </div>
+ *     `;
+ *     document.body.appendChild(this.lightbox);
+ *     this.setupLightboxEvents();
+ *   }
+ *
+ *   setupLightboxEvents() {
+ *     const prev = this.lightbox.querySelector('.lightbox-prev');
+ *     const next = this.lightbox.querySelector('.lightbox-next');
+ *     const close = this.lightbox.querySelector('.lightbox-close');
+ *
+ *     prev.addEventListener('click', () => this.prevImage());
+ *     next.addEventListener('click', () => this.nextImage());
+ *     close.addEventListener('click', () => this.closeLightbox());
+ *
+ *     this.lightbox.addEventListener('click', (e) => {
+ *       if (e.target === this.lightbox) this.closeLightbox();
+ *     });
+ *   }
+ *
+ *   openLightbox(index) {
+ *     this.currentIndex = index;
+ *     this.updateLightboxImage();
+ *     this.lightbox.style.display = 'flex';
+ *     document.body.style.overflow = 'hidden';
+ *   }
+ *
+ *   closeLightbox() {
+ *     this.lightbox.style.display = 'none';
+ *     document.body.style.overflow = '';
+ *   }
+ *
+ *   nextImage() {
+ *     this.currentIndex = (this.currentIndex + 1) % this.images.length;
+ *     this.updateLightboxImage();
+ *   }
+ *
+ *   prevImage() {
+ *     this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+ *     this.updateLightboxImage();
+ *   }
+ *
+ *   updateLightboxImage() {
+ *     const image = this.images[this.currentIndex];
+ *     const img = this.lightbox.querySelector('.lightbox-image');
+ *     const caption = this.lightbox.querySelector('.lightbox-caption');
+ *
+ *     img.src = image.src;
+ *     img.alt = image.caption;
+ *
+ *     if (this.options.showCaptions && image.caption) {
+ *       caption.textContent = image.caption;
+ *       caption.style.display = 'block';
+ *     } else {
+ *       caption.style.display = 'none';
+ *     }
+ *   }
+ *
+ *   cleanup() {
+ *     if (this.lightbox && this.lightbox.parentNode) {
+ *       this.lightbox.parentNode.removeChild(this.lightbox);
+ *     }
+ *     document.body.style.overflow = '';
+ *   }
+ * }
+ *
+ * // Initialize galleries
+ * const galleryInstances = createPluginInstance('.image-gallery', {
+ *   thumbnailSelector: 'img',
+ *   showCaptions: true,
+ *   autoAdvance: false
+ * }, ImageGallery);
+ *
+ * @see getPluginInstance - For retrieving existing plugin instances
+ * @see triggerEvent - For dispatching custom events from plugins
+ * @see getOptionsFromAttribute - For extracting plugin options from data attributes
+ *
+ * @since 0.3.0
  */
 export function createPluginInstance(selectors, options, plugin) {
+  const weakMap = getWeakMap(namespace);
   return Array.from(getElements(selectors)).map(element => {
     if (weakMap.has(element)) return weakMap.get(element);
     const instance = new plugin(element, options);
@@ -1562,11 +2391,787 @@ export function createPluginInstance(selectors, options, plugin) {
 }
 
 /**
- * Gets existing plugin instances for selected elements
- * @param {string|HTMLElement|NodeList} selectors - Elements to get plugins for
- * @returns {Array} Array of plugin instances
+ * Retrieves existing plugin instances for selected DOM elements from WeakMap storage.
+ *
+ * This function provides a way to access previously created plugin instances without
+ * creating new ones. It only returns instances for elements that already have plugins
+ * attached via createPluginInstance(). Elements without existing instances are filtered
+ * out from the results, ensuring you only work with active, initialized plugins.
+ *
+ * @param {string|HTMLElement|NodeList|HTMLElement[]} selectors - Elements to get plugin instances for
+ * @returns {Array<Object>} Array of existing plugin instances (excludes elements without instances)
+ *
+ * @example
+ * // Basic usage - retrieving existing modal instances
+ * class Modal {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = options;
+ *     this.isOpen = false;
+ *   }
+ *
+ *   open() {
+ *     this.isOpen = true;
+ *     this.element.style.display = 'block';
+ *     console.log(`Modal ${this.element.id} opened`);
+ *   }
+ *
+ *   close() {
+ *     this.isOpen = false;
+ *     this.element.style.display = 'none';
+ *     console.log(`Modal ${this.element.id} closed`);
+ *   }
+ *
+ *   toggle() {
+ *     this.isOpen ? this.close() : this.open();
+ *   }
+ *
+ *   getState() {
+ *     return {
+ *       elementId: this.element.id,
+ *       isOpen: this.isOpen,
+ *       options: this.options
+ *     };
+ *   }
+ * }
+ *
+ * // First create some modal instances
+ * createPluginInstance('.modal', { backdrop: true }, Modal);
+ *
+ * // Later, retrieve existing instances to work with them
+ * const existingModals = getPluginInstance('.modal');
+ * console.log(`Found ${existingModals.length} existing modal instances`);
+ *
+ * // Call methods on existing instances
+ * existingModals.forEach(modal => {
+ *   console.log('Modal state:', modal.getState());
+ *   modal.open();
+ * });
+ *
+ * @example
+ * // Working with specific elements - only returns instances that exist
+ * const modal1 = document.getElementById('modal1');
+ * const modal2 = document.getElementById('modal2');
+ * const modal3 = document.getElementById('modal3');
+ *
+ * // Create instances for modal1 and modal2 only
+ * createPluginInstance([modal1, modal2], {}, Modal);
+ *
+ * // Try to get instances for all three modals
+ * const modalInstances = getPluginInstance([modal1, modal2, modal3]);
+ * console.log(modalInstances.length); // 2 (modal3 has no instance, so it's excluded)
+ *
+ * // Verify which modals have instances
+ * const modalIds = modalInstances.map(modal => modal.element.id);
+ * console.log('Modals with instances:', modalIds); // ['modal1', 'modal2']
+ *
+ * @example
+ * // Checking for existing instances before creating new ones
+ * function initializeDropdowns(selector, options = {}) {
+ *   // First, check for existing instances
+ *   const existing = getPluginInstance(selector);
+ *
+ *   if (existing.length > 0) {
+ *     console.log(`Found ${existing.length} existing dropdown instances`);
+ *     return existing;
+ *   }
+ *
+ *   // Create new instances if none exist
+ *   console.log('No existing instances found, creating new dropdown instances');
+ *   return createPluginInstance(selector, options, DropdownMenu);
+ * }
+ *
+ * class DropdownMenu {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { closeOnClick: true, ...options };
+ *     this.isOpen = false;
+ *     this.menu = element.querySelector('.dropdown-menu');
+ *     this.toggle = element.querySelector('.dropdown-toggle');
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.toggle.addEventListener('click', (e) => {
+ *       e.preventDefault();
+ *       this.toggleMenu();
+ *     });
+ *   }
+ *
+ *   toggleMenu() {
+ *     this.isOpen ? this.close() : this.open();
+ *   }
+ *
+ *   open() {
+ *     this.isOpen = true;
+ *     this.menu.style.display = 'block';
+ *     this.element.classList.add('open');
+ *   }
+ *
+ *   close() {
+ *     this.isOpen = false;
+ *     this.menu.style.display = 'none';
+ *     this.element.classList.remove('open');
+ *   }
+ * }
+ *
+ * // First call creates instances
+ * const dropdowns1 = initializeDropdowns('.dropdown');
+ *
+ * // Second call returns existing instances (no duplicates created)
+ * const dropdowns2 = initializeDropdowns('.dropdown');
+ *
+ * console.log(dropdowns1[0] === dropdowns2[0]); // true (same instances)
+ *
+ * @example
+ * // Updating configuration of existing instances
+ * function updateSliderSettings(selector, newOptions) {
+ *   const sliders = getPluginInstance(selector);
+ *
+ *   if (sliders.length === 0) {
+ *     console.warn('No slider instances found for selector:', selector);
+ *     return [];
+ *   }
+ *
+ *   sliders.forEach(slider => {
+ *     // Merge new options with existing ones
+ *     Object.assign(slider.options, newOptions);
+ *
+ *     // Reinitialize with new settings if method exists
+ *     if (typeof slider.reinit === 'function') {
+ *       slider.reinit();
+ *     }
+ *
+ *     console.log(`Updated slider on element: ${slider.element.id}`);
+ *   });
+ *
+ *   console.log(`Updated ${sliders.length} slider instances`);
+ *   return sliders;
+ * }
+ *
+ * class Slider {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { autoplay: true, interval: 3000, ...options };
+ *     this.currentSlide = 0;
+ *     this.timer = null;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.setupSlider();
+ *     if (this.options.autoplay) {
+ *       this.startAutoplay();
+ *     }
+ *   }
+ *
+ *   reinit() {
+ *     this.stop();
+ *     this.init();
+ *   }
+ *
+ *   startAutoplay() {
+ *     this.timer = setInterval(() => this.next(), this.options.interval);
+ *   }
+ *
+ *   stop() {
+ *     if (this.timer) {
+ *       clearInterval(this.timer);
+ *       this.timer = null;
+ *     }
+ *   }
+ *
+ *   setupSlider() {
+ *     // Slider setup logic
+ *   }
+ *
+ *   next() {
+ *     // Next slide logic
+ *   }
+ * }
+ *
+ * // Create sliders
+ * createPluginInstance('.slider', { autoplay: true, interval: 3000 }, Slider);
+ *
+ * // Later, update settings on existing instances
+ * updateSliderSettings('.slider', { autoplay: false, interval: 5000 });
+ *
+ * @example
+ * // Batch operations on existing instances
+ * function pauseAllCarousels() {
+ *   const carousels = getPluginInstance('.carousel');
+ *
+ *   if (carousels.length === 0) {
+ *     console.log('No carousel instances found to pause');
+ *     return;
+ *   }
+ *
+ *   carousels.forEach(carousel => {
+ *     if (typeof carousel.pause === 'function') {
+ *       carousel.pause();
+ *     }
+ *   });
+ *
+ *   console.log(`Paused ${carousels.length} carousels`);
+ * }
+ *
+ * function resumeAllCarousels() {
+ *   const carousels = getPluginInstance('.carousel');
+ *
+ *   carousels.forEach(carousel => {
+ *     if (typeof carousel.resume === 'function') {
+ *       carousel.resume();
+ *     }
+ *   });
+ *
+ *   console.log(`Resumed ${carousels.length} carousels`);
+ * }
+ *
+ * function getAllCarouselStates() {
+ *   const carousels = getPluginInstance('.carousel');
+ *
+ *   return carousels.map(carousel => ({
+ *     elementId: carousel.element.id || 'unnamed',
+ *     isPlaying: carousel.isPlaying || false,
+ *     currentSlide: carousel.currentSlide || 0,
+ *     totalSlides: carousel.totalSlides || 0,
+ *     options: carousel.options
+ *   }));
+ * }
+ *
+ * // Usage
+ * pauseAllCarousels();
+ * setTimeout(resumeAllCarousels, 5000);
+ * console.log('Carousel states:', getAllCarouselStates());
+ *
+ * @example
+ * // Event-driven instance management and communication
+ * class NotificationManager {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { autoHide: true, duration: 3000, ...options };
+ *     this.notifications = [];
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.element.addEventListener('addNotification', (e) => {
+ *       this.addNotification(e.detail);
+ *     });
+ *   }
+ *
+ *   addNotification(data) {
+ *     const notification = this.createNotification(data);
+ *     this.notifications.push(notification);
+ *
+ *     if (this.options.autoHide) {
+ *       setTimeout(() => this.removeNotification(notification), this.options.duration);
+ *     }
+ *   }
+ *
+ *   createNotification(data) {
+ *     const div = document.createElement('div');
+ *     div.className = `notification ${data.type || 'info'}`;
+ *     div.textContent = data.message;
+ *     this.element.appendChild(div);
+ *     return div;
+ *   }
+ *
+ *   removeNotification(notification) {
+ *     if (notification.parentNode) {
+ *       notification.parentNode.removeChild(notification);
+ *     }
+ *     this.notifications = this.notifications.filter(n => n !== notification);
+ *   }
+ *
+ *   clearAll() {
+ *     this.notifications.forEach(n => this.removeNotification(n));
+ *   }
+ *
+ *   getCount() {
+ *     return this.notifications.length;
+ *   }
+ * }
+ *
+ * // Create notification managers
+ * createPluginInstance('.notification-container', {
+ *   autoHide: true,
+ *   duration: 4000
+ * }, NotificationManager);
+ *
+ * // Function to broadcast notifications to all existing managers
+ * function broadcastNotification(message, type = 'info') {
+ *   const managers = getPluginInstance('.notification-container');
+ *
+ *   if (managers.length === 0) {
+ *     console.warn('No notification managers found');
+ *     return;
+ *   }
+ *
+ *   managers.forEach(manager => {
+ *     triggerEvent(manager.element, 'addNotification', { message, type });
+ *   });
+ *
+ *   console.log(`Broadcasted notification to ${managers.length} managers`);
+ * }
+ *
+ * // Function to get total notification count across all managers
+ * function getTotalNotificationCount() {
+ *   const managers = getPluginInstance('.notification-container');
+ *   return managers.reduce((total, manager) => total + manager.getCount(), 0);
+ * }
+ *
+ * // Function to clear all notifications from all managers
+ * function clearAllNotifications() {
+ *   const managers = getPluginInstance('.notification-container');
+ *   managers.forEach(manager => manager.clearAll());
+ *   console.log(`Cleared notifications from ${managers.length} managers`);
+ * }
+ *
+ * // Usage
+ * broadcastNotification('Welcome to the app!', 'success');
+ * broadcastNotification('Settings saved', 'info');
+ * console.log('Total notifications:', getTotalNotificationCount());
+ *
+ * @example
+ * // Form validation system - retrieve and validate existing forms
+ * class FormValidator {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = {
+ *       validateOnBlur: true,
+ *       validateOnSubmit: true,
+ *       showErrors: true,
+ *       ...options
+ *     };
+ *     this.fields = [];
+ *     this.errors = {};
+ *     this.isValid = false;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.collectFields();
+ *     this.setupEventListeners();
+ *   }
+ *
+ *   collectFields() {
+ *     const inputs = this.element.querySelectorAll('input, select, textarea');
+ *     this.fields = Array.from(inputs).filter(input => input.hasAttribute('data-validate'));
+ *   }
+ *
+ *   setupEventListeners() {
+ *     if (this.options.validateOnSubmit) {
+ *       this.element.addEventListener('submit', (e) => {
+ *         if (!this.validateForm()) {
+ *           e.preventDefault();
+ *         }
+ *       });
+ *     }
+ *   }
+ *
+ *   validateForm() {
+ *     this.fields.forEach(field => this.validateField(field));
+ *     this.isValid = Object.values(this.errors).every(errors => errors.length === 0);
+ *     return this.isValid;
+ *   }
+ *
+ *   validateField(field) {
+ *     const rules = field.dataset.validate.split('|');
+ *     const errors = [];
+ *
+ *     rules.forEach(rule => {
+ *       if (!this.applyRule(field.value, rule)) {
+ *         errors.push(this.getErrorMessage(rule));
+ *       }
+ *     });
+ *
+ *     this.errors[field.name] = errors;
+ *     return errors.length === 0;
+ *   }
+ *
+ *   applyRule(value, rule) {
+ *     if (rule === 'required') return value.trim() !== '';
+ *     if (rule === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+ *     if (rule.startsWith('min:')) return value.length >= parseInt(rule.split(':')[1]);
+ *     return true;
+ *   }
+ *
+ *   getErrorMessage(rule) {
+ *     const messages = {
+ *       required: 'This field is required',
+ *       email: 'Please enter a valid email address',
+ *       'min:6': 'Minimum 6 characters required'
+ *     };
+ *     return messages[rule] || 'Invalid value';
+ *   }
+ *
+ *   getFormData() {
+ *     const data = {};
+ *     this.fields.forEach(field => {
+ *       data[field.name] = field.value;
+ *     });
+ *     return data;
+ *   }
+ *
+ *   reset() {
+ *     this.fields.forEach(field => {
+ *       field.value = '';
+ *       field.classList.remove('error');
+ *     });
+ *     this.errors = {};
+ *   }
+ *
+ *   getValidationSummary() {
+ *     return {
+ *       formId: this.element.id,
+ *       isValid: this.isValid,
+ *       errorCount: Object.values(this.errors).reduce((count, errors) => count + errors.length, 0),
+ *       fieldCount: this.fields.length,
+ *       errors: this.errors
+ *     };
+ *   }
+ * }
+ *
+ * // Initialize form validators
+ * createPluginInstance('form[data-validate-form]', {
+ *   validateOnBlur: true,
+ *   validateOnSubmit: true
+ * }, FormValidator);
+ *
+ * // Function to validate all existing forms programmatically
+ * function validateAllForms() {
+ *   const validators = getPluginInstance('form[data-validate-form]');
+ *
+ *   if (validators.length === 0) {
+ *     console.log('No form validators found');
+ *     return [];
+ *   }
+ *
+ *   const results = validators.map(validator => {
+ *     validator.validateForm();
+ *     return validator.getValidationSummary();
+ *   });
+ *
+ *   console.log('Validation results:', results);
+ *   return results;
+ * }
+ *
+ * // Function to get validation summary for all forms
+ * function getFormsValidationStatus() {
+ *   const validators = getPluginInstance('form[data-validate-form]');
+ *
+ *   const summary = {
+ *     totalForms: validators.length,
+ *     validForms: 0,
+ *     invalidForms: 0,
+ *     totalErrors: 0,
+ *     forms: []
+ *   };
+ *
+ *   validators.forEach(validator => {
+ *     const formSummary = validator.getValidationSummary();
+ *     summary.forms.push(formSummary);
+ *
+ *     if (formSummary.isValid) {
+ *       summary.validForms++;
+ *     } else {
+ *       summary.invalidForms++;
+ *     }
+ *
+ *     summary.totalErrors += formSummary.errorCount;
+ *   });
+ *
+ *   return summary;
+ * }
+ *
+ * // Function to reset all existing forms
+ * function resetAllForms() {
+ *   const validators = getPluginInstance('form[data-validate-form]');
+ *   validators.forEach(validator => validator.reset());
+ *   console.log(`Reset ${validators.length} forms`);
+ * }
+ *
+ * @example
+ * // Dynamic content management with cleanup
+ * let activeTooltips = [];
+ *
+ * class Tooltip {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { placement: 'top', trigger: 'hover', ...options };
+ *     this.tooltip = null;
+ *     this.isVisible = false;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     if (this.options.trigger === 'hover') {
+ *       this.element.addEventListener('mouseenter', () => this.show());
+ *       this.element.addEventListener('mouseleave', () => this.hide());
+ *     } else if (this.options.trigger === 'click') {
+ *       this.element.addEventListener('click', () => this.toggle());
+ *     }
+ *   }
+ *
+ *   show() {
+ *     if (!this.tooltip) this.createTooltip();
+ *     this.tooltip.style.display = 'block';
+ *     this.isVisible = true;
+ *   }
+ *
+ *   hide() {
+ *     if (this.tooltip) this.tooltip.style.display = 'none';
+ *     this.isVisible = false;
+ *   }
+ *
+ *   toggle() {
+ *     this.isVisible ? this.hide() : this.show();
+ *   }
+ *
+ *   createTooltip() {
+ *     this.tooltip = document.createElement('div');
+ *     this.tooltip.className = 'tooltip';
+ *     this.tooltip.textContent = this.element.dataset.tooltip;
+ *     document.body.appendChild(this.tooltip);
+ *   }
+ *
+ *   destroy() {
+ *     if (this.tooltip && this.tooltip.parentNode) {
+ *       this.tooltip.parentNode.removeChild(this.tooltip);
+ *     }
+ *     this.tooltip = null;
+ *     this.isVisible = false;
+ *   }
+ * }
+ *
+ * function createTooltipsForNewContent(container) {
+ *   const tooltipElements = container.querySelectorAll('[data-tooltip]');
+ *
+ *   if (tooltipElements.length > 0) {
+ *     const newTooltips = createPluginInstance(tooltipElements, {
+ *       placement: 'top',
+ *       trigger: 'hover'
+ *     }, Tooltip);
+ *
+ *     activeTooltips.push(...newTooltips);
+ *     console.log(`Created ${newTooltips.length} new tooltips`);
+ *   }
+ * }
+ *
+ * function cleanupTooltipsInContainer(container) {
+ *   const tooltipElements = container.querySelectorAll('[data-tooltip]');
+ *   const containedTooltips = getPluginInstance(tooltipElements);
+ *
+ *   containedTooltips.forEach(tooltip => {
+ *     tooltip.destroy();
+ *     activeTooltips = activeTooltips.filter(t => t !== tooltip);
+ *   });
+ *
+ *   console.log(`Cleaned up ${containedTooltips.length} tooltips`);
+ * }
+ *
+ * function getAllActiveTooltips() {
+ *   // Get all tooltips from DOM and filter out destroyed instances
+ *   const allTooltipElements = document.querySelectorAll('[data-tooltip]');
+ *   const currentTooltips = getPluginInstance(allTooltipElements);
+ *
+ *   // Update our tracking array
+ *   activeTooltips = currentTooltips;
+ *
+ *   return currentTooltips;
+ * }
+ *
+ * function hideAllTooltips() {
+ *   const tooltips = getAllActiveTooltips();
+ *   tooltips.forEach(tooltip => tooltip.hide());
+ *   console.log(`Hidden ${tooltips.length} tooltips`);
+ * }
+ *
+ * function getTooltipStates() {
+ *   const tooltips = getAllActiveTooltips();
+ *   return tooltips.map(tooltip => ({
+ *     elementId: tooltip.element.id || 'unnamed',
+ *     text: tooltip.element.dataset.tooltip,
+ *     isVisible: tooltip.isVisible,
+ *     placement: tooltip.options.placement,
+ *     trigger: tooltip.options.trigger
+ *   }));
+ * }
+ *
+ * // Usage in dynamic content scenarios
+ * const dynamicContainer = document.getElementById('dynamic-content');
+ *
+ * // When new content is added
+ * function addNewContent(htmlContent) {
+ *   dynamicContainer.innerHTML += htmlContent;
+ *   createTooltipsForNewContent(dynamicContainer);
+ * }
+ *
+ * // When content is removed
+ * function clearContent() {
+ *   cleanupTooltipsInContainer(dynamicContainer);
+ *   dynamicContainer.innerHTML = '';
+ * }
+ *
+ * // Monitor active tooltips
+ * function reportTooltipStatus() {
+ *   const active = getAllActiveTooltips();
+ *   const states = getTooltipStates();
+ *   console.log(`Active tooltips: ${active.length}`);
+ *   console.table(states);
+ * }
+ *
+ * @example
+ * // Conditional instance retrieval with fallback creation
+ * function getOrCreateImageLightbox(selector, options = {}) {
+ *   // Try to get existing instances first
+ *   let instances = getPluginInstance(selector);
+ *
+ *   // If no instances found, create them
+ *   if (instances.length === 0) {
+ *     instances = createPluginInstance(selector, options, ImageLightbox);
+ *     console.log(`Created ${instances.length} new lightbox instances`);
+ *   } else {
+ *     console.log(`Found ${instances.length} existing lightbox instances`);
+ *   }
+ *
+ *   return instances;
+ * }
+ *
+ * class ImageLightbox {
+ *   constructor(element, options = {}) {
+ *     this.element = element;
+ *     this.options = { animation: 'fade', closeOnEscape: true, ...options };
+ *     this.images = Array.from(element.querySelectorAll('img'));
+ *     this.currentIndex = 0;
+ *     this.isOpen = false;
+ *     this.init();
+ *   }
+ *
+ *   init() {
+ *     this.images.forEach((img, index) => {
+ *       img.addEventListener('click', () => this.openLightbox(index));
+ *     });
+ *   }
+ *
+ *   openLightbox(index) {
+ *     this.currentIndex = index;
+ *     this.isOpen = true;
+ *     // Lightbox opening logic
+ *     console.log(`Opened lightbox at image ${index}`);
+ *   }
+ *
+ *   closeLightbox() {
+ *     this.isOpen = false;
+ *     // Lightbox closing logic
+ *     console.log('Closed lightbox');
+ *   }
+ *
+ *   nextImage() {
+ *     this.currentIndex = (this.currentIndex + 1) % this.images.length;
+ *     console.log(`Moved to image ${this.currentIndex}`);
+ *   }
+ *
+ *   prevImage() {
+ *     this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+ *     console.log(`Moved to image ${this.currentIndex}`);
+ *   }
+ *
+ *   getCurrentImageInfo() {
+ *     return {
+ *       index: this.currentIndex,
+ *       total: this.images.length,
+ *       src: this.images[this.currentIndex]?.src,
+ *       alt: this.images[this.currentIndex]?.alt
+ *     };
+ *   }
+ * }
+ *
+ * // Usage - will create if not exists, or return existing
+ * const lightboxes1 = getOrCreateImageLightbox('.gallery');
+ * const lightboxes2 = getOrCreateImageLightbox('.gallery'); // Returns same instances
+ *
+ * // Function to get status of all lightboxes
+ * function getAllLightboxStatus() {
+ *   const lightboxes = getPluginInstance('.gallery');
+ *   return lightboxes.map(lightbox => ({
+ *     galleryElement: lightbox.element.id || 'unnamed',
+ *     isOpen: lightbox.isOpen,
+ *     currentImage: lightbox.getCurrentImageInfo(),
+ *     options: lightbox.options
+ *   }));
+ * }
+ *
+ * @example
+ * // Error handling and instance validation
+ * function safelyExecuteOnInstances(selector, methodName, ...args) {
+ *   const instances = getPluginInstance(selector);
+ *
+ *   if (instances.length === 0) {
+ *     console.warn(`No instances found for selector: ${selector}`);
+ *     return [];
+ *   }
+ *
+ *   const results = [];
+ *
+ *   instances.forEach((instance, index) => {
+ *     try {
+ *       if (typeof instance[methodName] === 'function') {
+ *         const result = instance[methodName](...args);
+ *         results.push({ success: true, result, instance });
+ *       } else {
+ *         console.warn(`Method ${methodName} not found on instance ${index}`);
+ *         results.push({ success: false, error: `Method not found: ${methodName}`, instance });
+ *       }
+ *     } catch (error) {
+ *       console.error(`Error calling ${methodName} on instance ${index}:`, error);
+ *       results.push({ success: false, error: error.message, instance });
+ *     }
+ *   });
+ *
+ *   return results;
+ * }
+ *
+ * function validateInstances(selector, requiredMethods = []) {
+ *   const instances = getPluginInstance(selector);
+ *
+ *   return instances.map(instance => {
+ *     const validation = {
+ *       instance,
+ *       elementId: instance.element?.id || 'unnamed',
+ *       isValid: true,
+ *       missingMethods: [],
+ *       hasElement: !!instance.element,
+ *       elementInDOM: instance.element?.parentNode !== null
+ *     };
+ *
+ *     requiredMethods.forEach(method => {
+ *       if (typeof instance[method] !== 'function') {
+ *         validation.isValid = false;
+ *         validation.missingMethods.push(method);
+ *       }
+ *     });
+ *
+ *     return validation;
+ *   });
+ * }
+ *
+ * // Usage examples
+ * const openResults = safelyExecuteOnInstances('.modal', 'open');
+ * console.log('Open results:', openResults);
+ *
+ * const validationResults = validateInstances('.modal', ['open', 'close', 'toggle']);
+ * console.log('Validation results:', validationResults);
+ *
+ * @see createPluginInstance - For creating new plugin instances
+ * @see triggerEvent - For custom event dispatching
+ * @see getElements - For element selection and normalization
+ *
+ * @since 0.3.0
  */
 export function getPluginInstance(selectors) {
+  const weakMap = getWeakMap(namespace);
   return Array.from(getElements(selectors)).filter(element => weakMap.has(element)).map(element => weakMap.get(element));
 }
 
