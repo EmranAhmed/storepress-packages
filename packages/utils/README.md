@@ -19,9 +19,7 @@ import { getOptionsFromAttribute, createPluginInstance, triggerEvent } from '@st
 ```
 
 ```js
-
 // Global Availability.
-
 StorePress.Utils.triggerEvent(...);
 ```
 
@@ -40,16 +38,18 @@ function Plugin(element, options) {
   }
 
   // Collecting settings from html attribute
-  const ATTRIBUTE = 'slider-settings'
+  const ATTRIBUTE = 'slider-settings' // data-slider-settings
 
   // Do what you need and return expose fn.
-  const register = () => {
+  const init = () => {
     this.$element = element
     this.settings = {
       ...DEFAULTS,
       ...options,
-      ...getOptionsFromAttribute( this.$element, ATTRIBUTE)
+      ...getOptionsFromAttribute( this.$element, ATTRIBUTE) // Remember that all number like string and yes|no|true|false string will be converted.
     };
+    
+    this.controller = new AbortController()
 
     addClass()
 
@@ -64,7 +64,7 @@ function Plugin(element, options) {
 
   const addEvents = () => {
     this.$element.querySelectorAll('input').forEach(($el) => {
-      $el.addEventListener('input', handleInput)
+      $el.addEventListener('input', handleInput, { passive: true, signal: this.controller.signal })
     })
   }
 
@@ -81,128 +81,67 @@ function Plugin(element, options) {
   }
 
   const removeEvents = () => {
-    this.$element.querySelectorAll('input').forEach(($el) => {
-      $el.removeEventListener('input', handleInput)
-    })
+    this.controller.abort()
   }
 
-  const unregister = () => {
+  const reset = () => {
     removeEvents()
     removeClass()
   }
 
   // Expose to public.
   const expose = () => ({
-    unregister
+    reset
   })
 
-  return register()
+  return init()
 }
 
 export { Plugin };
 ```
-## Make Plugin Instance `frontend.js`
+## Create Plugin System `slider.js` or `index.js`
 ```js
 /**
  * External dependencies
  */
-import domReady from '@wordpress/dom-ready';
-import { createPluginInstance } from '@storepress/utils';
+import { createStorePressPlugin } from '@storepress/utils'
+import { Plugin } from 'Plugin'
+
+const StorePressSlider = createStorePressPlugin({
+  selector: '[data-slider-settings]',
+  options: { size: 50},
+  plugin: Plugin,
+  namespace: 'slider',
+})
+
+// Setup the event listeners
+StorePressSlider.setup()
+
+export default StorePressSlider
+```
+
+## Usages example `scripts.js`
+
+```js
+
+import { StorePressSlider } from 'slider'
 
 domReady(function () {
-	// Attach with window to access Slider globally.
-	const Slider = {
-		getInstance(element, options) {
-			return createPluginInstance(element, options, Plugin);
-		},
+  StorePressSlider.init() // Setup element events to interact by user.
 
-		initWith(el, options) {
-			for (const { element, destroy, removeEvents } of this.getInstance(
-				el,
-				options
-			)) {
-				element.addEventListener('destroy', removeEvents);
-			}
-		},
+  StorePressSlider.destroy() // Destroy attached events from default elements.
+  StorePressSlider.reload() // Destroy events and reattach for default elements.
 
-		init(options) {
-			for (const { element, destroy, removeEvents } of this.getInstance(
-				'.inp',
-				options
-			)) {
-				element.addEventListener('destroy', removeEvents);
-			}
-		},
-
-		destroyWith(el) {
-			for (const { element, destroy, removeEvents } of this.getInstance(
-				el
-			)) {
-				destroy();
-			}
-		},
-
-		destroy() {
-			for (const { element, destroy, removeEvents } of this.getInstance(
-				'.inp'
-			)) {
-				destroy();
-                removeEvents();
-			}
-		},
-	};
-
-    // Method: 01
-	// Slider.init()
-
-    // Method: 01 destroy inctance
-	// Slider.destroy()
-
-	//////
-
-	// If you do not want to attach Slider to window. use event.
-	document.addEventListener('slider_init_with_options', (event) => {
-		const defaultSettings = { pointerSize: 30 };
-		const settings = { ...defaultSettings, ...event.detail?.settings };
-
-		Slider.init(settings);
-	});
-
-	const slider_init_with_options = new CustomEvent(
-		'slider_init_with_options',
-		{
-			detail: {
-				settings: {
-					size: 80,
-				},
-			},
-		}
-	);
-
-    // Method: 02 init
-	// document.dispatchEvent(slider_init_with_options)
-
-	document.addEventListener('slider_init', (event) => {
-		Slider.init();
-	});
-
-    // Method: 02 init
-	// document.dispatchEvent(new Event('slider_init'));
-
-	document.addEventListener('slider_destroy', (event) => {
-		Slider.destroy();
-	});
-
-    // Method: 02 destroy inctance
-	// document.dispatchEvent(new Event('slider_destroy')) //  run when you want to destroy slider instances
-});
+  StorePressSlider.clear() // Completely remove plugin system events and element events.
+  StorePressSlider.setup() // Setup plugin system events to init, destroy and reload.
+  // NOTE: Must use StorePressSlider.init() after every StorePressSlider.setup()
+})
 ```
 
 ## Example markup
 
 ```html
 <div id="container">
-
     <div class="slider-wrapper inp" data-slider-settings="{'size': 40}">
         <a>1</a>
         <form>
@@ -216,6 +155,5 @@ domReady(function () {
             <input type="text" placeholder="Location Y">
         </form>
     </div>
-
 </div>
 ```
