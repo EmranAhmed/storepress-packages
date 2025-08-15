@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.createPluginInstance = createPluginInstance;
+exports.createStorePressPlugin = createStorePressPlugin;
 exports.deepMerge = deepMerge;
 exports.escapeRegex = escapeRegex;
 exports.findObjectValue = findObjectValue;
@@ -16,8 +17,12 @@ exports.swipeEvent = swipeEvent;
 exports.testWaitAsync = testWaitAsync;
 exports.testWaitSync = testWaitSync;
 exports.toCamelCase = toCamelCase;
+exports.toConstantCase = toConstantCase;
+exports.toKebabCase = toKebabCase;
+exports.toSnakeCase = toSnakeCase;
 exports.toUpperCamelCase = toUpperCamelCase;
 exports.triggerEvent = triggerEvent;
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -33,6 +38,1003 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 var namespace = 'Utils';
 
 /**
+ * Converts a string to kebab-case (also known as dash-case or lisp-case).
+ *
+ * This function transforms strings from various naming conventions (camelCase,
+ * PascalCase, snake_case, dot.case, or space separated) into kebab-case format
+ * where words are lowercase and separated by hyphens.
+ *
+ * @param {string} string - The input string to convert to kebab-case
+ * @returns {string} The converted string in kebab-case format
+ *
+ * @example
+ * // Converting from camelCase
+ * toKebabCase('firstName') // Returns: 'first-name'
+ * toKebabCase('getUserById') // Returns: 'get-user-by-id'
+ *
+ * @example
+ * // Converting from PascalCase
+ * toKebabCase('UserProfile') // Returns: 'user-profile'
+ * toKebabCase('XMLHttpRequest') // Returns: 'xmlhttp-request'
+ *
+ * @example
+ * // Converting from snake_case
+ * toKebabCase('user_name') // Returns: 'user-name'
+ * toKebabCase('API_KEY_SECRET') // Returns: 'api-key-secret'
+ *
+ * @example
+ * // Converting from space separated
+ * toKebabCase('hello world') // Returns: 'hello-world'
+ * toKebabCase('My Custom Component') // Returns: 'my-custom-component'
+ *
+ * @example
+ * // Converting from dot.case
+ * toKebabCase('config.database.url') // Returns: 'config-database-url'
+ *
+ * @example
+ * // Handling edge cases
+ * toKebabCase('already-kebab-case') // Returns: 'already-kebab-case'
+ * toKebabCase('--leading-trailing--') // Returns: 'leading-trailing'
+ * toKebabCase('iPhone13Pro') // Returns: 'i-phone13-pro'
+ *
+ * @since 0.8.0
+ *
+ */
+function toKebabCase(string) {
+  return string
+  // Find uppercase letters and insert hyphen before them, then lowercase the letter
+  .replace(/([A-Z])/g, function (match, p1) {
+    return "-".concat(p1.toLowerCase());
+  })
+  // Replace any underscores, dots, or spaces with hyphens
+  .replace(/[_.\s]/g, '-')
+  // Remove any leading or trailing hyphens that may have been created
+  .replace(/^-+|-+$/g, '')
+  // Convert the entire string to lowercase
+  .toLowerCase();
+}
+
+/**
+ * Converts a string to snake_case (also known as underscore_case).
+ *
+ * This function transforms strings from various naming conventions (camelCase,
+ * PascalCase, kebab-case, dot.case, or space separated) into snake_case format
+ * where words are lowercase and separated by underscores.
+ *
+ * @param {string} string - The input string to convert to snake_case
+ * @returns {string} The converted string in snake_case format
+ *
+ * @example
+ * // Converting from camelCase
+ * toSnakeCase('firstName') // Returns: 'first_name'
+ * toSnakeCase('getUserById') // Returns: 'get_user_by_id'
+ * toSnakeCase('isActiveUser') // Returns: 'is_active_user'
+ *
+ * @example
+ * // Converting from PascalCase
+ * toSnakeCase('UserProfile') // Returns: 'user_profile'
+ * toSnakeCase('XMLHttpRequest') // Returns: 'xmlhttp_request'
+ * toSnakeCase('DatabaseConnection') // Returns: 'database_connection'
+ *
+ * @example
+ * // Converting from kebab-case
+ * toSnakeCase('user-name') // Returns: 'user_name'
+ * toSnakeCase('api-key-secret') // Returns: 'api_key_secret'
+ * toSnakeCase('custom-component') // Returns: 'custom_component'
+ *
+ * @example
+ * // Converting from space separated
+ * toSnakeCase('hello world') // Returns: 'hello_world'
+ * toSnakeCase('My Custom Function') // Returns: 'my_custom_function'
+ * toSnakeCase('User Profile Settings') // Returns: 'user_profile_settings'
+ *
+ * @example
+ * // Converting from dot.case
+ * toSnakeCase('config.database.url') // Returns: 'config_database_url'
+ * toSnakeCase('app.settings.theme') // Returns: 'app_settings_theme'
+ *
+ * @example
+ * // Handling edge cases
+ * toSnakeCase('already_snake_case') // Returns: 'already_snake_case'
+ * toSnakeCase('__leading_trailing__') // Returns: 'leading_trailing'
+ * toSnakeCase('iPhone13Pro') // Returns: 'i_phone13_pro'
+ * toSnakeCase('HTTPSConnection') // Returns: 'httpsconnection'
+ *
+ * @example
+ * // Real-world usage in API transformation
+ * const userData = {
+ *   firstName: 'John',
+ *   lastName: 'Doe',
+ *   emailAddress: 'john@example.com',
+ *   phoneNumber: '+1234567890'
+ * };
+ *
+ * // Transform object keys to snake_case for API
+ * const apiData = Object.fromEntries(
+ *   Object.entries(userData).map(([key, value]) => [toSnakeCase(key), value])
+ * );
+ * // Result: { first_name: 'John', last_name: 'Doe', email_address: 'john@example.com', phone_number: '+1234567890' }
+ * @since 0.8.0
+ *
+ */
+function toSnakeCase(string) {
+  return string
+  // Find uppercase letters and insert underscore before them, then lowercase the letter
+  .replace(/([A-Z])/g, function (match, p1) {
+    return "_".concat(p1.toLowerCase());
+  })
+  // Replace any hyphens, dots, or spaces with underscores
+  .replace(/[-.\s]/g, '_')
+  // Remove any leading or trailing underscores that may have been created
+  .replace(/^_+|_+$/g, '')
+  // Convert the entire string to lowercase
+  .toLowerCase();
+}
+
+/**
+ * Converts a string to CONSTANT_CASE (also known as SCREAMING_SNAKE_CASE or UPPER_SNAKE_CASE).
+ *
+ * This function transforms strings from various naming conventions (camelCase,
+ * PascalCase, kebab-case, snake_case, dot.case, or space separated) into CONSTANT_CASE
+ * format where words are uppercase and separated by underscores. This is the standard
+ * convention for constants, environment variables, and configuration keys.
+ *
+ * @param {string} string - The input string to convert to CONSTANT_CASE
+ * @returns {string} The converted string in CONSTANT_CASE format
+ *
+ * @example
+ * // Converting from camelCase
+ * toConstantCase('apiKey') // Returns: 'API_KEY'
+ * toConstantCase('maxRetryAttempts') // Returns: 'MAX_RETRY_ATTEMPTS'
+ * toConstantCase('databaseUrl') // Returns: 'DATABASE_URL'
+ *
+ * @example
+ * // Converting from PascalCase
+ * toConstantCase('UserProfile') // Returns: 'USER_PROFILE'
+ * toConstantCase('XMLHttpRequest') // Returns: 'XMLHTTP_REQUEST'
+ * toConstantCase('DatabaseConnection') // Returns: 'DATABASE_CONNECTION'
+ *
+ * @example
+ * // Converting from kebab-case
+ * toConstantCase('api-key') // Returns: 'API_KEY'
+ * toConstantCase('max-retry-attempts') // Returns: 'MAX_RETRY_ATTEMPTS'
+ * toConstantCase('cache-timeout') // Returns: 'CACHE_TIMEOUT'
+ *
+ * @example
+ * // Converting from snake_case
+ * toConstantCase('user_name') // Returns: 'USER_NAME'
+ * toConstantCase('jwt_secret') // Returns: 'JWT_SECRET'
+ * toConstantCase('default_timeout') // Returns: 'DEFAULT_TIMEOUT'
+ *
+ * @example
+ * // Converting from space separated
+ * toConstantCase('hello world') // Returns: 'HELLO_WORLD'
+ * toConstantCase('My Custom Config') // Returns: 'MY_CUSTOM_CONFIG'
+ * toConstantCase('Database Connection String') // Returns: 'DATABASE_CONNECTION_STRING'
+ *
+ * @example
+ * // Converting from dot.case
+ * toConstantCase('config.database.url') // Returns: 'CONFIG_DATABASE_URL'
+ * toConstantCase('app.settings.theme') // Returns: 'APP_SETTINGS_THEME'
+ *
+ * @example
+ * // Handling edge cases and multiple separators
+ * toConstantCase('ALREADY_CONSTANT_CASE') // Returns: 'ALREADY_CONSTANT_CASE'
+ * toConstantCase('--leading--trailing--') // Returns: 'LEADING_TRAILING'
+ * toConstantCase('iPhone13Pro') // Returns: 'I_PHONE13_PRO'
+ * toConstantCase('multiple   spaces') // Returns: 'MULTIPLE_SPACES'
+ * toConstantCase('mixed-case_input.test') // Returns: 'MIXED_CASE_INPUT_TEST'
+ *
+ * @example
+ * // Real-world usage: Generate environment variable mappings
+ * const configMappings = [
+ *   'databaseUrl',
+ *   'jwtSecret',
+ *   'redisPort',
+ *   'maxUploadSize',
+ *   'enableLogging'
+ * ];
+ *
+ * const envVars = configMappings.reduce((acc, key) => {
+ *   acc[key] = process.env[toConstantCase(key)];
+ *   return acc;
+ * }, {});
+ *
+ * // Result:
+ * // {
+ * //   databaseUrl: process.env.DATABASE_URL,
+ * //   jwtSecret: process.env.JWT_SECRET,
+ * //   redisPort: process.env.REDIS_PORT,
+ * //   maxUploadSize: process.env.MAX_UPLOAD_SIZE,
+ * //   enableLogging: process.env.ENABLE_LOGGING
+ * // }
+ *
+ * @example
+ * // Code generation for constants file
+ * const apiEndpoints = ['userProfile', 'orderHistory', 'paymentMethods'];
+ *
+ * console.log('export const API_ENDPOINTS = {');
+ * apiEndpoints.forEach(endpoint => {
+ *   const constant = toConstantCase(endpoint);
+ *   console.log(`  ${constant}: '/${toKebabCase(endpoint)}',`);
+ * });
+ * console.log('};');
+ *
+ * // Output:
+ * // export const API_ENDPOINTS = {
+ * //   USER_PROFILE: '/user-profile',
+ * //   ORDER_HISTORY: '/order-history',
+ * //   PAYMENT_METHODS: '/payment-methods',
+ * // };
+ *
+ * @since 0.8.0
+ *
+ */
+function toConstantCase(string) {
+  return string
+  // Insert underscores before uppercase letters (but not at start)
+  .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+  // Replace any separator characters with underscore
+  .replace(/[-.\s]+/g, '_')
+  // Remove leading/trailing underscores
+  .replace(/^_+|_+$/g, '')
+  // Convert the entire string to uppercase
+  .toUpperCase();
+}
+
+/**
+ * Converts a string to camelCase format by lowercasing the first letter and capitalizing
+ * every letter that follows a space, hyphen, or underscore, then removing the separators.
+ *
+ * This function transforms strings from various naming conventions (kebab-case, snake_case,
+ * PascalCase, space-separated, etc.) into camelCase format, which is the standard naming
+ * convention for variables, properties, and method names in JavaScript.
+ *
+ * @param {string} string - The string to convert to camelCase
+ * @returns {string} The converted string in camelCase format
+ *
+ * @example
+ * // Basic conversions from different formats
+ * console.log(toCamelCase('hello world')); // 'helloWorld'
+ * console.log(toCamelCase('user-profile')); // 'userProfile'
+ * console.log(toCamelCase('api_endpoint')); // 'apiEndpoint'
+ * console.log(toCamelCase('my-custom-component')); // 'myCustomComponent'
+ *
+ * @example
+ * // Converting from PascalCase to camelCase
+ * console.log(toCamelCase('UserProfile')); // 'userProfile'
+ * console.log(toCamelCase('APIEndpoint')); // 'aPIEndpoint'
+ * console.log(toCamelCase('MyCustomComponent')); // 'myCustomComponent'
+ *
+ * @example
+ * // Mixed separators and complex cases
+ * console.log(toCamelCase('data-api_handler')); // 'dataApiHandler'
+ * console.log(toCamelCase('multi word-string_test')); // 'multiWordStringTest'
+ * console.log(toCamelCase('HTTP-Status_Code')); // 'hTTPStatusCode'
+ * console.log(toCamelCase('already-camelCased')); // 'alreadyCamelCased'
+ *
+ * @example
+ * // Edge cases and empty inputs
+ * console.log(toCamelCase('')); // ''
+ * console.log(toCamelCase('a')); // 'a'
+ * console.log(toCamelCase('A')); // 'a'
+ * console.log(toCamelCase('a-b')); // 'aB'
+ * console.log(toCamelCase('---')); // ''
+ *
+ * @example
+ * // Use case: HTML data attribute parsing
+ * function parseDataAttributes(element) {
+ *   const attributes = {};
+ *
+ *   Array.from(element.attributes).forEach(attr => {
+ *     if (attr.name.startsWith('data-')) {
+ *       // Convert data-user-name to userName
+ *       const key = toCamelCase(attr.name.replace('data-', ''));
+ *       attributes[key] = attr.value;
+ *     }
+ *   });
+ *
+ *   return attributes;
+ * }
+ *
+ * // HTML: <div data-user-name="John" data-max-items="10" data-is-active="true">
+ * const attrs = parseDataAttributes(element);
+ * // Result: { userName: "John", maxItems: "10", isActive: "true" }
+ *
+ * @example
+ * // Use case: CSS property name conversion
+ * function setStyles(element, styleObject) {
+ *   Object.entries(styleObject).forEach(([key, value]) => {
+ *     // Convert kebab-case CSS properties to camelCase
+ *     const camelKey = toCamelCase(key);
+ *     element.style[camelKey] = value;
+ *   });
+ * }
+ *
+ * // Usage
+ * setStyles(element, {
+ *   'background-color': '#fff',
+ *   'margin-top': '20px',
+ *   'border-radius': '5px',
+ *   'font-size': '14px'
+ * });
+ * // Sets: backgroundColor, marginTop, borderRadius, fontSize
+ *
+ * @example
+ * // Use case: Configuration object normalization
+ * function normalizeConfig(config) {
+ *   const normalized = {};
+ *
+ *   Object.entries(config).forEach(([key, value]) => {
+ *     const camelKey = toCamelCase(key);
+ *
+ *     if (typeof value === 'object' && value !== null) {
+ *       normalized[camelKey] = normalizeConfig(value); // Recursive
+ *     } else {
+ *       normalized[camelKey] = value;
+ *     }
+ *   });
+ *
+ *   return normalized;
+ * }
+ *
+ * // Input with mixed naming conventions
+ * const config = {
+ *   'user-name': 'John',
+ *   'api_endpoint': '/api/users',
+ *   'MaxRetries': 3,
+ *   'cache_settings': {
+ *     'time-to-live': 300,
+ *     'max_size': 1000
+ *   }
+ * };
+ *
+ * const normalized = normalizeConfig(config);
+ * // Result: {
+ * //   userName: 'John',
+ * //   apiEndpoint: '/api/users',
+ * //   maxRetries: 3,
+ * //   cacheSettings: {
+ * //     timeToLive: 300,
+ * //     maxSize: 1000
+ * //   }
+ * // }
+ *
+ * @example
+ * // Use case: API response transformation
+ * function transformApiResponse(response) {
+ *   if (Array.isArray(response)) {
+ *     return response.map(item => transformApiResponse(item));
+ *   }
+ *
+ *   if (typeof response === 'object' && response !== null) {
+ *     const transformed = {};
+ *
+ *     Object.entries(response).forEach(([key, value]) => {
+ *       // Convert snake_case API keys to camelCase
+ *       const camelKey = toCamelCase(key);
+ *       transformed[camelKey] = transformApiResponse(value);
+ *     });
+ *
+ *     return transformed;
+ *   }
+ *
+ *   return response;
+ * }
+ *
+ * // API response with snake_case
+ * const apiResponse = {
+ *   user_id: 123,
+ *   first_name: 'John',
+ *   last_name: 'Doe',
+ *   account_settings: {
+ *     email_notifications: true,
+ *     privacy_level: 'public'
+ *   },
+ *   recent_orders: [
+ *     { order_id: 1, created_at: '2023-01-01' }
+ *   ]
+ * };
+ *
+ * const jsResponse = transformApiResponse(apiResponse);
+ * // Result: {
+ * //   userId: 123,
+ * //   firstName: 'John',
+ * //   lastName: 'Doe',
+ * //   accountSettings: {
+ * //     emailNotifications: true,
+ * //     privacyLevel: 'public'
+ * //   },
+ * //   recentOrders: [
+ * //     { orderId: 1, createdAt: '2023-01-01' }
+ * //   ]
+ * // }
+ *
+ * @example
+ * // Use case: Form field name mapping
+ * function createFormHandler(fieldMappings) {
+ *   return function(formData) {
+ *     const processedData = {};
+ *
+ *     formData.forEach((value, key) => {
+ *       // Convert form field names to camelCase property names
+ *       const propName = toCamelCase(key);
+ *
+ *       // Apply field mapping if exists
+ *       const mappedName = fieldMappings[propName] || propName;
+ *       processedData[mappedName] = value;
+ *     });
+ *
+ *     return processedData;
+ *   };
+ * }
+ *
+ * // Form with kebab-case field names
+ * // <input name="first-name" value="John">
+ * // <input name="email-address" value="john@example.com">
+ * // <input name="phone-number" value="123-456-7890">
+ *
+ * const handler = createFormHandler({
+ *   emailAddress: 'email',
+ *   phoneNumber: 'phone'
+ * });
+ *
+ * const result = handler(formData);
+ * // Result: { firstName: 'John', email: 'john@example.com', phone: '123-456-7890' }
+ *
+ * @example
+ * // Use case: Event name normalization for listeners
+ * class EventEmitter {
+ *   constructor() {
+ *     this.listeners = {};
+ *   }
+ *
+ *   on(eventName, callback) {
+ *     // Normalize event names to camelCase
+ *     const normalizedName = toCamelCase(eventName);
+ *
+ *     if (!this.listeners[normalizedName]) {
+ *       this.listeners[normalizedName] = [];
+ *     }
+ *
+ *     this.listeners[normalizedName].push(callback);
+ *   }
+ *
+ *   emit(eventName, ...args) {
+ *     const normalizedName = toCamelCase(eventName);
+ *     const callbacks = this.listeners[normalizedName] || [];
+ *
+ *     callbacks.forEach(callback => callback(...args));
+ *   }
+ * }
+ *
+ * // Usage with different naming conventions
+ * const emitter = new EventEmitter();
+ *
+ * emitter.on('user-login', (user) => console.log('Login:', user));
+ * emitter.on('user_logout', () => console.log('Logout'));
+ * emitter.on('DataLoaded', (data) => console.log('Data:', data));
+ *
+ * // All these trigger the same normalized event
+ * emitter.emit('user-login', { id: 1 });
+ * emitter.emit('userLogin', { id: 1 });
+ * emitter.emit('UserLogin', { id: 1 });
+ *
+ * @example
+ * // Use case: Environment variable processing
+ * function loadEnvConfig(envPrefix = 'APP_') {
+ *   const config = {};
+ *
+ *   Object.entries(process.env).forEach(([key, value]) => {
+ *     if (key.startsWith(envPrefix)) {
+ *       // Convert APP_DATABASE_URL to databaseUrl
+ *       const configKey = toCamelCase(
+ *         key.replace(envPrefix, '').toLowerCase().replace(/_/g, '-')
+ *       );
+ *
+ *       config[configKey] = value;
+ *     }
+ *   });
+ *
+ *   return config;
+ * }
+ *
+ * // Environment variables:
+ * // APP_DATABASE_URL=postgresql://...
+ * // APP_REDIS_HOST=localhost
+ * // APP_MAX_CONNECTIONS=10
+ *
+ * const config = loadEnvConfig();
+ * // Result: {
+ * //   databaseUrl: 'postgresql://...',
+ * //   redisHost: 'localhost',
+ * //   maxConnections: '10'
+ * // }
+ *
+ * @example
+ * // Use case: GraphQL field name transformation
+ * function transformGraphQLResponse(data, schema) {
+ *   if (Array.isArray(data)) {
+ *     return data.map(item => transformGraphQLResponse(item, schema));
+ *   }
+ *
+ *   if (typeof data === 'object' && data !== null) {
+ *     const transformed = {};
+ *
+ *     Object.entries(data).forEach(([key, value]) => {
+ *       // Convert GraphQL field names to camelCase
+ *       const jsKey = toCamelCase(key);
+ *
+ *       if (schema && schema[jsKey]) {
+ *         transformed[jsKey] = transformGraphQLResponse(value, schema[jsKey]);
+ *       } else {
+ *         transformed[jsKey] = value;
+ *       }
+ *     });
+ *
+ *     return transformed;
+ *   }
+ *
+ *   return data;
+ * }
+ *
+ * // GraphQL response
+ * const gqlResponse = {
+ *   user_profile: {
+ *     first_name: 'John',
+ *     profile_image_url: 'https://...',
+ *     social_links: [
+ *       { platform_name: 'twitter', profile_url: 'https://...' }
+ *     ]
+ *   }
+ * };
+ *
+ * const jsResponse = transformGraphQLResponse(gqlResponse);
+ * // Result: {
+ * //   userProfile: {
+ * //     firstName: 'John',
+ * //     profileImageUrl: 'https://...',
+ * //     socialLinks: [
+ * //       { platformName: 'twitter', profileUrl: 'https://...' }
+ * //     ]
+ * //   }
+ * // }
+ *
+ * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
+ * @see https://google.github.io/styleguide/jsguide.html#naming-camel-case Google JavaScript Style Guide - Camel Case
+ *
+ * @since 0.3.0
+ */
+function toCamelCase(string) {
+  return string
+  // Match: 1) uppercase letter at start ^([A-Z]) OR 2) word char after separator [\s-_.](\w)
+  // If separator+char: uppercase the char | If start uppercase: lowercase it
+  .replace(/^([A-Z])|[-._\s](\w)/g, function (match, p1, p2) {
+    if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
+    return p1.toLowerCase(); // Found uppercase at start - make it lowercase
+  });
+}
+
+/**
+ * Converts a string to UpperCamelCase (PascalCase) format by capitalizing the first letter
+ * and every letter that follows a dot, space, hyphen, or underscore, then removing the separators.
+ *
+ * This function transforms strings from various naming conventions (kebab-case, snake_case,
+ * space-separated, dot.separated, etc.) into UpperCamelCase format, which is commonly used for class names,
+ * constructor functions, and component names in JavaScript.
+ *
+ * @param {string} string - The string to convert to UpperCamelCase
+ * @returns {string} The converted string in UpperCamelCase format
+ *
+ * @example
+ * // Basic conversions from different formats
+ * console.log(toUpperCamelCase('hello world')); // 'HelloWorld'
+ * console.log(toUpperCamelCase('user-profile')); // 'UserProfile'
+ * console.log(toUpperCamelCase('api_endpoint')); // 'ApiEndpoint'
+ * console.log(toUpperCamelCase('my-custom-component')); // 'MyCustomComponent'
+ * console.log(toUpperCamelCase('my.style')); // 'MyStyle'
+ *
+ * @example
+ * // Mixed separators and edge cases
+ * console.log(toUpperCamelCase('data-api_handler')); // 'DataApiHandler'
+ * console.log(toUpperCamelCase('multi word-string_test')); // 'MultiWordStringTest'
+ * console.log(toUpperCamelCase('single')); // 'Single'
+ * console.log(toUpperCamelCase('already-Capitalized')); // 'AlreadyCapitalized'
+ *
+ * @example
+ * // Empty and edge case inputs
+ * console.log(toUpperCamelCase('')); // ''
+ * console.log(toUpperCamelCase('a')); // 'A'
+ * console.log(toUpperCamelCase('a-b')); // 'AB'
+ * console.log(toUpperCamelCase('---')); // ''
+ *
+ * @example
+ * // Use case: Class name generation from configuration
+ * function createComponentClass(componentName, options = {}) {
+ *   const className = toUpperCamelCase(componentName);
+ *
+ *   // Dynamic class creation
+ *   const ComponentClass = class {
+ *     constructor(element) {
+ *       this.element = element;
+ *       this.name = className;
+ *       this.init(options);
+ *     }
+ *
+ *     init(options) {
+ *       console.log(`Initializing ${this.name} component`);
+ *     }
+ *   };
+ *
+ *   // Set the class name for debugging
+ *   Object.defineProperty(ComponentClass, 'name', { value: className });
+ *
+ *   return ComponentClass;
+ * }
+ *
+ * // Usage
+ * const ModalComponent = createComponentClass('modal-dialog');
+ * const TabsComponent = createComponentClass('navigation_tabs');
+ * const SliderComponent = createComponentClass('image slider');
+ *
+ * @example
+ * // Use case: CSS class name to constructor mapping
+ * const componentRegistry = {};
+ *
+ * function registerComponent(cssClass, implementation) {
+ *   const constructorName = toUpperCamelCase(cssClass);
+ *   componentRegistry[constructorName] = implementation;
+ * }
+ *
+ * function createComponent(cssClass, element) {
+ *   const constructorName = toUpperCamelCase(cssClass);
+ *   const ComponentClass = componentRegistry[constructorName];
+ *
+ *   if (ComponentClass) {
+ *     return new ComponentClass(element);
+ *   }
+ *
+ *   throw new Error(`Component ${constructorName} not found`);
+ * }
+ *
+ * // Register components
+ * registerComponent('dropdown-menu', DropdownMenuComponent);
+ * registerComponent('date_picker', DatePickerComponent);
+ *
+ * // Create instances
+ * const dropdown = createComponent('dropdown-menu', dropdownElement);
+ * const datePicker = createComponent('date_picker', dateElement);
+ *
+ * @example
+ * // Use case: API endpoint to service class mapping
+ * function createServiceClass(endpointName) {
+ *   const serviceName = toUpperCamelCase(endpointName) + 'Service';
+ *
+ *   return class {
+ *     constructor(baseUrl) {
+ *       this.baseUrl = baseUrl;
+ *       this.endpoint = endpointName;
+ *     }
+ *
+ *     async get(id) {
+ *       const response = await fetch(`${this.baseUrl}/${this.endpoint}/${id}`);
+ *       return response.json();
+ *     }
+ *
+ *     toString() {
+ *       return serviceName;
+ *     }
+ *   };
+ * }
+ *
+ * // Generate service classes
+ * const UserService = createServiceClass('user-profile');
+ * const OrderService = createServiceClass('order_history');
+ * const ProductService = createServiceClass('product catalog');
+ *
+ * @example
+ * // Use case: Template name to component name conversion
+ * function loadTemplate(templateName) {
+ *   const componentName = toUpperCamelCase(templateName);
+ *
+ *   return {
+ *     name: componentName,
+ *     template: `templates/${templateName}.html`,
+ *     component: `components/${componentName}.js`,
+ *     styles: `styles/${templateName}.css`
+ *   };
+ * }
+ *
+ * // Usage
+ * const modal = loadTemplate('modal-dialog');
+ * // Result: {
+ * //   name: 'ModalDialog',
+ * //   template: 'templates/modal-dialog.html',
+ * //   component: 'components/ModalDialog.js',
+ * //   styles: 'styles/modal-dialog.css'
+ * // }
+ *
+ * @example
+ * // Use case: Form field name to validator class
+ * const validators = {
+ *   EmailValidator: class {  }, // email validation logic
+ *   PasswordValidator: class { }, // password validation logic
+ *   PhoneNumberValidator: class { } // phone validation logic
+ * };
+ *
+ * function getValidator(fieldName) {
+ *   const validatorName = toUpperCamelCase(fieldName) + 'Validator';
+ *   return validators[validatorName] || null;
+ * }
+ *
+ * // Usage
+ * const emailValidator = getValidator('email-field');
+ * const passwordValidator = getValidator('password_confirmation');
+ * const phoneValidator = getValidator('phone number');
+ *
+ * @example
+ * // Use case: Module name normalization for dynamic imports
+ * async function loadModule(moduleName) {
+ *   const normalizedName = toUpperCamelCase(moduleName);
+ *
+ *   try {
+ *     const module = await import(`./modules/${normalizedName}.js`);
+ *     return module.default || module;
+ *   } catch (error) {
+ *     console.error(`Failed to load module ${normalizedName}:`, error);
+ *     return null;
+ *   }
+ * }
+ *
+ * // Load modules with consistent naming
+ * const chartModule = await loadModule('chart-renderer');
+ * const dataModule = await loadModule('data_processor');
+ * const utilModule = await loadModule('utility helpers');
+ *
+ * @example
+ * // Use case: Event handler method generation
+ * class EventManager {
+ *   constructor() {
+ *     this.handlers = {};
+ *   }
+ *
+ *   on(eventName, callback) {
+ *     const methodName = 'handle' + toUpperCamelCase(eventName);
+ *
+ *     this[methodName] = callback;
+ *     this.handlers[eventName] = methodName;
+ *
+ *     console.log(`Registered ${methodName} for ${eventName}`);
+ *   }
+ *
+ *   trigger(eventName, ...args) {
+ *     const methodName = this.handlers[eventName];
+ *     if (methodName && this[methodName]) {
+ *       this[methodName](...args);
+ *     }
+ *   }
+ * }
+ *
+ * // Usage
+ * const events = new EventManager();
+ * events.on('user-login', (user) => console.log('User logged in:', user));
+ * events.on('data_loaded', (data) => console.log('Data loaded:', data));
+ *
+ * // Creates methods: handleUserLogin, handleDataLoaded
+ *
+ * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
+ *
+ * @since 0.3.0
+ */
+function toUpperCamelCase(string) {
+  return string
+  // Match: 1) lowercase letter at start ^([a-z]) OR 2) word char after separator [-._\s](\w)
+  // If separator+char: uppercase the char | If start lowercase: uppercase it
+  .replace(/^([a-z])|[-._\s](\w)/g, function (match, p1, p2) {
+    if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
+    return p1.toUpperCase(); // Found lowercase at start - make it uppercase
+  });
+}
+
+/**
+ * Recursively merges multiple objects into a single object, with later sources
+ * taking precedence over earlier ones. Only plain objects are deeply merged;
+ * arrays, null values, and primitives are replaced entirely.
+ *
+ * The function performs a deep merge where:
+ * - Plain objects are recursively merged
+ * - Arrays completely replace previous arrays (no concatenation)
+ * - Null values replace previous values
+ * - Primitive values (string, number, boolean) replace previous values
+ * - Later sources override earlier sources at each level
+ *
+ * @param {...Object} sources - One or more objects to merge
+ * @returns {Object} A new object containing the merged properties from all sources
+ *
+ * @example
+ * // Basic object merging
+ * const obj1 = { a: 1, b: 2 };
+ * const obj2 = { b: 3, c: 4 };
+ * const result = deepMerge(obj1, obj2);
+ * console.log(result); // { a: 1, b: 3, c: 4 }
+ *
+ * @example
+ * // Deep merging nested objects
+ * const defaults = {
+ *   theme: {
+ *     colors: { primary: 'blue', secondary: 'gray' },
+ *     spacing: { margin: 10, padding: 5 }
+ *   },
+ *   features: { search: true }
+ * };
+ *
+ * const customConfig = {
+ *   theme: {
+ *     colors: { primary: 'red' }, // Only primary changes, secondary preserved
+ *     font: 'Arial'               // New property added
+ *   },
+ *   features: { search: false, filter: true }
+ * };
+ *
+ * const merged = deepMerge(defaults, customConfig);
+ * console.log(merged);
+ * // Result: {
+ * //   theme: {
+ * //     colors: { primary: 'red', secondary: 'gray' },
+ * //     spacing: { margin: 10, padding: 5 },
+ * //     font: 'Arial'
+ * //   },
+ * //   features: { search: false, filter: true }
+ * // }
+ *
+ * @example
+ * // Arrays are replaced, not merged
+ * const obj1 = {
+ *   tags: ['javascript', 'node'],
+ *   config: { debug: true }
+ * };
+ * const obj2 = {
+ *   tags: ['react', 'typescript'],
+ *   config: { verbose: false }
+ * };
+ *
+ * const result = deepMerge(obj1, obj2);
+ * console.log(result);
+ * // Result: {
+ * //   tags: ['react', 'typescript'], // Array replaced entirely
+ * //   config: { debug: true, verbose: false } // Objects merged deeply
+ * // }
+ *
+ * @example
+ * // Multiple sources - later sources take precedence
+ * const base = { a: 1, nested: { x: 10, y: 20 } };
+ * const override1 = { b: 2, nested: { x: 15, z: 30 } };
+ * const override2 = { c: 3, nested: { y: 25 } };
+ *
+ * const result = deepMerge(base, override1, override2);
+ * console.log(result);
+ * // Result: {
+ * //   a: 1,                    // from base
+ * //   b: 2,                    // from override1
+ * //   c: 3,                    // from override2
+ * //   nested: {
+ * //     x: 15,                 // from override1 (overrides base)
+ * //     y: 25,                 // from override2 (overrides base and override1)
+ * //     z: 30                  // from override1
+ * //   }
+ * // }
+ *
+ * @example
+ * // Null values and primitives replace objects
+ * const obj1 = {
+ *   settings: { theme: 'dark', lang: 'en' },
+ *   data: { items: [1, 2, 3] }
+ * };
+ * const obj2 = {
+ *   settings: null,        // Replaces entire settings object
+ *   data: 'no data'        // Replaces entire data object
+ * };
+ *
+ * const result = deepMerge(obj1, obj2);
+ * console.log(result);
+ * // Result: {
+ * //   settings: null,
+ * //   data: 'no data'
+ * // }
+ *
+ * @example
+ * // Common use case: Configuration with defaults
+ * const defaultConfig = {
+ *   api: {
+ *     baseUrl: 'https://api.example.com',
+ *     timeout: 5000,
+ *     retries: 3
+ *   },
+ *   ui: {
+ *     theme: 'light',
+ *     animations: true,
+ *     notifications: { enabled: true, position: 'top-right' }
+ *   }
+ * };
+ *
+ * const userConfig = {
+ *   api: { timeout: 10000 },
+ *   ui: {
+ *     theme: 'dark',
+ *     notifications: { position: 'bottom-left' }
+ *   }
+ * };
+ *
+ * const finalConfig = deepMerge(defaultConfig, userConfig);
+ * console.log(finalConfig);
+ * // Result: {
+ * //   api: {
+ * //     baseUrl: 'https://api.example.com', // from defaults
+ * //     timeout: 10000,                     // from user config
+ * //     retries: 3                          // from defaults
+ * //   },
+ * //   ui: {
+ * //     theme: 'dark',                      // from user config
+ * //     animations: true,                   // from defaults
+ * //     notifications: {
+ * //       enabled: true,                    // from defaults
+ * //       position: 'bottom-left'           // from user config
+ * //     }
+ * //   }
+ * // }
+ *
+ * @example
+ * // Edge cases with different data types
+ * const obj1 = {
+ *   mixed: { value: 42 },
+ *   list: [1, 2, 3],
+ *   flag: true
+ * };
+ * const obj2 = {
+ *   mixed: 'string',      // Object replaced with string
+ *   list: null,           // Array replaced with null
+ *   flag: { enabled: false } // Boolean replaced with object
+ * };
+ *
+ * const result = deepMerge(obj1, obj2);
+ * console.log(result);
+ * // Result: {
+ * //   mixed: 'string',
+ * //   list: null,
+ * //   flag: { enabled: false }
+ * // }
+ *
+ * @example
+ * // Empty objects and single parameter
+ * console.log(deepMerge({})); // {}
+ * console.log(deepMerge({ a: 1 })); // { a: 1 }
+ * console.log(deepMerge({}, { b: 2 }, {})); // { b: 2 }
+ * @since 0.6.0
+ */
+function deepMerge() {
+  var result = {};
+  for (var _len = arguments.length, sources = new Array(_len), _key = 0; _key < _len; _key++) {
+    sources[_key] = arguments[_key];
+  }
+  for (var _i = 0, _sources = sources; _i < _sources.length; _i++) {
+    var src = _sources[_i];
+    for (var key in src) {
+      if (src.hasOwnProperty(key)) {
+        var isObject = _typeof(src[key]) === 'object' && src[key] !== null && !Array.isArray(src[key]) && _typeof(result[key]) === 'object' && result[key] !== null && !Array.isArray(result[key]);
+        if (isObject) {
+          result[key] = deepMerge(result[key], src[key]);
+        } else {
+          result[key] = src[key];
+        }
+      }
+    }
+  }
+  return result;
+}
+
+/**
  * Creates or retrieves a namespaced global WeakMap instance for safe data storage.
  *
  * This utility function provides a way to create and access globally shared WeakMap instances
@@ -41,7 +1043,7 @@ var namespace = 'Utils';
  * consistent data storage for DOM elements or objects. The function uses a naming convention
  * that reduces the likelihood of naming conflicts with other libraries.
  *
- * @param {string} n - The namespace identifier used to create a unique WeakMap name
+ * @param {string} key - The namespace identifier used to create a unique WeakMap key
  * @returns {WeakMap} A global WeakMap instance with the specified namespace
  *
  * @example
@@ -474,10 +1476,18 @@ var namespace = 'Utils';
  *
  * @since 0.7.0
  */
-function getWeakMap(n) {
-  var name = "$StorePress".concat(n, "WeakMap");
-  window[name] = window[name] || new window.WeakMap();
-  return window[name];
+function getWeakMap(key) {
+  var name = toUpperCamelCase(key);
+
+  // Ensure nested structure exists
+  window.StorePress = window.StorePress || {};
+  window.StorePress.$weakMaps = window.StorePress.$weakMaps || {};
+
+  // Create WeakMap if it doesn't exist
+  if (!window.StorePress.$weakMaps[name]) {
+    window.StorePress.$weakMaps[name] = new WeakMap();
+  }
+  return window.StorePress.$weakMaps[name];
 }
 
 /**
@@ -892,751 +1902,6 @@ function getElements() {
   if (selectors.length === 0) return [];
   if (typeof selectors === 'string') return document.querySelectorAll(selectors);
   return selectors instanceof HTMLElement ? [selectors] : selectors;
-}
-
-/**
- * Converts a string to camelCase format by lowercasing the first letter and capitalizing
- * every letter that follows a space, hyphen, or underscore, then removing the separators.
- *
- * This function transforms strings from various naming conventions (kebab-case, snake_case,
- * PascalCase, space-separated, etc.) into camelCase format, which is the standard naming
- * convention for variables, properties, and method names in JavaScript.
- *
- * @param {string} string - The string to convert to camelCase
- * @returns {string} The converted string in camelCase format
- *
- * @example
- * // Basic conversions from different formats
- * console.log(toCamelCase('hello world')); // 'helloWorld'
- * console.log(toCamelCase('user-profile')); // 'userProfile'
- * console.log(toCamelCase('api_endpoint')); // 'apiEndpoint'
- * console.log(toCamelCase('my-custom-component')); // 'myCustomComponent'
- *
- * @example
- * // Converting from PascalCase to camelCase
- * console.log(toCamelCase('UserProfile')); // 'userProfile'
- * console.log(toCamelCase('APIEndpoint')); // 'aPIEndpoint'
- * console.log(toCamelCase('MyCustomComponent')); // 'myCustomComponent'
- *
- * @example
- * // Mixed separators and complex cases
- * console.log(toCamelCase('data-api_handler')); // 'dataApiHandler'
- * console.log(toCamelCase('multi word-string_test')); // 'multiWordStringTest'
- * console.log(toCamelCase('HTTP-Status_Code')); // 'hTTPStatusCode'
- * console.log(toCamelCase('already-camelCased')); // 'alreadyCamelCased'
- *
- * @example
- * // Edge cases and empty inputs
- * console.log(toCamelCase('')); // ''
- * console.log(toCamelCase('a')); // 'a'
- * console.log(toCamelCase('A')); // 'a'
- * console.log(toCamelCase('a-b')); // 'aB'
- * console.log(toCamelCase('---')); // ''
- *
- * @example
- * // Use case: HTML data attribute parsing
- * function parseDataAttributes(element) {
- *   const attributes = {};
- *
- *   Array.from(element.attributes).forEach(attr => {
- *     if (attr.name.startsWith('data-')) {
- *       // Convert data-user-name to userName
- *       const key = toCamelCase(attr.name.replace('data-', ''));
- *       attributes[key] = attr.value;
- *     }
- *   });
- *
- *   return attributes;
- * }
- *
- * // HTML: <div data-user-name="John" data-max-items="10" data-is-active="true">
- * const attrs = parseDataAttributes(element);
- * // Result: { userName: "John", maxItems: "10", isActive: "true" }
- *
- * @example
- * // Use case: CSS property name conversion
- * function setStyles(element, styleObject) {
- *   Object.entries(styleObject).forEach(([key, value]) => {
- *     // Convert kebab-case CSS properties to camelCase
- *     const camelKey = toCamelCase(key);
- *     element.style[camelKey] = value;
- *   });
- * }
- *
- * // Usage
- * setStyles(element, {
- *   'background-color': '#fff',
- *   'margin-top': '20px',
- *   'border-radius': '5px',
- *   'font-size': '14px'
- * });
- * // Sets: backgroundColor, marginTop, borderRadius, fontSize
- *
- * @example
- * // Use case: Configuration object normalization
- * function normalizeConfig(config) {
- *   const normalized = {};
- *
- *   Object.entries(config).forEach(([key, value]) => {
- *     const camelKey = toCamelCase(key);
- *
- *     if (typeof value === 'object' && value !== null) {
- *       normalized[camelKey] = normalizeConfig(value); // Recursive
- *     } else {
- *       normalized[camelKey] = value;
- *     }
- *   });
- *
- *   return normalized;
- * }
- *
- * // Input with mixed naming conventions
- * const config = {
- *   'user-name': 'John',
- *   'api_endpoint': '/api/users',
- *   'MaxRetries': 3,
- *   'cache_settings': {
- *     'time-to-live': 300,
- *     'max_size': 1000
- *   }
- * };
- *
- * const normalized = normalizeConfig(config);
- * // Result: {
- * //   userName: 'John',
- * //   apiEndpoint: '/api/users',
- * //   maxRetries: 3,
- * //   cacheSettings: {
- * //     timeToLive: 300,
- * //     maxSize: 1000
- * //   }
- * // }
- *
- * @example
- * // Use case: API response transformation
- * function transformApiResponse(response) {
- *   if (Array.isArray(response)) {
- *     return response.map(item => transformApiResponse(item));
- *   }
- *
- *   if (typeof response === 'object' && response !== null) {
- *     const transformed = {};
- *
- *     Object.entries(response).forEach(([key, value]) => {
- *       // Convert snake_case API keys to camelCase
- *       const camelKey = toCamelCase(key);
- *       transformed[camelKey] = transformApiResponse(value);
- *     });
- *
- *     return transformed;
- *   }
- *
- *   return response;
- * }
- *
- * // API response with snake_case
- * const apiResponse = {
- *   user_id: 123,
- *   first_name: 'John',
- *   last_name: 'Doe',
- *   account_settings: {
- *     email_notifications: true,
- *     privacy_level: 'public'
- *   },
- *   recent_orders: [
- *     { order_id: 1, created_at: '2023-01-01' }
- *   ]
- * };
- *
- * const jsResponse = transformApiResponse(apiResponse);
- * // Result: {
- * //   userId: 123,
- * //   firstName: 'John',
- * //   lastName: 'Doe',
- * //   accountSettings: {
- * //     emailNotifications: true,
- * //     privacyLevel: 'public'
- * //   },
- * //   recentOrders: [
- * //     { orderId: 1, createdAt: '2023-01-01' }
- * //   ]
- * // }
- *
- * @example
- * // Use case: Form field name mapping
- * function createFormHandler(fieldMappings) {
- *   return function(formData) {
- *     const processedData = {};
- *
- *     formData.forEach((value, key) => {
- *       // Convert form field names to camelCase property names
- *       const propName = toCamelCase(key);
- *
- *       // Apply field mapping if exists
- *       const mappedName = fieldMappings[propName] || propName;
- *       processedData[mappedName] = value;
- *     });
- *
- *     return processedData;
- *   };
- * }
- *
- * // Form with kebab-case field names
- * // <input name="first-name" value="John">
- * // <input name="email-address" value="john@example.com">
- * // <input name="phone-number" value="123-456-7890">
- *
- * const handler = createFormHandler({
- *   emailAddress: 'email',
- *   phoneNumber: 'phone'
- * });
- *
- * const result = handler(formData);
- * // Result: { firstName: 'John', email: 'john@example.com', phone: '123-456-7890' }
- *
- * @example
- * // Use case: Event name normalization for listeners
- * class EventEmitter {
- *   constructor() {
- *     this.listeners = {};
- *   }
- *
- *   on(eventName, callback) {
- *     // Normalize event names to camelCase
- *     const normalizedName = toCamelCase(eventName);
- *
- *     if (!this.listeners[normalizedName]) {
- *       this.listeners[normalizedName] = [];
- *     }
- *
- *     this.listeners[normalizedName].push(callback);
- *   }
- *
- *   emit(eventName, ...args) {
- *     const normalizedName = toCamelCase(eventName);
- *     const callbacks = this.listeners[normalizedName] || [];
- *
- *     callbacks.forEach(callback => callback(...args));
- *   }
- * }
- *
- * // Usage with different naming conventions
- * const emitter = new EventEmitter();
- *
- * emitter.on('user-login', (user) => console.log('Login:', user));
- * emitter.on('user_logout', () => console.log('Logout'));
- * emitter.on('DataLoaded', (data) => console.log('Data:', data));
- *
- * // All these trigger the same normalized event
- * emitter.emit('user-login', { id: 1 });
- * emitter.emit('userLogin', { id: 1 });
- * emitter.emit('UserLogin', { id: 1 });
- *
- * @example
- * // Use case: Environment variable processing
- * function loadEnvConfig(envPrefix = 'APP_') {
- *   const config = {};
- *
- *   Object.entries(process.env).forEach(([key, value]) => {
- *     if (key.startsWith(envPrefix)) {
- *       // Convert APP_DATABASE_URL to databaseUrl
- *       const configKey = toCamelCase(
- *         key.replace(envPrefix, '').toLowerCase().replace(/_/g, '-')
- *       );
- *
- *       config[configKey] = value;
- *     }
- *   });
- *
- *   return config;
- * }
- *
- * // Environment variables:
- * // APP_DATABASE_URL=postgresql://...
- * // APP_REDIS_HOST=localhost
- * // APP_MAX_CONNECTIONS=10
- *
- * const config = loadEnvConfig();
- * // Result: {
- * //   databaseUrl: 'postgresql://...',
- * //   redisHost: 'localhost',
- * //   maxConnections: '10'
- * // }
- *
- * @example
- * // Use case: GraphQL field name transformation
- * function transformGraphQLResponse(data, schema) {
- *   if (Array.isArray(data)) {
- *     return data.map(item => transformGraphQLResponse(item, schema));
- *   }
- *
- *   if (typeof data === 'object' && data !== null) {
- *     const transformed = {};
- *
- *     Object.entries(data).forEach(([key, value]) => {
- *       // Convert GraphQL field names to camelCase
- *       const jsKey = toCamelCase(key);
- *
- *       if (schema && schema[jsKey]) {
- *         transformed[jsKey] = transformGraphQLResponse(value, schema[jsKey]);
- *       } else {
- *         transformed[jsKey] = value;
- *       }
- *     });
- *
- *     return transformed;
- *   }
- *
- *   return data;
- * }
- *
- * // GraphQL response
- * const gqlResponse = {
- *   user_profile: {
- *     first_name: 'John',
- *     profile_image_url: 'https://...',
- *     social_links: [
- *       { platform_name: 'twitter', profile_url: 'https://...' }
- *     ]
- *   }
- * };
- *
- * const jsResponse = transformGraphQLResponse(gqlResponse);
- * // Result: {
- * //   userProfile: {
- * //     firstName: 'John',
- * //     profileImageUrl: 'https://...',
- * //     socialLinks: [
- * //       { platformName: 'twitter', profileUrl: 'https://...' }
- * //     ]
- * //   }
- * // }
- *
- * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
- * @see https://google.github.io/styleguide/jsguide.html#naming-camel-case Google JavaScript Style Guide - Camel Case
- *
- * @since 0.3.0
- */
-function toCamelCase(string) {
-  return string.replace(/^([A-Z])|[\s-_](\w)/g, function (match, p1, p2) {
-    if (p2) return p2.toUpperCase();
-    return p1.toLowerCase();
-  });
-}
-
-/**
- * Recursively merges multiple objects into a single object, with later sources
- * taking precedence over earlier ones. Only plain objects are deeply merged;
- * arrays, null values, and primitives are replaced entirely.
- *
- * The function performs a deep merge where:
- * - Plain objects are recursively merged
- * - Arrays completely replace previous arrays (no concatenation)
- * - Null values replace previous values
- * - Primitive values (string, number, boolean) replace previous values
- * - Later sources override earlier sources at each level
- *
- * @param {...Object} sources - One or more objects to merge
- * @returns {Object} A new object containing the merged properties from all sources
- *
- * @example
- * // Basic object merging
- * const obj1 = { a: 1, b: 2 };
- * const obj2 = { b: 3, c: 4 };
- * const result = deepMerge(obj1, obj2);
- * console.log(result); // { a: 1, b: 3, c: 4 }
- *
- * @example
- * // Deep merging nested objects
- * const defaults = {
- *   theme: {
- *     colors: { primary: 'blue', secondary: 'gray' },
- *     spacing: { margin: 10, padding: 5 }
- *   },
- *   features: { search: true }
- * };
- *
- * const customConfig = {
- *   theme: {
- *     colors: { primary: 'red' }, // Only primary changes, secondary preserved
- *     font: 'Arial'               // New property added
- *   },
- *   features: { search: false, filter: true }
- * };
- *
- * const merged = deepMerge(defaults, customConfig);
- * console.log(merged);
- * // Result: {
- * //   theme: {
- * //     colors: { primary: 'red', secondary: 'gray' },
- * //     spacing: { margin: 10, padding: 5 },
- * //     font: 'Arial'
- * //   },
- * //   features: { search: false, filter: true }
- * // }
- *
- * @example
- * // Arrays are replaced, not merged
- * const obj1 = {
- *   tags: ['javascript', 'node'],
- *   config: { debug: true }
- * };
- * const obj2 = {
- *   tags: ['react', 'typescript'],
- *   config: { verbose: false }
- * };
- *
- * const result = deepMerge(obj1, obj2);
- * console.log(result);
- * // Result: {
- * //   tags: ['react', 'typescript'], // Array replaced entirely
- * //   config: { debug: true, verbose: false } // Objects merged deeply
- * // }
- *
- * @example
- * // Multiple sources - later sources take precedence
- * const base = { a: 1, nested: { x: 10, y: 20 } };
- * const override1 = { b: 2, nested: { x: 15, z: 30 } };
- * const override2 = { c: 3, nested: { y: 25 } };
- *
- * const result = deepMerge(base, override1, override2);
- * console.log(result);
- * // Result: {
- * //   a: 1,                    // from base
- * //   b: 2,                    // from override1
- * //   c: 3,                    // from override2
- * //   nested: {
- * //     x: 15,                 // from override1 (overrides base)
- * //     y: 25,                 // from override2 (overrides base and override1)
- * //     z: 30                  // from override1
- * //   }
- * // }
- *
- * @example
- * // Null values and primitives replace objects
- * const obj1 = {
- *   settings: { theme: 'dark', lang: 'en' },
- *   data: { items: [1, 2, 3] }
- * };
- * const obj2 = {
- *   settings: null,        // Replaces entire settings object
- *   data: 'no data'        // Replaces entire data object
- * };
- *
- * const result = deepMerge(obj1, obj2);
- * console.log(result);
- * // Result: {
- * //   settings: null,
- * //   data: 'no data'
- * // }
- *
- * @example
- * // Common use case: Configuration with defaults
- * const defaultConfig = {
- *   api: {
- *     baseUrl: 'https://api.example.com',
- *     timeout: 5000,
- *     retries: 3
- *   },
- *   ui: {
- *     theme: 'light',
- *     animations: true,
- *     notifications: { enabled: true, position: 'top-right' }
- *   }
- * };
- *
- * const userConfig = {
- *   api: { timeout: 10000 },
- *   ui: {
- *     theme: 'dark',
- *     notifications: { position: 'bottom-left' }
- *   }
- * };
- *
- * const finalConfig = deepMerge(defaultConfig, userConfig);
- * console.log(finalConfig);
- * // Result: {
- * //   api: {
- * //     baseUrl: 'https://api.example.com', // from defaults
- * //     timeout: 10000,                     // from user config
- * //     retries: 3                          // from defaults
- * //   },
- * //   ui: {
- * //     theme: 'dark',                      // from user config
- * //     animations: true,                   // from defaults
- * //     notifications: {
- * //       enabled: true,                    // from defaults
- * //       position: 'bottom-left'           // from user config
- * //     }
- * //   }
- * // }
- *
- * @example
- * // Edge cases with different data types
- * const obj1 = {
- *   mixed: { value: 42 },
- *   list: [1, 2, 3],
- *   flag: true
- * };
- * const obj2 = {
- *   mixed: 'string',      // Object replaced with string
- *   list: null,           // Array replaced with null
- *   flag: { enabled: false } // Boolean replaced with object
- * };
- *
- * const result = deepMerge(obj1, obj2);
- * console.log(result);
- * // Result: {
- * //   mixed: 'string',
- * //   list: null,
- * //   flag: { enabled: false }
- * // }
- *
- * @example
- * // Empty objects and single parameter
- * console.log(deepMerge({})); // {}
- * console.log(deepMerge({ a: 1 })); // { a: 1 }
- * console.log(deepMerge({}, { b: 2 }, {})); // { b: 2 }
- * @since 0.6.0
- */
-function deepMerge() {
-  var result = {};
-  for (var _len = arguments.length, sources = new Array(_len), _key = 0; _key < _len; _key++) {
-    sources[_key] = arguments[_key];
-  }
-  for (var _i = 0, _sources = sources; _i < _sources.length; _i++) {
-    var src = _sources[_i];
-    for (var key in src) {
-      if (src.hasOwnProperty(key)) {
-        var isObject = _typeof(src[key]) === 'object' && src[key] !== null && !Array.isArray(src[key]) && _typeof(result[key]) === 'object' && result[key] !== null && !Array.isArray(result[key]);
-        if (isObject) {
-          result[key] = deepMerge(result[key], src[key]);
-        } else {
-          result[key] = src[key];
-        }
-      }
-    }
-  }
-  return result;
-}
-
-/**
- * Converts a string to UpperCamelCase (PascalCase) format by capitalizing the first letter
- * and every letter that follows a space, hyphen, or underscore, then removing the separators.
- *
- * This function transforms strings from various naming conventions (kebab-case, snake_case,
- * space-separated, etc.) into UpperCamelCase format, which is commonly used for class names,
- * constructor functions, and component names in JavaScript.
- *
- * @param {string} string - The string to convert to UpperCamelCase
- * @returns {string} The converted string in UpperCamelCase format
- *
- * @example
- * // Basic conversions from different formats
- * console.log(toUpperCamelCase('hello world')); // 'HelloWorld'
- * console.log(toUpperCamelCase('user-profile')); // 'UserProfile'
- * console.log(toUpperCamelCase('api_endpoint')); // 'ApiEndpoint'
- * console.log(toUpperCamelCase('my-custom-component')); // 'MyCustomComponent'
- *
- * @example
- * // Mixed separators and edge cases
- * console.log(toUpperCamelCase('data-api_handler')); // 'DataApiHandler'
- * console.log(toUpperCamelCase('multi word-string_test')); // 'MultiWordStringTest'
- * console.log(toUpperCamelCase('single')); // 'Single'
- * console.log(toUpperCamelCase('already-Capitalized')); // 'AlreadyCapitalized'
- *
- * @example
- * // Empty and edge case inputs
- * console.log(toUpperCamelCase('')); // ''
- * console.log(toUpperCamelCase('a')); // 'A'
- * console.log(toUpperCamelCase('a-b')); // 'AB'
- * console.log(toUpperCamelCase('---')); // ''
- *
- * @example
- * // Use case: Class name generation from configuration
- * function createComponentClass(componentName, options = {}) {
- *   const className = toUpperCamelCase(componentName);
- *
- *   // Dynamic class creation
- *   const ComponentClass = class {
- *     constructor(element) {
- *       this.element = element;
- *       this.name = className;
- *       this.init(options);
- *     }
- *
- *     init(options) {
- *       console.log(`Initializing ${this.name} component`);
- *     }
- *   };
- *
- *   // Set the class name for debugging
- *   Object.defineProperty(ComponentClass, 'name', { value: className });
- *
- *   return ComponentClass;
- * }
- *
- * // Usage
- * const ModalComponent = createComponentClass('modal-dialog');
- * const TabsComponent = createComponentClass('navigation_tabs');
- * const SliderComponent = createComponentClass('image slider');
- *
- * @example
- * // Use case: CSS class name to constructor mapping
- * const componentRegistry = {};
- *
- * function registerComponent(cssClass, implementation) {
- *   const constructorName = toUpperCamelCase(cssClass);
- *   componentRegistry[constructorName] = implementation;
- * }
- *
- * function createComponent(cssClass, element) {
- *   const constructorName = toUpperCamelCase(cssClass);
- *   const ComponentClass = componentRegistry[constructorName];
- *
- *   if (ComponentClass) {
- *     return new ComponentClass(element);
- *   }
- *
- *   throw new Error(`Component ${constructorName} not found`);
- * }
- *
- * // Register components
- * registerComponent('dropdown-menu', DropdownMenuComponent);
- * registerComponent('date_picker', DatePickerComponent);
- *
- * // Create instances
- * const dropdown = createComponent('dropdown-menu', dropdownElement);
- * const datePicker = createComponent('date_picker', dateElement);
- *
- * @example
- * // Use case: API endpoint to service class mapping
- * function createServiceClass(endpointName) {
- *   const serviceName = toUpperCamelCase(endpointName) + 'Service';
- *
- *   return class {
- *     constructor(baseUrl) {
- *       this.baseUrl = baseUrl;
- *       this.endpoint = endpointName;
- *     }
- *
- *     async get(id) {
- *       const response = await fetch(`${this.baseUrl}/${this.endpoint}/${id}`);
- *       return response.json();
- *     }
- *
- *     toString() {
- *       return serviceName;
- *     }
- *   };
- * }
- *
- * // Generate service classes
- * const UserService = createServiceClass('user-profile');
- * const OrderService = createServiceClass('order_history');
- * const ProductService = createServiceClass('product catalog');
- *
- * @example
- * // Use case: Template name to component name conversion
- * function loadTemplate(templateName) {
- *   const componentName = toUpperCamelCase(templateName);
- *
- *   return {
- *     name: componentName,
- *     template: `templates/${templateName}.html`,
- *     component: `components/${componentName}.js`,
- *     styles: `styles/${templateName}.css`
- *   };
- * }
- *
- * // Usage
- * const modal = loadTemplate('modal-dialog');
- * // Result: {
- * //   name: 'ModalDialog',
- * //   template: 'templates/modal-dialog.html',
- * //   component: 'components/ModalDialog.js',
- * //   styles: 'styles/modal-dialog.css'
- * // }
- *
- * @example
- * // Use case: Form field name to validator class
- * const validators = {
- *   EmailValidator: class {  }, // email validation logic
- *   PasswordValidator: class { }, // password validation logic
- *   PhoneNumberValidator: class { } // phone validation logic
- * };
- *
- * function getValidator(fieldName) {
- *   const validatorName = toUpperCamelCase(fieldName) + 'Validator';
- *   return validators[validatorName] || null;
- * }
- *
- * // Usage
- * const emailValidator = getValidator('email-field');
- * const passwordValidator = getValidator('password_confirmation');
- * const phoneValidator = getValidator('phone number');
- *
- * @example
- * // Use case: Module name normalization for dynamic imports
- * async function loadModule(moduleName) {
- *   const normalizedName = toUpperCamelCase(moduleName);
- *
- *   try {
- *     const module = await import(`./modules/${normalizedName}.js`);
- *     return module.default || module;
- *   } catch (error) {
- *     console.error(`Failed to load module ${normalizedName}:`, error);
- *     return null;
- *   }
- * }
- *
- * // Load modules with consistent naming
- * const chartModule = await loadModule('chart-renderer');
- * const dataModule = await loadModule('data_processor');
- * const utilModule = await loadModule('utility helpers');
- *
- * @example
- * // Use case: Event handler method generation
- * class EventManager {
- *   constructor() {
- *     this.handlers = {};
- *   }
- *
- *   on(eventName, callback) {
- *     const methodName = 'handle' + toUpperCamelCase(eventName);
- *
- *     this[methodName] = callback;
- *     this.handlers[eventName] = methodName;
- *
- *     console.log(`Registered ${methodName} for ${eventName}`);
- *   }
- *
- *   trigger(eventName, ...args) {
- *     const methodName = this.handlers[eventName];
- *     if (methodName && this[methodName]) {
- *       this[methodName](...args);
- *     }
- *   }
- * }
- *
- * // Usage
- * const events = new EventManager();
- * events.on('user-login', (user) => console.log('User logged in:', user));
- * events.on('data_loaded', (data) => console.log('Data loaded:', data));
- *
- * // Creates methods: handleUserLogin, handleDataLoaded
- *
- * @see https://en.wikipedia.org/wiki/Camel_case Camel Case - Wikipedia
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace String.replace() - MDN
- *
- * @since 0.3.0
- */
-function toUpperCamelCase(string) {
-  return string.replace(/^([a-z])|[\s-_](\w)/g, function (match, p1, p2) {
-    if (p2) return p2.toUpperCase();
-    return p1.toUpperCase();
-  });
 }
 
 /**
@@ -4070,6 +4335,376 @@ function findObjectValue(obj, path, defaultValue) {
 
   // If found value is undefined return default value; otherwise return the value
   return result === undefined ? defaultValue : result;
+}
+
+/**
+ * Creates a centralized plugin management system for StorePress with event-driven lifecycle management.
+ *
+ * This factory function creates a comprehensive plugin controller that handles initialization, destruction,
+ * reloading, and cleanup of plugin instances across DOM elements. It provides a standardized event-driven
+ * architecture for managing complex plugins with automatic memory management via WeakMap storage and
+ * AbortController for cleanup.
+ *
+ * @param {Object} config - Configuration object for the plugin system
+ * @param {string|HTMLElement|NodeList|HTMLElement[]} config.selector - Default selector for plugin elements
+ * @param {Object} [config.options={}] - Default options to pass to plugin instances
+ * @param {Function} config.plugin - Plugin constructor function or class
+ * @param {string} config.namespace - Unique namespace identifier for the plugin system
+ * @returns {Object} Plugin management object with lifecycle methods and event handling
+ *
+ * @example
+ *
+ * // Modal Plugin - Modal dialogs with backdrop and keyboard support
+ * // File: Plugin.js
+ *
+ * function Modal(element) {
+ *   const removeStyles = () => {
+ *     this.$element.style.display = ''
+ *   }
+ *
+ *   const removeClasses = () => {
+ *     this.$element.classList.remove('show')
+ *   }
+ *
+ *   const removeEvents = () => {
+ *     this.controller.abort()
+ *   }
+ *
+ *   const removeDOMElements = () => {
+ *     if (this.backdrop && this.backdrop.parentNode) {
+ *       this.backdrop.parentNode.removeChild(this.backdrop)
+ *       this.backdrop = null
+ *     }
+ *   }
+ *
+ *   const createBackdrop = () => {
+ *     this.backdrop = document.createElement('div')
+ *     this.backdrop.className = 'modal-backdrop'
+ *     this.backdrop.addEventListener('click', () => close(), {
+ *       signal: this.signal,
+ *       passive: true
+ *     })
+ *     document.body.appendChild(this.backdrop)
+ *   }
+ *
+ *   const open = () => {
+ *     this.isOpen = true
+ *     this.$element.style.display = 'block'
+ *     this.$element.classList.add('show')
+ *
+ *     if (this.options.backdrop) {
+ *       createBackdrop()
+ *     }
+ *
+ *     triggerEvent(this.$element, 'modal:opened', { modal: this })
+ *   }
+ *
+ *   const close = () => {
+ *     this.isOpen = false
+ *     this.$element.style.display = 'none'
+ *     this.$element.classList.remove('show')
+ *
+ *     if (this.backdrop) {
+ *       this.backdrop.remove()
+ *       this.backdrop = null
+ *     }
+ *
+ *     triggerEvent(this.$element, 'modal:closed', { modal: this })
+ *   }
+ *
+ *   const toggle = () => {
+ *     this.isOpen ? close() : open()
+ *   }
+ *
+ *
+ *   // Resets the plugin to its initial state
+ *
+ *   const reset = () => {
+ *     removeStyles()
+ *     removeClasses()
+ *     removeDOMElements()
+ *     removeEvents()
+ *
+ *     this.isOpen = false
+ *     console.log(`Modal ${this.$element.id} reset`)
+ *   }
+ *
+ *
+ *   // Creates and returns the public API object for the plugin instance
+ *
+ *   const expose = () => ({
+ *     reset,
+ *     open,
+ *     close,
+ *     toggle
+ *   })
+ *
+ *   // Sets up the initial state and attaches event listeners
+ *
+ *   const initial = () => {
+ *     const trigger = document.querySelector(`[data-toggle="${this.$element.id}"]`)
+ *     if (trigger) {
+ *       trigger.addEventListener('click', () => open(), {
+ *         signal: this.signal,
+ *         passive: true
+ *       })
+ *     }
+ *
+ *     if (this.options.keyboard) {
+ *       document.addEventListener('keydown', (e) => {
+ *         if (e.key === 'Escape' && this.isOpen) close()
+ *       }, { signal: this.signal })
+ *     }
+ *
+ *     console.log(`Modal initialized on ${this.$element.id}`)
+ *   }
+ *
+ *  // Main initialization function
+ *
+ *   const init = () => {
+ *     this.$element = element
+ *     this.controller = new AbortController()
+ *     this.signal = this.controller.signal
+ *
+ *     this.options = {
+ *       backdrop: true,
+ *       keyboard: true,
+ *       ...getOptionsFromAttribute(element, 'modal')
+ *     }
+ *
+ *     this.isOpen = false
+ *     this.backdrop = null
+ *
+ *     initial()
+ *     return expose()
+ *   }
+ *
+ *   return init()
+ * }
+ *
+ * export { Plugin }
+ *
+ * // Create the modal plugin system
+ * // File: index.js
+ * import { createStorePressPlugin } from '@storepress/utils';
+ * import { Plugin } from 'plugin'
+ * const StorePressModal = createStorePressPlugin({
+ *   selector: '.modal',
+ *   options: { backdrop: true, keyboard: true },
+ *   plugin: Modal,
+ *   namespace: 'modal'
+ * });
+ *
+ * // Setup the event listeners
+ * StorePressModal.setup()
+ *
+ * export default StorePressModal
+ *
+ * // Initialize all modals
+ * // File: scripts.js
+ * // import { StorePressModal } from 'modal'
+ * document.addEventListener('DOMContentLoaded', ()=>{
+ *   StorePressModal.init();
+ * })
+ *
+ */
+
+function createStorePressPlugin(_ref) {
+  var selector = _ref.selector,
+    _ref$options = _ref.options,
+    options = _ref$options === void 0 ? {} : _ref$options,
+    plugin = _ref.plugin,
+    namespace = _ref.namespace;
+  var initEventType = "storepress_".concat(namespace, "_init").toLowerCase();
+  var destroyEventType = "storepress_".concat(namespace, "_destroy").toLowerCase();
+  var reloadEventType = "storepress_".concat(namespace, "_reload").toLowerCase();
+  return {
+    get controller() {
+      var map = getWeakMap(namespace);
+      // Create new AbortController for document
+      var controller = map.get(document);
+      if (controller instanceof AbortController) {
+        controller.abort(); // Remove existing events
+        map["delete"](document);
+      }
+      controller = new AbortController();
+      map.set(document, controller);
+      return controller;
+    },
+    get signal() {
+      return this.controller.signal;
+    },
+    get instance() {
+      return {
+        set: function set($element, settings) {
+          return createPluginInstance($element, settings, plugin);
+        },
+        get: function get($element) {
+          return getPluginInstance($element);
+        },
+        init: function init($element, settings) {
+          var instance = this.set($element, settings);
+          if (!instance || instance.length === 0) {
+            return;
+          }
+          var _iterator = _createForOfIteratorHelper(instance),
+            _step;
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var _step$value = _step.value,
+                element = _step$value.element,
+                reset = _step$value.reset;
+              if (element && typeof reset === 'function') {
+                element.removeEventListener('destroy', reset, {
+                  passive: true,
+                  once: true
+                });
+                element.addEventListener('destroy', reset, {
+                  passive: true,
+                  once: true
+                });
+              }
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+        },
+        destroy: function destroy($element) {
+          var instance = this.get($element);
+          if (!instance || instance.length === 0) {
+            return;
+          }
+          var _iterator2 = _createForOfIteratorHelper(instance),
+            _step2;
+          try {
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+              var destroy = _step2.value.destroy;
+              if (typeof destroy === 'function') {
+                destroy();
+              }
+            }
+          } catch (err) {
+            _iterator2.e(err);
+          } finally {
+            _iterator2.f();
+          }
+        },
+        reload: function reload($element, settings) {
+          this.destroy($element);
+          this.init($element, settings);
+        }
+      };
+    },
+    setup: function setup() {
+      var _this = this;
+      var handleInit = function handleInit(event) {
+        var _event$detail, _event$detail2;
+        var defaultSettings = {};
+        var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail = event.detail) === null || _event$detail === void 0 ? void 0 : _event$detail.settings);
+        var element = (_event$detail2 = event.detail) === null || _event$detail2 === void 0 ? void 0 : _event$detail2.element;
+        if (Array.isArray(element)) {
+          var _iterator3 = _createForOfIteratorHelper(element),
+            _step3;
+          try {
+            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+              var el = _step3.value;
+              _this.instance.init(el, settings);
+            }
+          } catch (err) {
+            _iterator3.e(err);
+          } finally {
+            _iterator3.f();
+          }
+        } else {
+          _this.instance.init(element, settings);
+        }
+      };
+      var handleDestroy = function handleDestroy(event) {
+        var _event$detail3;
+        var element = (_event$detail3 = event.detail) === null || _event$detail3 === void 0 ? void 0 : _event$detail3.element;
+        if (Array.isArray(element)) {
+          var _iterator4 = _createForOfIteratorHelper(element),
+            _step4;
+          try {
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var el = _step4.value;
+              _this.instance.destroy(el);
+            }
+          } catch (err) {
+            _iterator4.e(err);
+          } finally {
+            _iterator4.f();
+          }
+        } else {
+          _this.instance.destroy(element);
+        }
+      };
+      var handleReload = function handleReload(event) {
+        var _event$detail4, _event$detail5;
+        var defaultSettings = {};
+        var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail4 = event.detail) === null || _event$detail4 === void 0 ? void 0 : _event$detail4.settings);
+        var element = (_event$detail5 = event.detail) === null || _event$detail5 === void 0 ? void 0 : _event$detail5.element;
+        if (Array.isArray(element)) {
+          var _iterator5 = _createForOfIteratorHelper(element),
+            _step5;
+          try {
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var el = _step5.value;
+              _this.instance.reload(el, settings);
+            }
+          } catch (err) {
+            _iterator5.e(err);
+          } finally {
+            _iterator5.f();
+          }
+        } else {
+          _this.instance.reload(element, settings);
+        }
+      };
+      var options = {
+        passive: true,
+        signal: this.signal
+      };
+
+      // Init.
+      document.addEventListener(initEventType, handleInit, options);
+
+      // Destroy.
+      document.addEventListener(destroyEventType, handleDestroy, options);
+
+      // Reload.
+      document.addEventListener(reloadEventType, handleReload, options);
+    },
+    clear: function clear() {
+      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
+      this.destroy($selector);
+      this.controller.abort('clear');
+    },
+    init: function init() {
+      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
+      var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : options;
+      triggerEvent(document, initEventType, {
+        element: $selector,
+        settings: settings
+      });
+    },
+    destroy: function destroy() {
+      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
+      triggerEvent(document, destroyEventType, {
+        element: $selector
+      });
+    },
+    reload: function reload() {
+      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
+      var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : options;
+      triggerEvent(document, reloadEventType, {
+        element: $selector,
+        settings: settings
+      });
+    }
+  };
 }
 
 /**
