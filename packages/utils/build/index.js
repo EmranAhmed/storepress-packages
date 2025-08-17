@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.createEventManager = createEventManager;
 exports.createPluginInstance = createPluginInstance;
 exports.createStorePressPlugin = createStorePressPlugin;
 exports.deepMerge = deepMerge;
@@ -22,6 +23,10 @@ exports.toKebabCase = toKebabCase;
 exports.toSnakeCase = toSnakeCase;
 exports.toUpperCamelCase = toUpperCamelCase;
 exports.triggerEvent = triggerEvent;
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -87,7 +92,7 @@ function toKebabCase(string) {
     return "-".concat(p1.toLowerCase());
   })
   // Replace any underscores, dots, or spaces with hyphens
-  .replace(/[_.\s]/g, '-')
+  .replace(/[-._:~\s]/g, '-')
   // Remove any leading or trailing hyphens that may have been created
   .replace(/^-+|-+$/g, '')
   // Convert the entire string to lowercase
@@ -164,7 +169,7 @@ function toSnakeCase(string) {
     return "_".concat(p1.toLowerCase());
   })
   // Replace any hyphens, dots, or spaces with underscores
-  .replace(/[-.\s]/g, '_')
+  .replace(/[-._:~\s]/g, '_')
   // Remove any leading or trailing underscores that may have been created
   .replace(/^_+|_+$/g, '')
   // Convert the entire string to lowercase
@@ -275,7 +280,7 @@ function toConstantCase(string) {
   // Insert underscores before uppercase letters (but not at start)
   .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
   // Replace any separator characters with underscore
-  .replace(/[-.\s]+/g, '_')
+  .replace(/[-._:~\s]+/g, '_')
   // Remove leading/trailing underscores
   .replace(/^_+|_+$/g, '')
   // Convert the entire string to uppercase
@@ -608,9 +613,12 @@ function toConstantCase(string) {
  */
 function toCamelCase(string) {
   return string
-  // Match: 1) uppercase letter at start ^([A-Z]) OR 2) word char after separator [\s-_.](\w)
+  // Match:
+  // 1) uppercase letter at start ^([A-Z])
+  // OR
+  // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start uppercase: lowercase it
-  .replace(/^([A-Z])|[-._\s](\w)/g, function (match, p1, p2) {
+  .replace(/^([a-z])|[-._:~\s](\w)/gi, function (match, p1, p2) {
     if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
     return p1.toLowerCase(); // Found uppercase at start - make it lowercase
   });
@@ -829,10 +837,16 @@ function toCamelCase(string) {
  * @since 0.3.0
  */
 function toUpperCamelCase(string) {
+  if (string.toLowerCase() === 'storepress') {
+    return 'StorePress';
+  }
   return string
-  // Match: 1) lowercase letter at start ^([a-z]) OR 2) word char after separator [-._\s](\w)
+  // Match:
+  // 1) lowercase letter at start ^([a-z])
+  // OR
+  // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start lowercase: uppercase it
-  .replace(/^([a-z])|[-._\s](\w)/g, function (match, p1, p2) {
+  .replace(/^([a-z])|[-._:~\s](\w)/gi, function (match, p1, p2) {
     if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
     return p1.toUpperCase(); // Found lowercase at start - make it uppercase
   });
@@ -4338,6 +4352,819 @@ function findObjectValue(obj, path, defaultValue) {
 }
 
 /**
+ * Retrieves or creates a global event map for a specific key. This function provides
+ * a centralized way to manage event-related data structures across different parts
+ * of an application by creating isolated Map instances stored in a global namespace.
+ *
+ * The function automatically converts the provided key to UpperCamelCase format and
+ * ensures that the global StorePress namespace structure exists. Each unique key
+ * gets its own Map instance that persists across function calls.
+ *
+ * @function getEventsMap
+ * @param {string} key - The identifier for the event map. Will be converted to UpperCamelCase.
+ *                      Examples: 'tooltip', 'modal', 'user-actions', 'cart_events'
+ *
+ * @returns {Map} A Map instance specific to the provided key. If the map doesn't exist,
+ *               it will be created and stored globally for future access.
+ *
+ * @global
+ * @namespace StorePress
+ * @memberof StorePress
+ * @property {Object} $eventsMap - Global container for all event maps
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map MDN Documentation
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Window Window MDN Documentation
+ *
+ * @since 0.9.0
+ *
+ * @note This function creates global state. Use with caution in environments where
+ *       global namespace pollution is a concern. Consider using module-scoped storage
+ *       for applications that require better encapsulation.
+ *
+ * @note The UpperCamelCase conversion means that keys like 'tooltip', 'user-actions',
+ *       and 'cart_events' become 'Tooltip', 'UserActions', and 'CartEvents' respectively
+ *       in the global storage structure.
+ */
+function getEventsMap(key) {
+  var name = toUpperCamelCase(key);
+
+  // Ensure nested structure exists
+  window.StorePress = window.StorePress || {};
+  window.StorePress.$eventsMap = window.StorePress.$eventsMap || {};
+
+  // Create Map if it doesn't exist
+  if (!window.StorePress.$eventsMap[name]) {
+    window.StorePress.$eventsMap[name] = new Map();
+  }
+  return window.StorePress.$eventsMap[name];
+}
+
+/**
+ * Creates a namespaced event manager that allows organizing and controlling event listeners
+ * with hierarchical namespaces. Uses AbortController for efficient event cleanup and includes
+ * a trigger method for dispatching namespaced events.
+ *
+ * @param {string} [prefix='storepress'] - The root namespace prefix for all events (e.g., 'storepress', 'myapp')
+ * @param {string} [separator=':'] - The separator character to use between namespace parts.
+ *                                   Supported values: ':' | '-' | '_'
+ *
+ * @returns {Object} Event namespace manager object with the following methods:
+ * @returns {Function} returns.add - Add a namespaced event listener
+ * @returns {Function} returns.trigger - Dispatch a namespaced event
+ * @returns {Function} returns.remove - Remove events by namespace pattern
+ * @returns {Function} returns.getAll - Get all active event types
+ * @returns {Function} returns.removeAll - Remove all events in this namespace
+ * @returns {Function} returns.getSeparator - Get the current separator
+ *
+ * @example
+ * // Basic usage with default colon separator
+ * const storeEvents = createEventManager('storepress');
+ *
+ * // Add event listeners
+ * storeEvents.add(document, 'tooltip:init', (e) => {
+ *   console.log('Tooltip initialized:', e.detail);
+ * });
+ *
+ * storeEvents.add(document, 'modal:open', (e) => {
+ *   console.log('Modal opened:', e.detail.modalId);
+ * });
+ *
+ * // Trigger events (automatically prefixed)
+ * storeEvents.trigger(document, 'tooltip:init', {
+ *   position: 'top',
+ *   content: 'Hello World'
+ * });
+ *
+ * storeEvents.trigger(document, 'modal:open', {
+ *   modalId: 'login-modal'
+ * });
+ *
+ * // Remove specific namespace
+ * storeEvents.remove('storepress:tooltip');
+ *
+ * @example
+ * // E-commerce shopping cart system
+ * const cartEvents = createEventManager('cart');
+ *
+ * // Set up cart event listeners
+ * cartEvents.add(document, 'item:add', (e) => {
+ *   const { productId, quantity, price } = e.detail;
+ *   updateCartCount();
+ *   showNotification(`Added ${quantity}x ${productId} to cart`);
+ * });
+ *
+ * cartEvents.add(document, 'item:remove', (e) => {
+ *   const { productId } = e.detail;
+ *   updateCartCount();
+ *   showNotification(`Removed ${productId} from cart`);
+ * });
+ *
+ * cartEvents.add(document, 'checkout:start', (e) => {
+ *   const { totalAmount, itemCount } = e.detail;
+ *   redirectToCheckout(totalAmount, itemCount);
+ * });
+ *
+ * // Trigger cart events from user interactions
+ * addToCartButton.addEventListener('click', () => {
+ *   cartEvents.trigger(document, 'item:add', {
+ *     productId: 'laptop-123',
+ *     quantity: 1,
+ *     price: 999.99
+ *   });
+ * });
+ *
+ * checkoutButton.addEventListener('click', () => {
+ *   cartEvents.trigger(document, 'checkout:start', {
+ *     totalAmount: getCartTotal(),
+ *     itemCount: getCartItemCount()
+ *   });
+ * });
+ *
+ * @example
+ * // Modal component system with functional approach
+ * function createModal(id) {
+ *   const events = createEventManager(`modal-${id}`);
+ *   const element = document.getElementById(id);
+ *
+ *   // Set up modal event listeners
+ *   events.add(document, 'open', (e) => {
+ *     element.style.display = 'block';
+ *     document.body.style.overflow = 'hidden';
+ *     console.log('Modal opened:', e.detail);
+ *   });
+ *
+ *   events.add(document, 'close', (e) => {
+ *     element.style.display = 'none';
+ *     document.body.style.overflow = 'auto';
+ *     console.log('Modal closed:', e.detail);
+ *   });
+ *
+ *   events.add(document, 'resize', (e) => {
+ *     const { width, height } = e.detail;
+ *     element.style.width = width + 'px';
+ *     element.style.height = height + 'px';
+ *   });
+ *
+ *   // Return modal control functions
+ *   return {
+ *     open: (data = {}) => {
+ *       events.trigger(document, 'open', { modalId: id, ...data });
+ *     },
+ *     close: (data = {}) => {
+ *       events.trigger(document, 'close', { modalId: id, ...data });
+ *     },
+ *     resize: (width, height) => {
+ *       events.trigger(document, 'resize', { width, height });
+ *     },
+ *     destroy: () => {
+ *       events.removeAll();
+ *     }
+ *   };
+ * }
+ *
+ * // Usage
+ * const loginModal = createModal('login-modal');
+ * loginModal.open({ source: 'header-button' });
+ * loginModal.close({ reason: 'user-cancel' });
+ *
+ * @example
+ * // Form validation with functional approach
+ * function createFormValidator(formId) {
+ *   const events = createEventManager(`form-${formId}`, '-');
+ *   const form = document.getElementById(formId);
+ *
+ *   // Set up validation listeners
+ *   events.add(document, 'field-validate', (e) => {
+ *     const { fieldName, isValid, errors } = e.detail;
+ *     const field = form.querySelector(`[name="${fieldName}"]`);
+ *     const errorElement = form.querySelector(`#${fieldName}-error`);
+ *
+ *     if (isValid) {
+ *       field.classList.remove('error');
+ *       errorElement.textContent = '';
+ *     } else {
+ *       field.classList.add('error');
+ *       errorElement.textContent = errors.join(', ');
+ *     }
+ *   });
+ *
+ *   events.add(document, 'submit-attempt', (e) => {
+ *     const { formData, isValid } = e.detail;
+ *     if (isValid) {
+ *       submitFormData(formData);
+ *     } else {
+ *       showFormErrors();
+ *     }
+ *   });
+ *
+ *   // Return validation functions
+ *   return {
+ *     validateField: (fieldName, value) => {
+ *       const isValid = validateFieldValue(fieldName, value);
+ *       const errors = isValid ? [] : getFieldErrors(fieldName, value);
+ *
+ *       events.trigger(document, 'field-validate', {
+ *         fieldName,
+ *         isValid,
+ *         errors
+ *       });
+ *
+ *       return isValid;
+ *     },
+ *
+ *     attemptSubmit: (formData) => {
+ *       const isValid = validateAllFields(formData);
+ *       events.trigger(document, 'submit-attempt', {
+ *         formData,
+ *         isValid
+ *       });
+ *       return isValid;
+ *     },
+ *
+ *     destroy: () => {
+ *       events.removeAll();
+ *     }
+ *   };
+ * }
+ *
+ * // Usage
+ * const validator = createFormValidator('contact-form');
+ * validator.validateField('email', 'user@example.com');
+ *
+ * @example
+ * // Analytics tracking system
+ * function createAnalyticsTracker(trackingId) {
+ *   const events = createEventManager('analytics', '_');
+ *
+ *   // Set up tracking listeners
+ *   events.add(document, 'page_view', (e) => {
+ *     const { page, userId, timestamp } = e.detail;
+ *     sendToAnalytics('pageview', { page, userId, timestamp, trackingId });
+ *   });
+ *
+ *   events.add(document, 'user_action', (e) => {
+ *     const { action, element, userId, metadata } = e.detail;
+ *     sendToAnalytics('interaction', {
+ *       action,
+ *       element,
+ *       userId,
+ *       metadata,
+ *       trackingId
+ *     });
+ *   });
+ *
+ *   events.add(document, 'conversion', (e) => {
+ *     const { type, value, userId } = e.detail;
+ *     sendToAnalytics('conversion', { type, value, userId, trackingId });
+ *   });
+ *
+ *   // Return tracking functions
+ *   return {
+ *     trackPageView: (page) => {
+ *       events.trigger(document, 'page_view', {
+ *         page,
+ *         userId: getCurrentUserId(),
+ *         timestamp: Date.now()
+ *       });
+ *     },
+ *
+ *     trackClick: (element, metadata = {}) => {
+ *       events.trigger(document, 'user_action', {
+ *         action: 'click',
+ *         element: element.id || element.className,
+ *         userId: getCurrentUserId(),
+ *         metadata
+ *       });
+ *     },
+ *
+ *     trackConversion: (type, value) => {
+ *       events.trigger(document, 'conversion', {
+ *         type,
+ *         value,
+ *         userId: getCurrentUserId()
+ *       });
+ *     },
+ *
+ *     destroy: () => {
+ *       events.removeAll();
+ *     }
+ *   };
+ * }
+ *
+ * // Usage
+ * const tracker = createAnalyticsTracker('GA-123456');
+ * tracker.trackPageView('/home');
+ * tracker.trackClick(document.getElementById('cta-button'), { campaign: 'summer-sale' });
+ *
+ * @example
+ * // Game event system with functional approach
+ * function createGameEventSystem() {
+ *   const events = createEventManager('game');
+ *
+ *   // Game state listeners
+ *   events.add(document, 'player:move', (e) => {
+ *     const { playerId, position, timestamp } = e.detail;
+ *     updatePlayerPosition(playerId, position);
+ *     logPlayerAction('move', playerId, timestamp);
+ *   });
+ *
+ *   events.add(document, 'player:attack', (e) => {
+ *     const { attackerId, targetId, damage, weapon } = e.detail;
+ *     processAttack(attackerId, targetId, damage);
+ *     updateCombatLog(attackerId, targetId, damage, weapon);
+ *   });
+ *
+ *   events.add(document, 'game:pause', (e) => {
+ *     const { reason, timestamp } = e.detail;
+ *     pauseAllSystems();
+ *     showPauseScreen(reason);
+ *   });
+ *
+ *   events.add(document, 'game:resume', (e) => {
+ *     const { timestamp } = e.detail;
+ *     resumeAllSystems();
+ *     hidePauseScreen();
+ *   });
+ *
+ *   events.add(document, 'score:update', (e) => {
+ *     const { playerId, points, reason } = e.detail;
+ *     updatePlayerScore(playerId, points);
+ *     showScoreAnimation(points, reason);
+ *   });
+ *
+ *   // Return game control functions
+ *   return {
+ *     movePlayer: (playerId, position) => {
+ *       events.trigger(document, 'player:move', {
+ *         playerId,
+ *         position,
+ *         timestamp: Date.now()
+ *       });
+ *     },
+ *
+ *     playerAttack: (attackerId, targetId, damage, weapon) => {
+ *       events.trigger(document, 'player:attack', {
+ *         attackerId,
+ *         targetId,
+ *         damage,
+ *         weapon
+ *       });
+ *     },
+ *
+ *     pauseGame: (reason = 'user') => {
+ *       events.trigger(document, 'game:pause', {
+ *         reason,
+ *         timestamp: Date.now()
+ *       });
+ *     },
+ *
+ *     resumeGame: () => {
+ *       events.trigger(document, 'game:resume', {
+ *         timestamp: Date.now()
+ *       });
+ *     },
+ *
+ *     updateScore: (playerId, points, reason) => {
+ *       events.trigger(document, 'score:update', {
+ *         playerId,
+ *         points,
+ *         reason
+ *       });
+ *     },
+ *
+ *     destroy: () => {
+ *       events.removeAll();
+ *     }
+ *   };
+ * }
+ *
+ * // Usage
+ * const gameSystem = createGameEventSystem();
+ * gameSystem.movePlayer('player1', { x: 100, y: 200 });
+ * gameSystem.playerAttack('player1', 'enemy1', 25, 'sword');
+ * gameSystem.updateScore('player1', 100, 'enemy-defeated');
+ *
+ * @example
+ * // Notification system
+ * function createNotificationSystem() {
+ *   const events = createEventManager('notifications');
+ *
+ *   // Set up notification listeners
+ *   events.add(document, 'show', (e) => {
+ *     const { message, type, duration } = e.detail;
+ *     displayNotification(message, type, duration);
+ *   });
+ *
+ *   events.add(document, 'hide', (e) => {
+ *     const { notificationId } = e.detail;
+ *     hideNotification(notificationId);
+ *   });
+ *
+ *   events.add(document, 'clear:all', () => {
+ *     clearAllNotifications();
+ *   });
+ *
+ *   // Return notification functions
+ *   return {
+ *     success: (message, duration = 3000) => {
+ *       events.trigger(document, 'show', {
+ *         message,
+ *         type: 'success',
+ *         duration
+ *       });
+ *     },
+ *
+ *     error: (message, duration = 5000) => {
+ *       events.trigger(document, 'show', {
+ *         message,
+ *         type: 'error',
+ *         duration
+ *       });
+ *     },
+ *
+ *     warning: (message, duration = 4000) => {
+ *       events.trigger(document, 'show', {
+ *         message,
+ *         type: 'warning',
+ *         duration
+ *       });
+ *     },
+ *
+ *     hide: (notificationId) => {
+ *       events.trigger(document, 'hide', { notificationId });
+ *     },
+ *
+ *     clearAll: () => {
+ *       events.trigger(document, 'clear:all');
+ *     },
+ *
+ *     destroy: () => {
+ *       events.removeAll();
+ *     }
+ *   };
+ * }
+ *
+ * // Usage
+ * const notifications = createNotificationSystem();
+ * notifications.success('Profile updated successfully!');
+ * notifications.error('Failed to save changes');
+ * notifications.clearAll();
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortController AbortController MDN Documentation
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener addEventListener MDN Documentation
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent CustomEvent MDN Documentation
+ *
+ * @since 0.9.0
+ */
+function createEventManager() {
+  var prefix = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'storepress';
+  var separator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ':';
+  // Map to store AbortControllers by namespace
+  var controllers = getEventsMap(prefix);
+
+  /**
+   * Creates the full event type by prefixing with namespace
+   * @private
+   * @param {string} eventType - The event type to prefix
+   * @returns {string} The full namespaced event type
+   */
+  var getEventType = function getEventType(eventType) {
+    return "".concat(prefix).concat(separator).concat(eventType);
+  };
+
+  /**
+   * Add an event listener with automatic namespace prefixing and AbortController support
+   *
+   * @method add
+   * @param {Element|EventTarget} target - The DOM element or EventTarget to attach the listener to
+   * @param {string} eventType - The event type without namespace prefix (e.g., 'tooltip:init', 'modal:open')
+   * @param {Function} handler - The event handler function to execute
+   * @param {Object} [options={}] - Additional options for addEventListener
+   * @param {boolean} [options.once=false] - Execute handler only once
+   * @param {boolean} [options.passive=false] - Handler will never call preventDefault
+   * @param {boolean} [options.capture=false] - Use capturing phase
+   *
+   * @example
+   * const events = createEventManager('myapp');
+   *
+   * // Add a simple event listener
+   * events.add(document, 'user:login', (e) => {
+   *   console.log('User logged in:', e.detail.username);
+   * });
+   *
+   * // Add with options
+   * events.add(button, 'click:submit', handleSubmit, { once: true });
+   *
+   * // Event will be registered as 'myapp:user:login' and 'myapp:click:submit'
+   */
+  var add = function add(target, eventType, handler) {
+    var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    var fillEventType = getEventType(eventType);
+
+    // Extract namespace parts using the configured separator
+    var namespaceParts = fillEventType.split(separator);
+
+    // Create nested structure of controllers for each namespace level
+    var controllerPath = '';
+    for (var i = 0; i < namespaceParts.length; i++) {
+      var part = namespaceParts[i];
+      controllerPath = controllerPath ? "".concat(controllerPath).concat(separator).concat(part) : part;
+      if (!controllers.has(controllerPath)) {
+        controllers.set(controllerPath, {
+          controller: new AbortController(),
+          events: new Set()
+        });
+      }
+      var entry = controllers.get(controllerPath);
+      entry.events.add(fillEventType);
+    }
+
+    // Get the most specific controller for this exact event type
+    var fullNamespaceEntry = _getNamespaceEntry(fillEventType);
+    if (fullNamespaceEntry) {
+      // Add the abort signal to options
+      var eventOptions = _objectSpread(_objectSpread({}, options), {}, {
+        signal: fullNamespaceEntry.controller.signal
+      });
+
+      // Add the event listener
+      target.addEventListener(fillEventType, handler, eventOptions);
+    }
+  };
+
+  /**
+   * Remove all event listeners matching the given namespace pattern
+   * Uses AbortController to efficiently remove multiple listeners at once
+   *
+   * @method remove
+   * @param {string} namespace - The namespace pattern to match and remove
+   *                                   Can be partial (e.g., 'tooltip') or full (e.g., 'myapp:tooltip:init')
+   *
+   * @example
+   * const events = createEventManager('shop');
+   *
+   * // Add several events
+   * events.add(document, 'cart:add', handleCartAdd);
+   * events.add(document, 'cart:remove', handleCartRemove);
+   * events.add(document, 'checkout:start', handleCheckoutStart);
+   *
+   * // Remove all cart-related events (both cart:add and cart:remove)
+   * events.remove('shop:cart');
+   *
+   * // Remove a specific event
+   * events.remove('shop:checkout:start');
+   *
+   * // Remove all events starting with 'shop'
+   * events.remove('shop');
+   */
+  var remove = function remove(namespace) {
+    var matchingEntries = _findMatchingNamespaces(namespace);
+
+    // Abort all matching controllers
+    matchingEntries.forEach(function (entry) {
+      if (entry.controller && !entry.controller.signal.aborted) {
+        entry.controller.abort();
+      }
+    });
+
+    // Clean up the controller map
+    _cleanupNamespace(namespace);
+  };
+
+  /**
+   * Find all namespace entries that match the given pattern
+   * @private
+   * @param {string} namespace - The namespace pattern to match
+   * @returns {Array} Array of matching controller entries
+   */
+  var _findMatchingNamespaces = function _findMatchingNamespaces(namespace) {
+    var results = [];
+
+    // Find all controllers that start with this pattern
+    var _iterator = _createForOfIteratorHelper(controllers),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var _step$value = _slicedToArray(_step.value, 2),
+          key = _step$value[0],
+          entry = _step$value[1];
+        if (key === namespace || key.startsWith(namespace + separator)) {
+          results.push(entry);
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    return results;
+  };
+
+  /**
+   * Get a specific namespace entry from the controllers map
+   * @private
+   * @param {string} fullNamespace - The complete namespace key
+   * @returns {Object|null} The namespace entry or null if not found
+   */
+  var _getNamespaceEntry = function _getNamespaceEntry(fullNamespace) {
+    return controllers.get(fullNamespace) || null;
+  };
+
+  /**
+   * Clean up aborted controllers from the internal map
+   * @private
+   * @param {string} namespace - The namespace pattern to clean up
+   */
+  var _cleanupNamespace = function _cleanupNamespace(namespace) {
+    var keysToDelete = [];
+    var _iterator2 = _createForOfIteratorHelper(controllers),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var _step2$value = _slicedToArray(_step2.value, 2),
+          key = _step2$value[0],
+          entry = _step2$value[1];
+        if (key === namespace || key.startsWith(namespace + separator)) {
+          if (entry.controller.signal.aborted) {
+            keysToDelete.push(key);
+          }
+        }
+      }
+
+      // Remove aborted controllers
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
+    }
+    keysToDelete.forEach(function (key) {
+      return controllers["delete"](key);
+    });
+  };
+
+  /**
+   * Get all currently active event types in this namespace
+   * Useful for debugging and monitoring what events are currently registered
+   *
+   * @method getAll
+   * @returns {string[]} Array of unique active event type strings (without namespace prefix)
+   *
+   * @example
+   * const events = createEventManager('debug');
+   *
+   * events.add(document, 'error:network', handler1);
+   * events.add(document, 'error:js', handler2);
+   * events.add(window, 'performance:slow', handler3);
+   *
+   * console.log(events.getAll());
+   * // Output: ['error:network', 'error:js', 'performance:slow']
+   *
+   * events.remove('debug:error');
+   * console.log(events.getAll());
+   * // Output: ['performance:slow']
+   */
+  var getAll = function getAll() {
+    var activeEvents = [];
+    var _iterator3 = _createForOfIteratorHelper(controllers),
+      _step3;
+    try {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var _step3$value = _slicedToArray(_step3.value, 2),
+          entry = _step3$value[1];
+        if (!entry.controller.signal.aborted) {
+          activeEvents.push.apply(activeEvents, _toConsumableArray(Array.from(entry.events)));
+        }
+      }
+    } catch (err) {
+      _iterator3.e(err);
+    } finally {
+      _iterator3.f();
+    }
+    return _toConsumableArray(new Set(activeEvents));
+  };
+
+  /**
+   * Remove all event listeners in this namespace and clean up all resources
+   * This is useful for cleanup when a component/module is being destroyed
+   *
+   * @method removeAll
+   *
+   * @example
+   * const events = createEventManager('mycomponent');
+   *
+   * // Add various events
+   * events.add(document, 'init', handler);
+   * events.add(window, 'resize', handler);
+   * events.add(button, 'click', handler);
+   *
+   * // Later, when component is destroyed
+   * events.removeAll(); // Removes all listeners and clears internal state
+   *
+   * @example
+   * // Typical usage in a functional component cleanup
+   * function createComponent() {
+   *   const events = createEventManager('mycomponent');
+   *
+   *   // ... set up events
+   *
+   *   return {
+   *     destroy() {
+   *       events.removeAll(); // Clean cleanup
+   *     }
+   *   };
+   * }
+   */
+  var removeAll = function removeAll() {
+    var _iterator4 = _createForOfIteratorHelper(controllers),
+      _step4;
+    try {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+        var _step4$value = _slicedToArray(_step4.value, 2),
+          entry = _step4$value[1];
+        if (!entry.controller.signal.aborted) {
+          entry.controller.abort();
+        }
+      }
+    } catch (err) {
+      _iterator4.e(err);
+    } finally {
+      _iterator4.f();
+    }
+    controllers.clear();
+  };
+
+  /**
+   * Get the separator character used by this namespace manager
+   *
+   * @method getSeparator
+   * @returns {string} The separator character (':' | '-' | '_')
+   *
+   * @example
+   * const colonEvents = createEventManager('app', ':');
+   * const dashEvents = createEventManager('app', '-');
+   *
+   * console.log(colonEvents.getSeparator()); // ':'
+   * console.log(dashEvents.getSeparator());  // '-'
+   */
+  var getSeparator = function getSeparator() {
+    return separator;
+  };
+
+  /**
+   * Dispatch a custom event with automatic namespace prefixing
+   *
+   * @method trigger
+   * @param {Element|EventTarget} target - The DOM element or EventTarget to dispatch the event on
+   * @param {string} eventType - The event type without namespace prefix (e.g., 'modal:open', 'user:login')
+   * @param {Object} [eventDetails={}] - Data to include in the event's detail property
+   * @param {Object} [options={}] - Additional options for the CustomEvent
+   * @param {boolean} [options.bubbles=true] - Whether the event bubbles up through the DOM
+   * @param {boolean} [options.cancelable=true] - Whether the event can be canceled
+   * @param {boolean} [options.composed=false] - Whether the event will trigger listeners outside of a shadow root
+   *
+   * @returns {boolean} Returns false if the event was canceled, true otherwise
+   *
+   * @example
+   * const events = createEventManager('shop');
+   *
+   * // Trigger a simple event
+   * events.trigger(document, 'cart:update');
+   *
+   * // Trigger with data
+   * events.trigger(document, 'product:add', {
+   *   productId: 'abc123',
+   *   quantity: 2,
+   *   price: 29.99
+   * });
+   *
+   * // Trigger with custom options
+   * events.trigger(button, 'validation:error',
+   *   { message: 'Invalid input' },
+   *   { bubbles: false }
+   * );
+   *
+   * // The actual dispatched events will be:
+   * // 'shop:cart:update', 'shop:product:add', 'shop:validation:error'
+   */
+  var trigger = function trigger(target, eventType) {
+    var eventDetails = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    var fillEventType = getEventType(eventType);
+    return triggerEvent(target, fillEventType, eventDetails, options);
+  };
+
+  // Return public API
+  return {
+    add: add,
+    trigger: trigger,
+    remove: remove,
+    getAll: getAll,
+    removeAll: removeAll,
+    getSeparator: getSeparator
+  };
+}
+
+/**
  * Creates a centralized plugin management system for StorePress with event-driven lifecycle management.
  *
  * This factory function creates a comprehensive plugin controller that handles initialization, destruction,
@@ -4515,9 +5342,11 @@ function createStorePressPlugin(_ref) {
     options = _ref$options === void 0 ? {} : _ref$options,
     plugin = _ref.plugin,
     namespace = _ref.namespace;
-  var initEventType = "storepress_".concat(namespace, "_init").toLowerCase();
-  var destroyEventType = "storepress_".concat(namespace, "_destroy").toLowerCase();
-  var reloadEventType = "storepress_".concat(namespace, "_reload").toLowerCase();
+  var name = toSnakeCase(namespace);
+  var pluginEvents = createEventManager("storepress:".concat(name));
+  var initEventType = "init";
+  var destroyEventType = "destroy";
+  var reloadEventType = "reload";
   return {
     get controller() {
       var map = getWeakMap(namespace);
@@ -4547,13 +5376,13 @@ function createStorePressPlugin(_ref) {
           if (!instance || instance.length === 0) {
             return;
           }
-          var _iterator = _createForOfIteratorHelper(instance),
-            _step;
+          var _iterator5 = _createForOfIteratorHelper(instance),
+            _step5;
           try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var _step$value = _step.value,
-                element = _step$value.element,
-                reset = _step$value.reset;
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var _step5$value = _step5.value,
+                element = _step5$value.element,
+                reset = _step5$value.reset;
               if (element && typeof reset === 'function') {
                 element.removeEventListener('destroy', reset, {
                   passive: true,
@@ -4566,9 +5395,9 @@ function createStorePressPlugin(_ref) {
               }
             }
           } catch (err) {
-            _iterator.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator.f();
+            _iterator5.f();
           }
         },
         destroy: function destroy($element) {
@@ -4576,19 +5405,19 @@ function createStorePressPlugin(_ref) {
           if (!instance || instance.length === 0) {
             return;
           }
-          var _iterator2 = _createForOfIteratorHelper(instance),
-            _step2;
+          var _iterator6 = _createForOfIteratorHelper(instance),
+            _step6;
           try {
-            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-              var destroy = _step2.value.destroy;
+            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+              var destroy = _step6.value.destroy;
               if (typeof destroy === 'function') {
                 destroy();
               }
             }
           } catch (err) {
-            _iterator2.e(err);
+            _iterator6.e(err);
           } finally {
-            _iterator2.f();
+            _iterator6.f();
           }
         },
         reload: function reload($element, settings) {
@@ -4605,17 +5434,17 @@ function createStorePressPlugin(_ref) {
         var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail = event.detail) === null || _event$detail === void 0 ? void 0 : _event$detail.settings);
         var element = (_event$detail2 = event.detail) === null || _event$detail2 === void 0 ? void 0 : _event$detail2.element;
         if (Array.isArray(element)) {
-          var _iterator3 = _createForOfIteratorHelper(element),
-            _step3;
+          var _iterator7 = _createForOfIteratorHelper(element),
+            _step7;
           try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-              var el = _step3.value;
+            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+              var el = _step7.value;
               _this.instance.init(el, settings);
             }
           } catch (err) {
-            _iterator3.e(err);
+            _iterator7.e(err);
           } finally {
-            _iterator3.f();
+            _iterator7.f();
           }
         } else {
           _this.instance.init(element, settings);
@@ -4625,17 +5454,17 @@ function createStorePressPlugin(_ref) {
         var _event$detail3;
         var element = (_event$detail3 = event.detail) === null || _event$detail3 === void 0 ? void 0 : _event$detail3.element;
         if (Array.isArray(element)) {
-          var _iterator4 = _createForOfIteratorHelper(element),
-            _step4;
+          var _iterator8 = _createForOfIteratorHelper(element),
+            _step8;
           try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var el = _step4.value;
+            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+              var el = _step8.value;
               _this.instance.destroy(el);
             }
           } catch (err) {
-            _iterator4.e(err);
+            _iterator8.e(err);
           } finally {
-            _iterator4.f();
+            _iterator8.f();
           }
         } else {
           _this.instance.destroy(element);
@@ -4647,17 +5476,17 @@ function createStorePressPlugin(_ref) {
         var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail4 = event.detail) === null || _event$detail4 === void 0 ? void 0 : _event$detail4.settings);
         var element = (_event$detail5 = event.detail) === null || _event$detail5 === void 0 ? void 0 : _event$detail5.element;
         if (Array.isArray(element)) {
-          var _iterator5 = _createForOfIteratorHelper(element),
-            _step5;
+          var _iterator9 = _createForOfIteratorHelper(element),
+            _step9;
           try {
-            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-              var el = _step5.value;
+            for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+              var el = _step9.value;
               _this.instance.reload(el, settings);
             }
           } catch (err) {
-            _iterator5.e(err);
+            _iterator9.e(err);
           } finally {
-            _iterator5.f();
+            _iterator9.f();
           }
         } else {
           _this.instance.reload(element, settings);
@@ -4669,40 +5498,58 @@ function createStorePressPlugin(_ref) {
       };
 
       // Init.
-      document.addEventListener(initEventType, handleInit, options);
+      pluginEvents.add(document, initEventType, handleInit, options);
+      // document.addEventListener(initEventType, handleInit, options)
 
       // Destroy.
-      document.addEventListener(destroyEventType, handleDestroy, options);
+      pluginEvents.add(document, destroyEventType, handleDestroy, options);
+      // document.addEventListener(destroyEventType, handleDestroy, options )
 
       // Reload.
-      document.addEventListener(reloadEventType, handleReload, options);
+      pluginEvents.add(document, reloadEventType, handleReload, options);
+      // document.addEventListener(reloadEventType, handleReload, options)
     },
     clear: function clear() {
       var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
       this.destroy($selector);
-      this.controller.abort('clear');
+      pluginEvents.removeAll();
+      // this.controller.abort('clear')
     },
     init: function init() {
       var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
       var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : options;
-      triggerEvent(document, initEventType, {
+      pluginEvents.trigger(document, initEventType, {
         element: $selector,
         settings: settings
       });
+
+      /*triggerEvent(document, initEventType, {
+        element: $selector,
+        settings,
+      })*/
     },
     destroy: function destroy() {
       var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
-      triggerEvent(document, destroyEventType, {
+      pluginEvents.trigger(document, destroyEventType, {
         element: $selector
       });
+
+      /*triggerEvent(document, destroyEventType, {
+        element: $selector,
+      })*/
     },
     reload: function reload() {
       var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : selector;
       var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : options;
-      triggerEvent(document, reloadEventType, {
+      pluginEvents.trigger(document, reloadEventType, {
         element: $selector,
         settings: settings
       });
+
+      /*triggerEvent(document, reloadEventType, {
+        element: $selector,
+        settings,
+      })*/
     }
   };
 }
