@@ -50,7 +50,7 @@ export function toKebabCase (string) {
     // Find uppercase letters and insert hyphen before them, then lowercase the letter
     .replace(/([A-Z])/g, (match, p1) => `-${p1.toLowerCase()}`)
     // Replace any underscores, dots, or spaces with hyphens
-    .replace(/[_.\s]/g, '-')
+    .replace(/[-._:~\s]/g, '-')
     // Remove any leading or trailing hyphens that may have been created
     .replace(/^-+|-+$/g, '')
     // Convert the entire string to lowercase
@@ -125,7 +125,7 @@ export function toSnakeCase (string) {
     // Find uppercase letters and insert underscore before them, then lowercase the letter
     .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
     // Replace any hyphens, dots, or spaces with underscores
-    .replace(/[-.\s]/g, '_')
+    .replace(/[-._:~\s]/g, '_')
     // Remove any leading or trailing underscores that may have been created
     .replace(/^_+|_+$/g, '')
     // Convert the entire string to lowercase
@@ -236,7 +236,7 @@ export function toConstantCase (string) {
     // Insert underscores before uppercase letters (but not at start)
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     // Replace any separator characters with underscore
-    .replace(/[-.\s]+/g, '_')
+    .replace(/[-._:~\s]+/g, '_')
     // Remove leading/trailing underscores
     .replace(/^_+|_+$/g, '')
     // Convert the entire string to uppercase
@@ -569,9 +569,12 @@ export function toConstantCase (string) {
  */
 export function toCamelCase (string) {
   return string
-    // Match: 1) uppercase letter at start ^([A-Z]) OR 2) word char after separator [\s-_.](\w)
+    // Match:
+    // 1) uppercase letter at start ^([A-Z])
+    // OR
+    // 2) word char after separator [-._:~\s](\w)
     // If separator+char: uppercase the char | If start uppercase: lowercase it
-    .replace(/^([A-Z])|[-._\s](\w)/g, (match, p1, p2) => {
+    .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
       if (p2) return p2.toUpperCase()  // Found char after separator - make it uppercase
       return p1.toLowerCase()          // Found uppercase at start - make it lowercase
     })
@@ -790,10 +793,18 @@ export function toCamelCase (string) {
  * @since 0.3.0
  */
 export function toUpperCamelCase (string) {
+
+  if (string.toLowerCase() === 'storepress') {
+    return 'StorePress'
+  }
+
   return string
-    // Match: 1) lowercase letter at start ^([a-z]) OR 2) word char after separator [-._\s](\w)
+    // Match:
+    // 1) lowercase letter at start ^([a-z])
+    // OR
+    // 2) word char after separator [-._:~\s](\w)
     // If separator+char: uppercase the char | If start lowercase: uppercase it
-    .replace(/^([a-z])|[-._\s](\w)/g, (match, p1, p2) => {
+    .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
       if (p2) return p2.toUpperCase()  // Found char after separator - make it uppercase
       return p1.toUpperCase()          // Found lowercase at start - make it uppercase
     })
@@ -4293,6 +4304,55 @@ export function findObjectValue (obj, path, defaultValue, notation = ['.', '-', 
 }
 
 /**
+ * Retrieves or creates a global event map for a specific key. This function provides
+ * a centralized way to manage event-related data structures across different parts
+ * of an application by creating isolated Map instances stored in a global namespace.
+ *
+ * The function automatically converts the provided key to UpperCamelCase format and
+ * ensures that the global StorePress namespace structure exists. Each unique key
+ * gets its own Map instance that persists across function calls.
+ *
+ * @function getEventsMap
+ * @param {string} key - The identifier for the event map. Will be converted to UpperCamelCase.
+ *                      Examples: 'tooltip', 'modal', 'user-actions', 'cart_events'
+ *
+ * @returns {Map} A Map instance specific to the provided key. If the map doesn't exist,
+ *               it will be created and stored globally for future access.
+ *
+ * @global
+ * @namespace StorePress
+ * @memberof StorePress
+ * @property {Object} $eventsMap - Global container for all event maps
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map MDN Documentation
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Window Window MDN Documentation
+ *
+ * @since 0.9.0
+ *
+ * @note This function creates global state. Use with caution in environments where
+ *       global namespace pollution is a concern. Consider using module-scoped storage
+ *       for applications that require better encapsulation.
+ *
+ * @note The UpperCamelCase conversion means that keys like 'tooltip', 'user-actions',
+ *       and 'cart_events' become 'Tooltip', 'UserActions', and 'CartEvents' respectively
+ *       in the global storage structure.
+ */
+function getEventsMap (key) {
+  const name = toUpperCamelCase(key)
+
+  // Ensure nested structure exists
+  window.StorePress = window.StorePress || {}
+  window.StorePress.$eventsMap = window.StorePress.$eventsMap || {}
+
+  // Create Map if it doesn't exist
+  if (!window.StorePress.$eventsMap[name]) {
+    window.StorePress.$eventsMap[name] = new Map()
+  }
+
+  return window.StorePress.$eventsMap[name]
+}
+
+/**
  * Creates a namespaced event manager that allows organizing and controlling event listeners
  * with hierarchical namespaces. Uses AbortController for efficient event cleanup and includes
  * a trigger method for dispatching namespaced events.
@@ -4711,7 +4771,7 @@ export function findObjectValue (obj, path, defaultValue, notation = ['.', '-', 
  */
 export function createEventManager (prefix = 'storepress', separator = ':') {
   // Map to store AbortControllers by namespace
-  const controllers = new Map()
+  const controllers = getEventsMap(prefix)
 
   /**
    * Creates the full event type by prefixing with namespace
@@ -4770,7 +4830,7 @@ export function createEventManager (prefix = 'storepress', separator = ':') {
       }
 
       const entry = controllers.get(controllerPath)
-      entry.events.add(eventType)
+      entry.events.add(fillEventType)
     }
 
     // Get the most specific controller for this exact event type
