@@ -10,7 +10,7 @@
     "utils",
     "storepress"
   ],
-  "homepage": "https://github.com/EmranAhmed/storepress-packages/packages/utils/README.md",
+  "homepage": "https://github.com/EmranAhmed/storepress-packages/blob/main/packages/utils/README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/EmranAhmed/storepress-packages.git",

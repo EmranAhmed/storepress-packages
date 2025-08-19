@@ -1473,8 +1473,8 @@ export function getWeakMap (key) {
  * either a CSS selector string or an existing HTMLElement. It's commonly used in library
  * functions where you want to provide flexibility in how users specify target elements.
  *
- * @param {string|HTMLElement|null} [selector=null] - The element selector or element itself
- * @returns {HTMLElement|null} The resolved HTMLElement, or null if not found/invalid
+ * @param {string|HTMLElement|null|Document} [selector=null] - The element selector or element itself
+ * @returns {HTMLElement|null|Document} The resolved HTMLElement, or null if not found/invalid
  *
  * @example
  * // Using CSS selector string
@@ -1638,6 +1638,7 @@ export function getWeakMap (key) {
  */
 export function getElement (selector = null) {
   if (null === selector) return null
+  if (document === selector) return document
   if (typeof selector === 'string') return document.querySelector(selector)
   return selector instanceof HTMLElement ? selector : null
 }
@@ -1650,8 +1651,8 @@ export function getElement (selector = null) {
  * output format for functions that need to operate on multiple elements while providing
  * flexibility in input types.
  *
- * @param {string|HTMLElement|HTMLElement[]|NodeList|Array} [selectors=[]] - The element selector(s) or element(s)
- * @returns {HTMLElement[]|NodeList|Array} Collection of HTMLElements, empty array if no matches
+ * @param {string|HTMLElement|HTMLElement[]|NodeList|Array|Document[]} [selectors=[]] - The element selector(s) or element(s)
+ * @returns {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
  *
  * @example
  * // Using CSS selector string (returns NodeList)
@@ -1875,6 +1876,7 @@ export function getElement (selector = null) {
 export function getElements (selectors = []) {
 
   if (selectors.length === 0) return []
+  if (selectors === document) return [document]
   if (typeof selectors === 'string') return document.querySelectorAll(selectors)
   return selectors instanceof HTMLElement ? [selectors] : selectors
 }
@@ -2056,7 +2058,7 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
     const strategies = [
       (val) => val.replaceAll('\'', '"'),
       (val) => val.replaceAll('\'', '"').replaceAll('\\', '\\\\'),
-      // Add more strategies here if needed
+      //@TODO: Add more strategies here if needed
     ]
 
     for (const strategy of strategies) {
@@ -3476,12 +3478,12 @@ export function getPluginInstance (selectors) {
  * Dispatches a custom event on a target DOM element with optional event details and configuration.
  * Provides a convenient wrapper around the native CustomEvent constructor and dispatchEvent method.
  *
- * @param {HTMLElement|EventTarget} $target - The DOM element or EventTarget to dispatch the event on
+ * @param {HTMLElement[]|HTMLElement|EventTarget} $targets - The DOM element or EventTarget to dispatch the event on
  * @param {string} eventType - The name/type of the custom event to dispatch
  * @param {Object} [eventDetails={}] - Data to include in the event's detail property
  * @param {Object} [options={}] - CustomEvent configuration options
  * @param {boolean} [options.bubbles=false] - Whether the event bubbles up through the DOM tree
- * @param {boolean} [options.cancelable=false] - Whether the event can be canceled with preventDefault()
+ * @param {boolean} [options.cancelable=true] - Whether the event can be canceled with preventDefault()
  * @param {boolean} [options.composed=false] - Whether the event will trigger listeners outside of a shadow root
  * @returns {boolean} True if the event was not canceled, false if preventDefault() was called
  * @example
@@ -3631,17 +3633,22 @@ export function getPluginInstance (selectors) {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent CustomEvent API
  * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent dispatchEvent API
  */
-export function triggerEvent ($target, eventType, eventDetails = {}, options = {}) {
+export function triggerEvent ($targets, eventType, eventDetails = {}, options = {}) {
 
-  const defaultOptions = { bubbles: false, cancelable: false, composed: false }
+  const defaultOptions = { bubbles: false, cancelable: true, composed: false }
   const availableOptions = { ...defaultOptions, ...options }
 
-  return $target.dispatchEvent(new CustomEvent(eventType, {
-    ...availableOptions,
-    detail: {
-      ...eventDetails,
-    },
-  }))
+  const $elements = getElements($targets)
+
+  $elements.forEach(($element) => {
+
+    return $element.dispatchEvent(new CustomEvent(eventType, {
+      ...availableOptions,
+      detail: {
+        ...eventDetails,
+      },
+    }))
+  })
 }
 
 /**
@@ -3766,7 +3773,6 @@ export function triggerEvent ($target, eventType, eventDetails = {}, options = {
  * - `moving` {boolean} - True during active swipe, false when completed
  * - `done` {boolean} - True when swipe gesture is complete
  */
-
 export function swipeEvent (target, listenerFn, options = {}) {
   let readyToMove = false
   let isMoved = false
@@ -4353,697 +4359,468 @@ export function getEventsMap (key) {
 }
 
 /**
- * Creates a namespaced event manager that provides hierarchical event organization
- * with automatic prefixing, efficient cleanup using AbortController, and global
- * event map storage. This function builds upon the global event storage system
- * to create isolated, manageable event systems for different application components.
- *
- * The event manager automatically constructs event names in the format:
- * `{prefix}.{namespace}.{eventType}` (e.g., 'storepress.tooltip.init')
+ * Creates a namespaced event manager for handling DOM events with automatic cleanup using AbortControllers.
+ * This function provides a centralized way to manage event listeners across multiple elements with
+ * namespace isolation and automatic memory management.
  *
  * @function createEventManager
- * @param {string} namespace - The specific namespace for this event manager instance.
- *                            This will be combined with the prefix to create unique event names.
- *                            Examples: 'tooltip', 'modal', 'cart', 'user'
- * @param {Object} [options={}] - Configuration options for the event manager
- * @param {string} [options.prefix='storepress'] - The global prefix for all events in this system
- * @param {string} [options.separator='.'] - The separator character used between namespace parts
- * @param {Function} [options.onRemoveAll=()=>{}] - On Remove All.
+ * @param {string} namespace - The namespace identifier for this event manager instance. Used to isolate events between different managers.
+ * @param {Object} [options={}] - Configuration options for the event manager.
+ * @param {string} [options.prefix='storepress'] - The prefix used in generated event names. If empty string, defaults to '$global'.
+ * @param {string} [options.separator=':'] - The separator used between prefix, namespace, and event type in generated event names. If empty string, defaults to ':'.
  *
- * @returns {Object} Event manager instance with the following methods:
- * @returns {Function} returns.add - Add a namespaced event listener with AbortController support
- * @returns {Function} returns.trigger - Dispatch a namespaced custom event
- * @returns {Function} returns.remove - Remove events by namespace pattern using AbortController
- * @returns {Function} returns.getAll - Get all active event types for debugging
- * @returns {Function} returns.removeAll - Remove all events and clean up resources
- * @returns {Function} returns.getSeparator - Get the current separator character
+ * @returns {Object} An event manager object with methods for managing events.
+ * @returns {Function} returns.add - Adds event listeners to elements.
+ * @returns {Function} returns.trigger - Triggers events on elements.
+ * @returns {Function} returns.remove - Removes specific event listeners from elements.
+ * @returns {Function} returns.removeAll - Removes all event listeners for this namespace.
+ * @returns {Function} returns.get - Gets information about events attached to specific elements.
+ * @returns {Function} returns.getAll - Gets information about all events in this namespace.
  *
  * @example
  * // Basic usage with default options
- * const tooltipEvents = createEventManager('tooltip');
  * const modalEvents = createEventManager('modal');
  *
- * // Add event listeners (events will be prefixed as 'storepress.tooltip.*')
- * tooltipEvents.add(document, 'show', (e) => {
- *   const { content, position } = e.detail;
- *   displayTooltip(content, position);
+ * @example
+ * // Custom configuration
+ * const tooltipEvents = createEventManager('tooltip', {
+ *   prefix: 'myapp',
+ *   separator: '-'
  * });
- *
- * tooltipEvents.add(document, 'hide', (e) => {
- *   hideTooltip(e.detail.tooltipId);
- * });
- *
- * // Trigger events
- * tooltipEvents.trigger(document, 'show', {
- *   content: 'Welcome to our site!',
- *   position: 'top'
- * });
- *
- * // Remove specific event patterns
- * tooltipEvents.remove('storepress.tooltip.show');
- *
- * // Clean up all tooltip events
- * tooltipEvents.removeAll();
  *
  * @example
- * // Custom options for different separator and prefix
- * const gameEvents = createEventManager('player', {
- *   prefix: 'mygame',
- *   separator: ':'
+ * // Complete workflow example
+ * const buttonEvents = createEventManager('buttons');
+ *
+ * // Add click handlers to multiple buttons
+ * buttonEvents.add('.btn', 'click', (e) => {
+ *   console.log('Button clicked:', e.target.textContent);
  * });
  *
- * const uiEvents = createEventManager('interface', {
- *   prefix: 'mygame',
- *   separator: ':'
+ * // Add hover effect
+ * buttonEvents.add('.btn', 'mouseenter', (e) => {
+ *   e.target.classList.add('hover');
  * });
  *
- * // Events will be formatted as 'mygame:player:*' and 'mygame:interface:*'
- * gameEvents.add(document, 'move', (e) => {
- *   const { x, y, playerId } = e.detail;
- *   updatePlayerPosition(playerId, x, y);
+ * buttonEvents.add('.btn', 'mouseleave', (e) => {
+ *   e.target.classList.remove('hover');
  * });
  *
- * gameEvents.add(document, 'attack', (e) => {
- *   const { attackerId, targetId, damage } = e.detail;
- *   processAttack(attackerId, targetId, damage);
- * });
+ * // Trigger events programmatically
+ * buttonEvents.trigger('.primary-btn', 'click');
  *
- * uiEvents.add(document, 'menu.open', (e) => {
- *   showGameMenu(e.detail.menuType);
- * });
+ * // Remove specific event type
+ * buttonEvents.remove('.btn', 'mouseenter');
  *
- * uiEvents.add(document, 'hud.update', (e) => {
- *   updateHUD(e.detail.stats);
- * });
- *
- * // Trigger game events
- * gameEvents.trigger(document, 'move', {
- *   x: 100,
- *   y: 200,
- *   playerId: 'player1'
- * });
- *
- * gameEvents.trigger(document, 'attack', {
- *   attackerId: 'player1',
- *   targetId: 'enemy1',
- *   damage: 25
- * });
- *
- * // Trigger UI events
- * uiEvents.trigger(document, 'menu.open', {
- *   menuType: 'inventory'
- * });
- *
- * uiEvents.trigger(document, 'hud.update', {
- *   stats: { health: 80, mana: 45, level: 12 }
- * });
- *
- * // Remove all player events but keep UI events
- * gameEvents.removeAll();
- *
- * @example
- * // E-commerce checkout system
- * function createCheckoutSystem() {
- *   const checkoutEvents = createEventManager('checkout', {
- *     prefix: 'shop',
- *     separator: '-'
- *   });
- *
- *   const paymentEvents = createEventManager('payment', {
- *     prefix: 'shop',
- *     separator: '-'
- *   });
- *
- *   // Checkout step events (shop-checkout-*)
- *   checkoutEvents.add(document, 'step.start', (e) => {
- *     const { stepName, stepData } = e.detail;
- *     initializeCheckoutStep(stepName, stepData);
- *     trackAnalytics('checkout_step_started', { step: stepName });
- *   });
- *
- *   checkoutEvents.add(document, 'step.complete', (e) => {
- *     const { stepName, stepData } = e.detail;
- *     completeCheckoutStep(stepName, stepData);
- *     trackAnalytics('checkout_step_completed', { step: stepName });
- *   });
- *
- *   checkoutEvents.add(document, 'validation.error', (e) => {
- *     const { field, message } = e.detail;
- *     showFieldError(field, message);
- *   });
- *
- *   // Payment events (shop-payment-*)
- *   paymentEvents.add(document, 'method.select', (e) => {
- *     const { method } = e.detail;
- *     setupPaymentMethod(method);
- *   });
- *
- *   paymentEvents.add(document, 'process.start', (e) => {
- *     const { amount, currency } = e.detail;
- *     showLoadingState();
- *     trackAnalytics('payment_initiated', { amount, currency });
- *   });
- *
- *   paymentEvents.add(document, 'process.success', (e) => {
- *     const { transactionId, amount } = e.detail;
- *     hideLoadingState();
- *     showSuccessMessage();
- *     redirectToThankYouPage(transactionId);
- *   });
- *
- *   paymentEvents.add(document, 'process.failure', (e) => {
- *     const { error, code } = e.detail;
- *     hideLoadingState();
- *     showErrorMessage(error);
- *     trackAnalytics('payment_failed', { error, code });
- *   });
- *
- *   return {
- *     // Checkout flow control
- *     startStep: (stepName, stepData) => {
- *       checkoutEvents.trigger(document, 'step.start', { stepName, stepData });
- *     },
- *
- *     completeStep: (stepName, stepData) => {
- *       checkoutEvents.trigger(document, 'step.complete', { stepName, stepData });
- *     },
- *
- *     showValidationError: (field, message) => {
- *       checkoutEvents.trigger(document, 'validation.error', { field, message });
- *     },
- *
- *     // Payment control
- *     selectPaymentMethod: (method) => {
- *       paymentEvents.trigger(document, 'method.select', { method });
- *     },
- *
- *     startPayment: (amount, currency) => {
- *       paymentEvents.trigger(document, 'process.start', { amount, currency });
- *     },
- *
- *     paymentSuccess: (transactionId, amount) => {
- *       paymentEvents.trigger(document, 'process.success', { transactionId, amount });
- *     },
- *
- *     paymentFailure: (error, code) => {
- *       paymentEvents.trigger(document, 'process.failure', { error, code });
- *     },
- *
- *     // Cleanup
- *     destroy: () => {
- *       checkoutEvents.removeAll();
- *       paymentEvents.removeAll();
- *     },
- *
- *     // Debugging
- *     getActiveEvents: () => ({
- *       checkout: checkoutEvents.getAll(),
- *       payment: paymentEvents.getAll()
- *     })
- *   };
- * }
- *
- * // Usage
- * const checkout = createCheckoutSystem();
- *
- * // Start checkout process
- * checkout.startStep('shipping', {
- *   items: ['item1', 'item2'],
- *   total: 99.99
- * });
- *
- * // Complete shipping step
- * checkout.completeStep('shipping', {
- *   address: '123 Main St',
- *   method: 'standard'
- * });
- *
- * // Select payment method
- * checkout.selectPaymentMethod('credit_card');
- *
- * // Process payment
- * checkout.startPayment(99.99, 'USD');
- *
- * // Handle payment result
- * checkout.paymentSuccess('txn_12345', 99.99);
- *
- * @example
- * // Real-time notification system
- * function createNotificationSystem() {
- *   const notificationEvents = createEventManager('notifications');
- *
- *   // Set up notification listeners (storepress.notifications.*)
- *   notificationEvents.add(document, 'show', (e) => {
- *     const { id, type, message, duration, actions } = e.detail;
- *     createNotificationElement(id, type, message, duration, actions);
- *     trackNotificationShown(type, message);
- *   });
- *
- *   notificationEvents.add(document, 'hide', (e) => {
- *     const { id, reason } = e.detail;
- *     removeNotificationElement(id);
- *     trackNotificationHidden(id, reason);
- *   });
- *
- *   notificationEvents.add(document, 'action.click', (e) => {
- *     const { notificationId, actionId, actionData } = e.detail;
- *     handleNotificationAction(notificationId, actionId, actionData);
- *     trackNotificationAction(notificationId, actionId);
- *   });
- *
- *   notificationEvents.add(document, 'clear.all', () => {
- *     clearAllNotifications();
- *     trackNotificationsClearedAll();
- *   });
- *
- *   return {
- *     success: (message, options = {}) => {
- *       const id = generateId();
- *       notificationEvents.trigger(document, 'show', {
- *         id,
- *         type: 'success',
- *         message,
- *         duration: options.duration || 3000,
- *         actions: options.actions || []
- *       });
- *       return id;
- *     },
- *
- *     error: (message, options = {}) => {
- *       const id = generateId();
- *       notificationEvents.trigger(document, 'show', {
- *         id,
- *         type: 'error',
- *         message,
- *         duration: options.duration || 5000,
- *         actions: options.actions || []
- *       });
- *       return id;
- *     },
- *
- *     warning: (message, options = {}) => {
- *       const id = generateId();
- *       notificationEvents.trigger(document, 'show', {
- *         id,
- *         type: 'warning',
- *         message,
- *         duration: options.duration || 4000,
- *         actions: options.actions || []
- *       });
- *       return id;
- *     },
- *
- *     info: (message, options = {}) => {
- *       const id = generateId();
- *       notificationEvents.trigger(document, 'show', {
- *         id,
- *         type: 'info',
- *         message,
- *         duration: options.duration || 3000,
- *         actions: options.actions || []
- *       });
- *       return id;
- *     },
- *
- *     hide: (id, reason = 'manual') => {
- *       notificationEvents.trigger(document, 'hide', { id, reason });
- *     },
- *
- *     clearAll: () => {
- *       notificationEvents.trigger(document, 'clear.all');
- *     },
- *
- *     handleAction: (notificationId, actionId, actionData) => {
- *       notificationEvents.trigger(document, 'action.click', {
- *         notificationId,
- *         actionId,
- *         actionData
- *       });
- *     },
- *
- *     destroy: () => {
- *       notificationEvents.removeAll();
- *     },
- *
- *     getActiveEvents: () => notificationEvents.getAll()
- *   };
- * }
- *
- * // Usage
- * const notifications = createNotificationSystem();
- *
- * // Show different types of notifications
- * const successId = notifications.success('Profile updated successfully!');
- *
- * const errorId = notifications.error('Failed to save changes', {
- *   duration: 0, // Persistent until manually closed
- *   actions: [
- *     { id: 'retry', label: 'Retry', data: { action: 'save_profile' } },
- *     { id: 'dismiss', label: 'Dismiss' }
- *   ]
- * });
- *
- * const warningId = notifications.warning('Your session will expire in 5 minutes', {
- *   actions: [
- *     { id: 'extend', label: 'Extend Session' }
- *   ]
- * });
- *
- * // Handle notification action
- * notifications.handleAction(errorId, 'retry', { action: 'save_profile' });
- *
- * // Manually hide a notification
- * notifications.hide(warningId, 'user_dismissed');
- *
- * // Clear all notifications
- * notifications.clearAll();
- *
- * @dependencies
- * @requires getEventsMap - Global event map storage function
- * @requires triggerEvent - Event dispatching utility function
- * @requires toUpperCamelCase - String formatting utility (used by getEventsMap)
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortController AbortController MDN Documentation
- * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener addEventListener MDN Documentation
- * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent CustomEvent MDN Documentation
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map MDN Documentation
- *
- * @since 0.10.0
- *
- *
- * @note This function creates event managers that share a global event map storage system.
- *       Multiple managers with the same prefix will share the same underlying Map instance.
- *
- * @note Event names are automatically constructed as: `{prefix}{separator}{namespace}{separator}{eventType}`
- *       For example: 'storepress.tooltip.show', 'mygame:player:move', 'shop-checkout-step.complete'
- *
- * @note The AbortController cleanup system ensures that removed event listeners are properly
- *       garbage collected and don't cause memory leaks in long-running applications.
+ * // Clean up all events when done
+ * buttonEvents.removeAll();
  */
-export function createEventManager (namespace, options = { prefix: 'storepress', separator: '.', onRemoveAll: () => {} }) {
-  // Map to store AbortControllers by namespace
-  const controllers = getEventsMap(options.prefix)
+export function createEventManager (namespace, options = { prefix: 'storepress', separator: ':' }) {
 
-  /**
-   * Creates the full event type by prefixing with namespace
-   * @private
-   * @param {string} type - The event type to prefix
-   * @returns {string} The full namespaced event type
-   */
-  const getEventType = (type) => {
-    const prefix = options.prefix.length > 0 ? `${options.prefix}${options.separator}` : ''
-    return `${prefix}${namespace}${options.separator}${type}`
+  const prefix = options.prefix.length > 0 ? options.prefix : '$global'
+  const separator = options.separator.length > 0 ? options.separator : ':'
+  const controllers = getEventsMap(prefix)
+
+  const _add = ($target, eventType, handler, eventOptions = {}) => {
+
+    const $element = getElement($target)
+
+    if (!controllers.has(namespace)) {
+      controllers.set(namespace, new Map())
+    }
+
+    if (!controllers.get(namespace).has($element)) {
+      controllers.get(namespace).set($element, {})
+    }
+
+    const events = controllers.get(namespace).get($element)
+
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
+
+    events[eventName] = new AbortController()
+
+    controllers.get(namespace).set($element, events)
+
+    const controller = controllers.get(namespace).get($element)[eventName]
+
+    const type = eventName.split(separator).at(-1)
+
+    const getType = `on${type}` in $element ? type : eventName
+
+    $element.addEventListener(getType, handler, {
+      ...eventOptions,
+      signal: controller.signal,
+    })
   }
 
   /**
-   * Add an event listener with automatic namespace prefixing and AbortController support
+   * Adds event listeners to one or more DOM elements.
+   * Creates namespaced event handlers that can be easily managed and removed later.
    *
    * @method add
-   * @param {Element|EventTarget} target - The DOM element or EventTarget to attach the listener to
-   * @param {string} type - The event type without namespace prefix (e.g., 'tooltip:init', 'modal:open')
-   * @param {Function} handler - The event handler function to execute
-   * @param {Object} [eventOptions={}] - Additional options for addEventListener
-   * @param {boolean} [eventOptions.once=false] - Execute handler only once
-   * @param {boolean} [eventOptions.passive=false] - Handler will never call preventDefault
-   * @param {boolean} [eventOptions.capture=false] - Use capturing phase
+   * @memberof createEventManager
+   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
+   * @param {string} eventType - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
+   * @param {Function} handler - The event handler function to execute when the event is triggered.
+   * @param {Object} [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
    *
    * @example
-   * const events = createEventManager('myapp');
-   *
-   * // Add a simple event listener
-   * events.add(document, 'user:login', (e) => {
-   *   console.log('User logged in:', e.detail.username);
+   * // Add click handler to a single element
+   * manager.add('#submit-btn', 'click', (e) => {
+   *   e.preventDefault();
+   *   console.log('Form submitted');
    * });
    *
-   * // Add with options
-   * events.add(button, 'click:submit', handleSubmit, { once: true });
-   *
-   * // Event will be registered as 'myapp:user:login' and 'myapp:click:submit'
-   */
-  const add = (target, type, handler, eventOptions = {}) => {
-
-    const eventType = getEventType(type)
-
-    // Extract namespace parts using the configured separator
-    const namespaceParts = eventType.split(getSeparator())
-
-    // Create nested structure of controllers for each namespace level
-    let controllerPath = ''
-
-    for (let i = 0; i < namespaceParts.length; i++) {
-      const part = namespaceParts[i]
-      controllerPath = controllerPath ? `${controllerPath}${getSeparator()}${part}` : part
-
-      if (!controllers.has(controllerPath)) {
-        controllers.set(controllerPath, {
-          controller: new AbortController(),
-          events: new Set(),
-        })
-      }
-
-      const entry = controllers.get(controllerPath)
-      entry.events.add(eventType)
-    }
-
-    // Get the most specific controller for this exact event type
-    const fullNamespaceEntry = _getNamespaceEntry(eventType)
-    if (fullNamespaceEntry) {
-      // Add the event listener
-      target.addEventListener(eventType, handler, {
-        ...eventOptions,
-        signal: fullNamespaceEntry.controller.signal,
-      })
-    }
-  }
-
-  /**
-   * Remove all event listeners matching the given namespace pattern
-   * Uses AbortController to efficiently remove multiple listeners at once
-   *
-   * @method remove
-   * @param {string} n - The namespace pattern to match and remove
-   *                                   Can be partial (e.g., 'tooltip') or full (e.g., 'myapp:tooltip:init')
+   * @example
+   * // Add event to multiple elements using selector
+   * manager.add('.toggle-btn', 'click', (e) => {
+   *   e.target.classList.toggle('active');
+   * });
    *
    * @example
-   * const events = createEventManager('shop');
+   * // Add event with options
+   * manager.add('.drag-item', 'touchstart', handleTouch, {
+   *   passive: false,
+   *   once: false
+   * });
    *
-   * // Add several events
-   * events.add(document, 'cart:add', handleCartAdd);
-   * events.add(document, 'cart:remove', handleCartRemove);
-   * events.add(document, 'checkout:start', handleCheckoutStart);
-   *
-   * // Remove all cart-related events (both cart:add and cart:remove)
-   * events.remove('shop:cart');
-   *
-   * // Remove a specific event
-   * events.remove('shop:checkout:start');
-   *
-   * // Remove all events starting with 'shop'
-   * events.remove('shop');
+   * @example
+   * // Add to DOM element directly
+   * const button = document.querySelector('#my-button');
+   * manager.add(button, 'click', myHandler);
    */
-  const remove = (n) => {
-    const matchingEntries = _findMatchingNamespaces(n)
+  const add = ($targets, eventType, handler, eventOptions = {}) => {
 
-    // Abort all matching controllers
-    matchingEntries.forEach(entry => {
-      if (entry.controller && !entry.controller.signal.aborted) {
-        entry.controller.abort()
-      }
+    const $elements = getElements($targets)
+
+    $elements.forEach(($element) => {
+      _add($element, eventType, handler, eventOptions)
     })
 
-    // Clean up the controller map
-    _cleanupNamespace(n)
   }
 
-  /**
-   * Find all namespace entries that match the given pattern
-   * @private
-   * @param {string} n - The namespace pattern to match
-   * @returns {Array} Array of matching controller entries
-   */
-  const _findMatchingNamespaces = (n) => {
-    const results = []
+  const _trigger = ($target, eventType, eventDetails = {}, options = {}) => {
 
-    // Find all controllers that start with this pattern
-    for (const [key, entry] of controllers) {
-      if (key === n || key.startsWith(`${n}${getSeparator()}`)) {
-        results.push(entry)
+    const events = _getEvents($target, eventType)
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
+
+    for (const [event, isNative, type] of events) {
+
+      const $element = getElement($target)
+
+      if (isNative && eventName === event) {
+        $element.dispatchEvent(new Event(type, {
+          bubbles: true,
+          cancelable: true,
+        }))
+      } else {
+        triggerEvent($element, event, eventDetails, options)
       }
     }
-
-    return results
   }
 
   /**
-   * Get a specific namespace entry from the controllers map
-   * @private
-   * @param {string} fullNamespace - The complete namespace key
-   * @returns {Object|null} The namespace entry or null if not found
-   */
-  const _getNamespaceEntry = (fullNamespace) => {
-    return controllers.get(fullNamespace) || null
-  }
-
-  /**
-   * Clean up aborted controllers from the internal map
-   * @private
-   * @param {string} n - The namespace pattern to clean up
-   */
-  const _cleanupNamespace = (n) => {
-    const keysToDelete = []
-
-    for (const [key, entry] of controllers) {
-      if (key === n || key.startsWith(`${n}${getSeparator()}`)) {
-        if (entry.controller.signal.aborted) {
-          keysToDelete.push(key)
-        }
-      }
-    }
-
-    // Remove aborted controllers
-    keysToDelete.forEach(key => controllers.delete(key))
-  }
-
-  /**
-   * Get all currently active event types in this namespace
-   * Useful for debugging and monitoring what events are currently registered
+   * Triggers events on one or more DOM elements.
+   * Can trigger both native events and custom events with optional data.
    *
-   * @method getAll
-   * @returns {string[]} Array of unique active event type strings (without namespace prefix)
+   * @method trigger
+   * @memberof createEventManager
+   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to trigger events on.
+   * @param {string|null} [eventType=null] - The event type to trigger. If null, triggers all events for the element.
+   * @param {Object} [eventDetails={}] - Custom data to pass with the event (for custom events).
+   * @param {Object} [options={}] - Additional options for event dispatching.
    *
    * @example
-   * const events = createEventManager('debug');
+   * // Trigger specific event type
+   * manager.trigger('#my-button', 'click');
    *
-   * events.add(document, 'error:network', handler1);
-   * events.add(document, 'error:js', handler2);
-   * events.add(window, 'performance:slow', handler3);
+   * @example
+   * // Trigger all events on element
+   * manager.trigger('#my-element', null);
    *
-   * console.log(events.getAll());
-   * // Output: ['error:network', 'error:js', 'performance:slow']
+   * @example
+   * // Trigger with custom data
+   * manager.trigger('.notification', 'show', {
+   *   message: 'Hello World',
+   *   type: 'success'
+   * });
    *
-   * events.remove('debug:error');
-   * console.log(events.getAll());
-   * // Output: ['performance:slow']
+   * @example
+   * // Trigger on multiple elements
+   * manager.trigger('.modal', 'close');
    */
-  const getAll = () => {
-    const activeEvents = []
+  const trigger = ($targets, eventType = null, eventDetails = {}, options = {}) => {
 
-    for (const [, entry] of controllers) {
-      if (!entry.controller.signal.aborted) {
-        activeEvents.push(...Array.from(entry.events))
+    const $elements = getElements($targets)
+
+    if (!controllers.has(namespace)) {
+      return
+    }
+
+    $elements.forEach(($element) => {
+      _trigger($element, eventType, eventDetails, options)
+    })
+
+  }
+
+  const _getEvents = ($target, eventType) => {
+
+    if (!controllers.get(namespace).has($target)) {
+      return []
+    }
+
+    const events = controllers.get(namespace).get($target)
+    const available = []
+
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
+
+    if (eventType === null) {
+      for (const [type] of Object.entries(events)) {
+        const event = type.split(separator).at(-1)
+        const isNative = `on${event}` in $target
+        available.push([type, isNative, event])
+      }
+
+      return available
+    }
+
+    for (const [type] of Object.entries(events)) {
+      if (type === eventName || type.startsWith(eventName)) {
+        const event = type.split(separator).at(-1)
+        const isNative = `on${event}` in $target
+        available.push([type, isNative, event])
       }
     }
 
-    return [...new Set(activeEvents)]
+    return available
+  }
+
+  const _remove = ($target, eventType) => {
+
+    const $element = getElement($target)
+
+    if (typeof controllers.get(namespace) === 'undefined') {
+      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`)
+    }
+
+    if (!controllers.get(namespace).has($element)) {
+      return
+    }
+
+    const events = controllers.get(namespace).get($element)
+
+    if (eventType === null) {
+
+      for (const [_, controller] of Object.entries(events)) {
+        controller.abort()
+      }
+
+      controllers.get(namespace).delete($element)
+      return
+    }
+
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
+    for (const [type, controller] of Object.entries(events)) {
+      if (type === eventName || type.startsWith(eventName)) {
+        controller.abort()
+        delete events[type]
+      }
+    }
+
+    controllers.get(namespace).set($target, events)
   }
 
   /**
-   * Remove all event listeners in this namespace and clean up all resources
-   * This is useful for cleanup when a component/module is being destroyed
+   * Removes event listeners from one or more DOM elements.
+   * Uses AbortController to cleanly remove listeners without memory leaks.
+   *
+   * @method remove
+   * @memberof createEventManager
+   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to remove events from.
+   * @param {string|null} [eventType=null] - The event type to remove. If null, removes all events from the element.
+   *
+   * @example
+   * // Remove specific event type
+   * manager.remove('#my-button', 'click');
+   *
+   * @example
+   * // Remove all events from element
+   * manager.remove('#my-element', null);
+   *
+   * @example
+   * // Remove events from multiple elements
+   * manager.remove('.temporary-listeners', 'mouseenter');
+   */
+  const remove = ($targets, eventType = null) => {
+    if (!controllers.has(namespace)) {
+      return
+    }
+
+    const $elements = getElements($targets)
+
+    $elements.forEach(($element) => {
+      _remove($element, eventType)
+    })
+  }
+
+  /**
+   * Removes all event listeners for this namespace and cleans up the namespace entirely.
+   * This is useful for cleanup when a component or module is being destroyed.
    *
    * @method removeAll
+   * @memberof createEventManager
    *
    * @example
-   * const events = createEventManager('mycomponent');
-   *
-   * // Add various events
-   * events.add(document, 'init', handler);
-   * events.add(window, 'resize', handler);
-   * events.add(button, 'click', handler);
-   *
-   * // Later, when component is destroyed
-   * events.removeAll(); // Removes all listeners and clears internal state
+   * // Clean up all events when component unmounts
+   * componentWillUnmount() {
+   *   this.eventManager.removeAll();
+   * }
    *
    * @example
-   * // Typical usage in a functional component cleanup
-   * function createComponent() {
-   *   const events = createEventManager('mycomponent');
-   *
-   *   // ... set up events
-   *
-   *   return {
-   *     destroy() {
-   *       events.removeAll(); // Clean cleanup
-   *     }
-   *   };
+   * // Clean up modal events when modal is closed permanently
+   * function destroyModal() {
+   *   modalEvents.removeAll();
    * }
    */
   const removeAll = () => {
-    for (const [, entry] of controllers) {
-      if (!entry.controller.signal.aborted) {
-        entry.controller.abort()
-      }
+    if (!controllers.has(namespace)) {
+      return
     }
-    options.onRemoveAll()
-    controllers.clear()
+
+    const events = controllers.get(namespace)
+    for (const [$target] of [...events]) {
+      _remove($target, null)
+    }
+
+    controllers.delete(namespace)
+
+  }
+
+  const _get = ($target) => {
+
+    const $element = getElement($target)
+
+    if (typeof controllers.get(namespace) === 'undefined') {
+      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`)
+    }
+
+    if (!controllers.get(namespace).has($element)) {
+      return []
+    }
+
+    const events = controllers.get(namespace).get($element)
+
+    const available = []
+
+    for (const [eventType] of Object.entries(events)) {
+      const last = eventType.split(separator).at(-1)
+      const isNative = `on${last}` in $element
+      available.push({
+        eventType,
+        isNative,
+        nativeType: isNative ? last : '',
+      })
+    }
+
+    return [...new Set(available)]
   }
 
   /**
-   * Get the separator character used by this namespace manager
+   * Gets information about events attached to specific elements.
+   * Returns an array of objects containing element and event information.
    *
-   * @method getSeparator
-   * @returns {string} The separator character (':' | '-' | '_')
-   *
-   * @example
-   * const colonEvents = createEventManager('app', ':');
-   * const dashEvents = createEventManager('app', '-');
-   *
-   * console.log(colonEvents.getSeparator()); // ':'
-   * console.log(dashEvents.getSeparator());  // '-'
-   */
-  const getSeparator = () => {
-    return options.separator
-  }
-
-  /**
-   * Dispatch a custom event with automatic namespace prefixing
-   *
-   * @method trigger
-   * @param {Element|EventTarget} target - The DOM element or EventTarget to dispatch the event on
-   * @param {string} type - The event type without namespace prefix (e.g., 'modal:open', 'user:login')
-   * @param {Object} [eventDetails={}] - Data to include in the event's detail property
-   * @param {Object} [options={}] - Additional options for the CustomEvent
-   * @param {boolean} [options.bubbles=true] - Whether the event bubbles up through the DOM
-   * @param {boolean} [options.cancelable=true] - Whether the event can be canceled
-   * @param {boolean} [options.composed=false] - Whether the event will trigger listeners outside of a shadow root
-   *
-   * @returns {boolean} Returns false if the event was canceled, true otherwise
+   * @method get
+   * @memberof createEventManager
+   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to get event information for.
+   * @returns {Array<Object>} Array of objects containing element and event data.
+   * @returns {Element} returns[].$element - The DOM element.
+   * @returns {Array<Object>} returns[].$events - Array of event information objects.
+   * @returns {string} returns[].$events[].eventType - The full namespaced event type.
+   * @returns {boolean} returns[].$events[].isNative - Whether this is a native DOM event.
+   * @returns {string} returns[].$events[].nativeType - The native event type if applicable.
    *
    * @example
-   * const events = createEventManager('shop');
-   *
-   * // Trigger a simple event
-   * events.trigger(document, 'cart:update');
-   *
-   * // Trigger with data
-   * events.trigger(document, 'product:add', {
-   *   productId: 'abc123',
-   *   quantity: 2,
-   *   price: 29.99
+   * // Get events for specific elements
+   * const eventInfo = manager.get('.my-buttons');
+   * eventInfo.forEach(({$element, $events}) => {
+   *   console.log('Element:', $element);
+   *   console.log('Events:', $events);
    * });
    *
-   * // Trigger with custom options
-   * events.trigger(button, 'validation:error',
-   *   { message: 'Invalid input' },
-   *   { bubbles: false }
-   * );
-   *
-   * // The actual dispatched events will be:
-   * // 'shop:cart:update', 'shop:product:add', 'shop:validation:error'
+   * @example
+   * // Check if element has specific events
+   * const info = manager.get('#my-element');
+   * const hasClickEvent = info[0].$events.some(e => e.nativeType === 'click');
    */
-  const trigger = (target, type, eventDetails = {}, options = {}) => {
-    const eventType = getEventType(type)
-    return triggerEvent(target, eventType, eventDetails, options)
+  const get = ($targets) => {
+
+    if (!controllers.has(namespace)) {
+      return []
+    }
+
+    const $elements = getElements($targets)
+
+    const available = []
+    $elements.forEach(($element) => {
+      available.push({
+        $element,
+        $events: _get($element),
+      })
+    })
+
+    return available
   }
 
-  // Return public API
+  /**
+   * Gets information about all events in this namespace across all elements.
+   * Useful for debugging or monitoring the current state of event listeners.
+   *
+   * @method getAll
+   * @memberof createEventManager
+   * @returns {Array<Object>} Array of objects containing all elements and their events in this namespace.
+   * @returns {Element} returns[].$element - The DOM element.
+   * @returns {Array<Object>} returns[].$events - Array of event information objects for this element.
+   *
+   * @example
+   * // Debug all events in namespace
+   * const allEvents = manager.getAll();
+   * console.log(`Total elements with events: ${allEvents.length}`);
+   * allEvents.forEach(({$element, $events}) => {
+   *   console.log(`Element ${$element.tagName} has ${$events.length} events`);
+   * });
+   *
+   * @example
+   * // Audit event usage
+   * function auditEvents() {
+   *   const events = manager.getAll();
+   *   const totalEvents = events.reduce((sum, {$events}) => sum + $events.length, 0);
+   *   console.log(`Total active events: ${totalEvents}`);
+   * }
+   */
+  const getAll = () => {
+    if (!controllers.has(namespace)) {
+      return []
+    }
+
+    const events = controllers.get(namespace)
+    const available = []
+    for (const [$element] of [...events]) {
+      available.push({
+        $element,
+        $events: _get($element),
+      })
+    }
+
+    return available
+  }
+
   return {
     add,
     trigger,
     remove,
-    getAll,
     removeAll,
-    getSeparator,
+    get,
+    getAll,
   }
 }
 
@@ -5218,7 +4995,6 @@ export function createEventManager (namespace, options = { prefix: 'storepress',
  * })
  *
  */
-
 export function createStorePressPlugin ({
     selector,
     options = {},
@@ -5487,5 +5263,3 @@ export function testWaitSync (milliseconds, data = {}) {
   while (Date.now() - start < milliseconds) {}
   return data
 }
-
-
