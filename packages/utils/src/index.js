@@ -1990,11 +1990,10 @@ export function getElements (selectors = []) {
  * @throws {Error} Throws error if all JSON parsing strategies fail for nested data
  * @since 0.6.0
  */
-export function getOptionsFromAttribute ($element, dataAttributeName, userFeatures = {}) {
-
+export function getOptionsFromAttribute ($element, dataAttributeName, userFeatures = {} ) {
   const defaultFeatures = {
     parseNumber: true, // true | false
-    parseBoolean: true,  // true | false
+    parseBoolean: true, // true | false
     truthyStrings: ['yes', 'true'], // yes | true | y
     falsyStrings: ['no', 'false'], // no | false | n
     parseRegex: true, // true | false
@@ -2008,26 +2007,25 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
     }
 
     const lowerValue = value.toLowerCase()
-    const isJSON = value.charAt(0) === '{' || value.charAt(0) === '['
     const isNumber = isNaN(Number(value)) === false
+    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value)
 
     // Check for boolean values
-    if (FEATURES.parseBoolean && FEATURES.truthyStrings.includes(lowerValue)) {
-      return true
-    }
 
-    if (FEATURES.parseBoolean && FEATURES.falsyStrings.includes(lowerValue)) {
-      return false
-    }
+    if (FEATURES.parseBoolean) {
+      if (FEATURES.truthyStrings.includes(lowerValue)) {
+        return true
+      }
 
-    // Check for Object or Array values
-    if (isJSON) {
-      return getJSONData(value, reviver)
+      if (FEATURES.falsyStrings.includes(lowerValue)) {
+        return false
+      }
     }
 
     // Check for regex pattern: /pattern/flags
-    const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/)
-    if (FEATURES.parseRegex && regexMatch) {
+    if (FEATURES.parseRegex && isRegExp) {
+      const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/)
+
       try {
         const [, pattern, flags] = regexMatch
         return new RegExp(pattern, flags)
@@ -2038,8 +2036,8 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
     }
 
     // Check for numeric values
-    if (FEATURES.parseNumber && isNumber) {
-      return Number(value)
+    if (FEATURES.parseNumber) {
+      return isNumber ? Number(value) : value
     }
 
     // Return as string if no type conversion applies
@@ -2047,14 +2045,10 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
   }
 
   const reviver = (key, value) => {
-    if (typeof value !== 'string') {
-      return value
-    }
-
     return getValue(value)
   }
 
-  const getJSONData = (value, reviver) => {
+  const getJSONData = (value, rv) => {
     const strategies = [
       (val) => val.replaceAll('\'', '"'),
       (val) => val.replaceAll('\'', '"').replaceAll('\\', '\\\\'),
@@ -2063,7 +2057,7 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
 
     for (const strategy of strategies) {
       try {
-        return JSON.parse(strategy(value), reviver)
+        return JSON.parse(strategy(value), rv)
       } catch {}
     }
 
@@ -2086,7 +2080,10 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
           // Process children recursively if they exist
           if (item.child && typeof item.child === 'object') {
             // Ensure target[key] is an object to hold nested properties
-            if (typeof target[key] !== 'object' || target[key] === null) {
+            if (
+              typeof target[key] !== 'object' ||
+              target[key] === null
+            ) {
               target[key] = item.value
             }
 
@@ -2104,7 +2101,6 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
   }
 
   const getOverrideOptions = (keys, dataset) => {
-
     // Stable sort: fewer hyphens first
     const sortedKeys = keys.map((key, index) => ({ key, index })).sort((a, b) => {
       const hyphenCountA = (a.key.match(/-/g) || []).length
@@ -2113,17 +2109,17 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
         return a.index - b.index // preserve original order
       }
       return hyphenCountA - hyphenCountB
-    }).map(item => item.key)
+    }).map((item) => item.key)
 
     const nestedData = {}
 
-    sortedKeys.forEach(key => {
+    sortedKeys.forEach((key) => {
       const parts = key.split('-')
       let oldKey = ''
       let currentKey = ''
       let currentObj = nestedData
 
-      parts.forEach(part => {
+      parts.forEach((part) => {
         currentKey = currentKey ? currentKey + '-' + part : part
 
         if (currentKey === part) {
@@ -2159,7 +2155,10 @@ export function getOptionsFromAttribute ($element, dataAttributeName, userFeatur
     try {
       options = getJSONData(datasetValue, reviver)
     } catch (error) {
-      console.warn(`Failed to parse JSON from ${dataAttributeName}:`, error)
+      console.warn(
+        `Failed to parse JSON from "${dataAttributeName}"`,
+        error,
+      )
       options = {}
     }
   }
