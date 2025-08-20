@@ -2000,25 +2000,23 @@ export function getOptionsFromAttribute($element, dataAttributeName, userFeature
       return value;
     }
     const lowerValue = value.toLowerCase();
-    const isJSON = value.charAt(0) === '{' || value.charAt(0) === '[';
     const isNumber = isNaN(Number(value)) === false;
+    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
 
     // Check for boolean values
-    if (FEATURES.parseBoolean && FEATURES.truthyStrings.includes(lowerValue)) {
-      return true;
-    }
-    if (FEATURES.parseBoolean && FEATURES.falsyStrings.includes(lowerValue)) {
-      return false;
-    }
 
-    // Check for Object or Array values
-    if (isJSON) {
-      return getJSONData(value, reviver);
+    if (FEATURES.parseBoolean) {
+      if (FEATURES.truthyStrings.includes(lowerValue)) {
+        return true;
+      }
+      if (FEATURES.falsyStrings.includes(lowerValue)) {
+        return false;
+      }
     }
 
     // Check for regex pattern: /pattern/flags
-    const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
-    if (FEATURES.parseRegex && regexMatch) {
+    if (FEATURES.parseRegex && isRegExp) {
+      const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
       try {
         const [, pattern, flags] = regexMatch;
         return new RegExp(pattern, flags);
@@ -2029,26 +2027,23 @@ export function getOptionsFromAttribute($element, dataAttributeName, userFeature
     }
 
     // Check for numeric values
-    if (FEATURES.parseNumber && isNumber) {
-      return Number(value);
+    if (FEATURES.parseNumber) {
+      return isNumber ? Number(value) : value;
     }
 
     // Return as string if no type conversion applies
     return value;
   };
   const reviver = (key, value) => {
-    if (typeof value !== 'string') {
-      return value;
-    }
     return getValue(value);
   };
-  const getJSONData = (value, reviver) => {
+  const getJSONData = (value, rv) => {
     const strategies = [val => val.replaceAll('\'', '"'), val => val.replaceAll('\'', '"').replaceAll('\\', '\\\\')
     //@TODO: Add more strategies here if needed
     ];
     for (const strategy of strategies) {
       try {
-        return JSON.parse(strategy(value), reviver);
+        return JSON.parse(strategy(value), rv);
       } catch {}
     }
     throw new Error('All parsing strategies failed');
@@ -2131,7 +2126,7 @@ export function getOptionsFromAttribute($element, dataAttributeName, userFeature
     try {
       options = getJSONData(datasetValue, reviver);
     } catch (error) {
-      console.warn(`Failed to parse JSON from ${dataAttributeName}:`, error);
+      console.warn(`Failed to parse JSON from "${dataAttributeName}"`, error);
       options = {};
     }
   }

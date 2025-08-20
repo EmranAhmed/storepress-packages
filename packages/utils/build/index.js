@@ -2049,25 +2049,23 @@ function getOptionsFromAttribute($element, dataAttributeName) {
       return value;
     }
     var lowerValue = value.toLowerCase();
-    var isJSON = value.charAt(0) === '{' || value.charAt(0) === '[';
     var isNumber = isNaN(Number(value)) === false;
+    var isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
 
     // Check for boolean values
-    if (FEATURES.parseBoolean && FEATURES.truthyStrings.includes(lowerValue)) {
-      return true;
-    }
-    if (FEATURES.parseBoolean && FEATURES.falsyStrings.includes(lowerValue)) {
-      return false;
-    }
 
-    // Check for Object or Array values
-    if (isJSON) {
-      return getJSONData(value, reviver);
+    if (FEATURES.parseBoolean) {
+      if (FEATURES.truthyStrings.includes(lowerValue)) {
+        return true;
+      }
+      if (FEATURES.falsyStrings.includes(lowerValue)) {
+        return false;
+      }
     }
 
     // Check for regex pattern: /pattern/flags
-    var regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
-    if (FEATURES.parseRegex && regexMatch) {
+    if (FEATURES.parseRegex && isRegExp) {
+      var regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
       try {
         var _regexMatch = _slicedToArray(regexMatch, 3),
           pattern = _regexMatch[1],
@@ -2080,20 +2078,17 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     }
 
     // Check for numeric values
-    if (FEATURES.parseNumber && isNumber) {
-      return Number(value);
+    if (FEATURES.parseNumber) {
+      return isNumber ? Number(value) : value;
     }
 
     // Return as string if no type conversion applies
     return value;
   };
   var reviver = function reviver(key, value) {
-    if (typeof value !== 'string') {
-      return value;
-    }
     return getValue(value);
   };
-  var getJSONData = function getJSONData(value, reviver) {
+  var getJSONData = function getJSONData(value, rv) {
     var strategies = [function (val) {
       return val.replaceAll('\'', '"');
     }, function (val) {
@@ -2104,7 +2099,7 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     for (var _i2 = 0, _strategies = strategies; _i2 < _strategies.length; _i2++) {
       var strategy = _strategies[_i2];
       try {
-        return JSON.parse(strategy(value), reviver);
+        return JSON.parse(strategy(value), rv);
       } catch (_unused) {}
     }
     throw new Error('All parsing strategies failed');
@@ -2189,7 +2184,7 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     try {
       options = getJSONData(datasetValue, reviver);
     } catch (error) {
-      console.warn("Failed to parse JSON from ".concat(dataAttributeName, ":"), error);
+      console.warn("Failed to parse JSON from \"".concat(dataAttributeName, "\""), error);
       options = {};
     }
   }
