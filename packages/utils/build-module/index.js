@@ -4747,19 +4747,170 @@ export function createEventManager(namespace, options = {
 }
 
 /**
- * Creates a centralized plugin management system for StorePress with event-driven lifecycle management.
+ * Registers a plugin in the global StorePress plugin registry.
  *
- * This factory function creates a comprehensive plugin controller that handles initialization, destruction,
- * reloading, and cleanup of plugin instances across DOM elements. It provides a standardized event-driven
- * architecture for managing complex plugins with automatic memory management via WeakMap storage and
- * AbortController for cleanup.
+ * This function safely adds a plugin to the global StorePress.$Plugins object,
+ * ensuring that the necessary nested structure exists. If a plugin with the same
+ * name already exists, it returns the existing plugin instead of overwriting it.
  *
- * @param {Object} config - Configuration object for the plugin system
- * @param {string|HTMLElement|NodeList|HTMLElement[]} config.selector - Default selector for plugin elements
- * @param {Object} [config.options={}] - Default options to pass to plugin instances
- * @param {Function} config.plugin - Plugin constructor function or class
- * @param {string} config.namespace - Unique namespace identifier for the plugin system
- * @returns {Object} Plugin management object with lifecycle methods and event handling
+ * @param {string} name - The name of the plugin to register. Will be converted to UpperCamelCase.
+ * @param {Object} plugin - The plugin object to register. Can be any object containing plugin logic, methods, or configuration.
+ * @returns {Object} The registered plugin object. If a plugin with this name already exists, returns the existing plugin.
+ *
+ * @example
+ * // Register a simple plugin
+ * const myPlugin = {
+ *   version: '1.0.0',
+ *   init: () => console.log('Plugin initialized')
+ * };
+ * setGlobalStorePressPlugin('myPlugin', myPlugin);
+ *
+ * @example
+ * // Register a plugin with kebab-case name (will be converted to UpperCamelCase)
+ * const cartPlugin = { addToCart: (item) => {...} };
+ * setGlobalStorePressPlugin('shopping-cart', cartPlugin); // Stored as 'ShoppingCart'
+ *
+ * @example
+ * // Attempting to register the same plugin twice returns the original
+ * const plugin1 = { value: 'first' };
+ * const plugin2 = { value: 'second' };
+ * setGlobalStorePressPlugin('test', plugin1); // Returns plugin1
+ * setGlobalStorePressPlugin('test', plugin2); // Returns plugin1 (not plugin2)
+ *
+ * @since 0.13.0
+ * @see getGlobalStorePressPlugin - For retrieving registered plugins
+ * @see getAllGlobalStorePressPlugins - For getting all registered plugins
+ */
+export function setGlobalStorePressPlugin(name, plugin) {
+  const prepareName = toUpperCamelCase(name);
+
+  // Ensure nested structure exists
+  window.StorePress = window.StorePress || {};
+  window.StorePress.$Plugins = window.StorePress.$Plugins || {};
+  if (!window.StorePress.$Plugins[prepareName]) {
+    window.StorePress.$Plugins[prepareName] = plugin;
+  }
+  return window.StorePress.$Plugins[prepareName];
+}
+
+/**
+ * Retrieves a registered plugin from the global StorePress plugin registry.
+ *
+ * This function safely accesses a plugin from the global StorePress.$Plugins object,
+ * ensuring that the necessary nested structure exists. If the plugin doesn't exist,
+ * it returns an empty object instead of undefined or throwing an error.
+ *
+ * @param {string} name - The name of the plugin to retrieve. Will be converted to UpperCamelCase for lookup.
+ * @returns {Object} The requested plugin object, or an empty object {} if the plugin is not registered.
+ *
+ * @example
+ * // Retrieve an existing plugin
+ * const myPlugin = getGlobalStorePressPlugin('myPlugin');
+ * if (myPlugin.init) {
+ *   myPlugin.init();
+ * }
+ *
+ * @example
+ * // Retrieve a non-existent plugin (returns empty object)
+ * const nonExistent = getGlobalStorePressPlugin('nonExistent');
+ * console.log(nonExistent); // {}
+ *
+ * @example
+ * // Case-insensitive retrieval (name is converted to UpperCamelCase)
+ * setGlobalStorePressPlugin('shopping-cart', { items: [] });
+ * const cart = getGlobalStorePressPlugin('shopping-cart'); // Finds 'ShoppingCart'
+ * const cart2 = getGlobalStorePressPlugin('ShoppingCart'); // Same result
+ *
+ * @since 0.13.0
+ * @see setGlobalStorePressPlugin - For registering plugins
+ * @see getAllGlobalStorePressPlugins - For getting all registered plugins
+ */
+export function getGlobalStorePressPlugin(name) {
+  const prepareName = toUpperCamelCase(name);
+
+  // Ensure nested structure exists
+  window.StorePress = window.StorePress || {};
+  window.StorePress.$Plugins = window.StorePress.$Plugins || {};
+  if (!window.StorePress.$Plugins[prepareName]) {
+    return {};
+  }
+  return window.StorePress.$Plugins[prepareName];
+}
+
+/**
+ * Retrieves all registered plugins from the global StorePress plugin registry.
+ *
+ * This function safely returns all plugins stored in the global StorePress.$Plugins object.
+ * If the StorePress global object or the $Plugins property doesn't exist, it returns
+ * an empty array instead of throwing an error.
+ *
+ * @returns {Object|Array} An object containing all registered plugins with their names as keys,
+ *                         or an empty array [] if no plugins are registered or the registry doesn't exist.
+ *
+ * @example
+ * // Get all registered plugins
+ * const allPlugins = getAllGlobalStorePressPlugins();
+ * console.log(Object.keys(allPlugins)); // ['MyPlugin', 'ShoppingCart', 'Analytics']
+ *
+ * @example
+ * // Iterate through all plugins
+ * const plugins = getAllGlobalStorePressPlugins();
+ * Object.entries(plugins).forEach(([name, plugin]) => {
+ *   console.log(`Plugin: ${name}`, plugin);
+ *   if (plugin.init && typeof plugin.init === 'function') {
+ *     plugin.init();
+ *   }
+ * });
+ *
+ * @example
+ * // Check if any plugins are registered
+ * const plugins = getAllGlobalStorePressPlugins();
+ * if (Array.isArray(plugins)) {
+ *   console.log('No plugins registered');
+ * } else if (Object.keys(plugins).length > 0) {
+ *   console.log(`${Object.keys(plugins).length} plugins registered`);
+ * }
+ *
+ * @since 0.13.0
+ * @see setGlobalStorePressPlugin - For registering plugins
+ * @see getGlobalStorePressPlugin - For retrieving individual plugins
+ *
+ * @note The return type inconsistency (Object vs Array) may indicate a potential issue in the implementation.
+ *       Consider returning an empty object {} instead of [] when no plugins exist for consistency.
+ */
+export function getAllGlobalStorePressPlugins() {
+  if (!window.StorePress) {
+    return [];
+  }
+  if (!window.StorePress.$Plugins) {
+    return [];
+  }
+  return window.StorePress.$Plugins;
+}
+
+/**
+ * Creates a StorePress plugin with lifecycle management, event handling, and instance management capabilities.
+ *
+ * This is the core factory function for creating StorePress plugins. It provides a complete plugin architecture
+ * with initialization, destruction, reloading capabilities, and automatic event management. The returned plugin
+ * object can manage multiple instances across different DOM elements.
+ *
+ * @param {Object} config - The plugin configuration object
+ * @param {string|Element|NodeList|Array<Element>} config.selector - CSS selector string or DOM element(s) to target
+ * @param {Object} [config.options={}] - Default options/settings for the plugin
+ * @param {Object|Function} config.plugin - The plugin implementation object or constructor function
+ * @param {string} config.namespace - Unique namespace for the plugin, used for event management and identification
+ *
+ * @returns {Object} A StorePress plugin object with the following interface:
+ * @returns {string|Element|NodeList|Array<Element>} returns.$selector - The current selector being used
+ * @returns {Object} returns.$options - The current options/settings
+ * @returns {Object|null} returns.$event - The event manager instance
+ * @returns {Object} returns.instance - Instance management object with set, get, init, destroy, and reload methods
+ * @returns {Function} returns.setup - Sets up the plugin with event listeners
+ * @returns {Function} returns.clear - Clears all setup events and destroys instances
+ * @returns {Function} returns.init - Initializes the plugin on target elements
+ * @returns {Function} returns.destroy - Destroys plugin instances on target elements
+ * @returns {Function} returns.reload - Reloads plugin instances on target elements
  *
  * @example
  *
@@ -4923,12 +5074,13 @@ export function createStorePressPlugin({
   plugin,
   namespace
 }) {
-  const name = toSnakeCase(namespace);
-  const pluginEvents = createEventManager(name);
   const initEventType = `init`;
   const destroyEventType = `destroy`;
   const reloadEventType = `reload`;
   return {
+    $selector: selector,
+    $options: options,
+    $event: null,
     get instance() {
       return {
         set($element, settings) {
@@ -4977,7 +5129,18 @@ export function createStorePressPlugin({
         }
       };
     },
-    setup() {
+    setup({
+      $selector,
+      $options,
+      $namespace
+    } = {
+      $selector: this.$selector,
+      $options: this.$options,
+      $namespace: namespace
+    }) {
+      this.$selector = $selector;
+      this.$options = $options;
+      this.$event = createEventManager(toSnakeCase($namespace));
       const handleInit = event => {
         const defaultSettings = {};
         const settings = {
@@ -5018,41 +5181,129 @@ export function createStorePressPlugin({
           this.instance.reload(element, settings);
         }
       };
-      const options = {
+      const eventOptions = {
         passive: true
       };
 
       // Init.
-      pluginEvents.add(document, initEventType, handleInit, options);
+      this.$event.add(document, initEventType, handleInit, eventOptions);
 
       // Destroy.
-      pluginEvents.add(document, destroyEventType, handleDestroy, options);
+      this.$event.add(document, destroyEventType, handleDestroy, eventOptions);
 
       // Reload.
-      pluginEvents.add(document, reloadEventType, handleReload, options);
+      this.$event.add(document, reloadEventType, handleReload, eventOptions);
     },
-    clear($selector = selector) {
+    // Clear setup events.
+    clear($selector = this.$selector) {
       this.destroy($selector);
-      pluginEvents.removeAll();
+      this.$event.removeAll();
     },
-    init($selector = selector, settings = options) {
-      pluginEvents.trigger(document, initEventType, {
+    init($selector = this.$selector, $settings = this.$options) {
+      this.$event.trigger(document, initEventType, {
         element: $selector,
-        settings
+        settings: $settings
       });
     },
-    destroy($selector = selector) {
-      pluginEvents.trigger(document, destroyEventType, {
+    destroy($selector = this.$selector) {
+      this.$event.trigger(document, destroyEventType, {
         element: $selector
       });
     },
-    reload($selector = selector, settings = options) {
-      pluginEvents.trigger(document, reloadEventType, {
+    reload($selector = this.$selector, $settings = this.$options) {
+      this.$event.trigger(document, reloadEventType, {
         element: $selector,
-        settings
+        settings: $settings
       });
     }
   };
+}
+
+/**
+ * Creates a StorePress plugin and registers it globally for easy access across the application.
+ *
+ * This is a convenience wrapper around `createStorePressPlugin` that automatically registers
+ * the created plugin in the global StorePress plugin registry using the provided namespace.
+ * This allows the plugin to be retrieved later using `getGlobalStorePressPlugin()`.
+ *
+ * @param {Object} config - The plugin configuration object (same as createStorePressPlugin)
+ * @param {string|Element|NodeList|Array<Element>} config.selector - CSS selector string or DOM element(s) to target
+ * @param {Object} [config.options={}] - Default options/settings for the plugin
+ * @param {Object|Function} config.plugin - The plugin implementation object or constructor function
+ * @param {string} config.namespace - Unique namespace for the plugin (used for global registration and events)
+ *
+ * @returns {Object} The created StorePress plugin object (same return type as createStorePressPlugin)
+ *
+ * @example
+ * // Create and globally register a modal plugin
+ * const modalPlugin = createGlobalStorePressPlugin({
+ *   selector: '[data-modal]',
+ *   options: {
+ *     backdrop: true,
+ *     keyboard: true
+ *   },
+ *   plugin: ModalImplementation,
+ *   namespace: 'modal'
+ * });
+ *
+ * // The plugin is now available globally
+ * const retrievedPlugin = getGlobalStorePressPlugin('modal');
+ * // retrievedPlugin === modalPlugin
+ *
+ * @example
+ * // Create multiple global plugins
+ * createGlobalStorePressPlugin({
+ *   selector: '.tooltip',
+ *   plugin: TooltipPlugin,
+ *   namespace: 'tooltip'
+ * });
+ *
+ * createGlobalStorePressPlugin({
+ *   selector: '.carousel',
+ *   plugin: CarouselPlugin,
+ *   namespace: 'carousel'
+ * });
+ *
+ * // Access them anywhere in your application
+ * const allPlugins = getAllGlobalStorePressPlugins();
+ * // allPlugins contains: { Tooltip: tooltipPlugin, Carousel: carouselPlugin }
+ *
+ * @example
+ * // Plugin with initialization
+ * const accordionPlugin = createGlobalStorePressPlugin({
+ *   selector: '.accordion',
+ *   options: {
+ *     multiple: false,
+ *     collapsible: true
+ *   },
+ *   plugin: AccordionImplementation,
+ *   namespace: 'accordion'
+ * });
+ *
+ * // Setup and initialize immediately
+ * accordionPlugin.setup();
+ * accordionPlugin.init();
+ *
+ * @since 0.13.0
+ * @see createStorePressPlugin - For the underlying plugin creation logic
+ * @see setGlobalStorePressPlugin - For the global registration mechanism
+ * @see getGlobalStorePressPlugin - For retrieving globally registered plugins
+ * @see getAllGlobalStorePressPlugins - For getting all globally registered plugins
+ */
+export function createGlobalStorePressPlugin({
+  selector,
+  options = {},
+  plugin,
+  namespace
+}) {
+  const StorePressPlugin = createStorePressPlugin({
+    selector,
+    options,
+    plugin,
+    namespace
+  });
+  setGlobalStorePressPlugin(namespace, StorePressPlugin);
+  return StorePressPlugin;
 }
 
 /**
