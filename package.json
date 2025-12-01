@@ -15,9 +15,9 @@
   "dependencies": {
     "@storepress/components": "file:packages/components",
     "@storepress/icons": "file:packages/icons",
-    "@storepress/tooltip": "^0.2.0",
+    "@storepress/tooltip": "^0.7.0",
     "@storepress/utils": "file:packages/utils",
-    "@wordpress/api-fetch": "^7.28.0"
+    "@wordpress/api-fetch": "^7.36.0"
   },
   "scripts": {
     "storybook": "storybook dev -p 6006",
@@ -42,11 +42,11 @@
     "@storybook/react-webpack5": "7.6.20",
     "@storybook/test": "7.6.20",
     "@storybook/theming": "7.6.20",
-    "@wordpress/element": "^6.28.0",
-    "@wordpress/postcss-plugins-preset": "^5.28.0",
+    "@wordpress/element": "^6.36.0",
+    "@wordpress/postcss-plugins-preset": "^5.36.0",
     "css-loader": "6.2.0",
     "fs-extra": "^11.3.1",
-    "glob": "^11.0.3",
+    "glob": "^13.0.0",
     "lerna": "^8.1.8",
     "postcss": "8.4.38",
     "postcss-loader": "6.2.1",

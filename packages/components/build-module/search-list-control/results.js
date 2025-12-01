@@ -56,7 +56,7 @@ export function Results(props) {
     if (searchValue.length > 0) {
       const re = new RegExp(escapeRegex(searchValue), 'i');
       return items.map(item => {
-        const text = itemFilterName.reduce((str, filterKey) => {
+        const text = itemFilterName?.reduce((str, filterKey) => {
           const text = findObjectValue(item, filterKey);
           str.push(text);
           return str;
@@ -82,12 +82,12 @@ export function Results(props) {
         const key = findObjectValue(item, itemKeyName);
         // const value = findObjectValue(item, itemValueName);
 
-        const meta = itemMetaName.reduce((metas, currentMeta) => {
+        const meta = itemMetaName?.reduce((metas, currentMeta) => {
           const m = findObjectValue(item, currentMeta);
           metas.push(m);
           return metas;
         }, []).join(', ');
-        const value = itemValueName.reduce((values, currentValue) => {
+        const value = itemValueName?.reduce((values, currentValue) => {
           const m = findObjectValue(item, currentValue);
           values.push(m);
           return values;

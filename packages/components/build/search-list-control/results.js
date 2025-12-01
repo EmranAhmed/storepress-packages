@@ -75,7 +75,7 @@ function Results(props) {
     if (searchValue.length > 0) {
       var re = new RegExp((0, _utils.escapeRegex)(searchValue), 'i');
       return items.map(function (item) {
-        var text = itemFilterName.reduce(function (str, filterKey) {
+        var text = itemFilterName === null || itemFilterName === void 0 ? void 0 : itemFilterName.reduce(function (str, filterKey) {
           var text = (0, _utils.findObjectValue)(item, filterKey);
           str.push(text);
           return str;
@@ -100,12 +100,12 @@ function Results(props) {
     var key = (0, _utils.findObjectValue)(item, itemKeyName);
     // const value = findObjectValue(item, itemValueName);
 
-    var meta = itemMetaName.reduce(function (metas, currentMeta) {
+    var meta = itemMetaName === null || itemMetaName === void 0 ? void 0 : itemMetaName.reduce(function (metas, currentMeta) {
       var m = (0, _utils.findObjectValue)(item, currentMeta);
       metas.push(m);
       return metas;
     }, []).join(', ');
-    var value = itemValueName.reduce(function (values, currentValue) {
+    var value = itemValueName === null || itemValueName === void 0 ? void 0 : itemValueName.reduce(function (values, currentValue) {
       var m = (0, _utils.findObjectValue)(item, currentValue);
       values.push(m);
       return values;

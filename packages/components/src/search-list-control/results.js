@@ -59,7 +59,7 @@ export function Results (props) {
 
       return items.map((item) => {
 
-        const text = itemFilterName.reduce((str, filterKey) => {
+        const text = itemFilterName?.reduce((str, filterKey) => {
 
           const text = findObjectValue(item, filterKey)
           str.push(text)
@@ -93,7 +93,7 @@ export function Results (props) {
           const key = findObjectValue(item, itemKeyName)
           // const value = findObjectValue(item, itemValueName);
 
-          const meta = itemMetaName.reduce((metas, currentMeta) => {
+          const meta = itemMetaName?.reduce((metas, currentMeta) => {
 
             const m = findObjectValue(item, currentMeta)
             metas.push(m)
@@ -101,7 +101,7 @@ export function Results (props) {
 
           }, []).join(', ')
 
-          const value = itemValueName.reduce((values, currentValue) => {
+          const value = itemValueName?.reduce((values, currentValue) => {
 
             const m = findObjectValue(item, currentValue)
             values.push(m)
@@ -112,10 +112,7 @@ export function Results (props) {
           const id = `${inputName}-${index}`
 
           return (
-            <li
-              key={index}
-              className="result-item"
-            >
+            <li key={index} className="result-item">
               <input
                 checked={handleChecked(selectedItemKeys, key)}
                 onChange={handleSelected}
@@ -124,10 +121,7 @@ export function Results (props) {
                 value={key}
                 type={isMultiSelect ? 'checkbox' : 'radio'}
               />
-              <label
-                htmlFor={id}
-                className="result-item__label"
-              >
+              <label htmlFor={id} className="result-item__label">
 								<span className="result-item__title">
 									{value}
 								</span>
