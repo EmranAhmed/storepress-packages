@@ -7,10 +7,6 @@
 
 $components-color-accent: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
 
-
-// :where([data-storepress-slider]){ @include init(); }
-
-
 @mixin input() {
   @include mixins.input-control();
   display: block;

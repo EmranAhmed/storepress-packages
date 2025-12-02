@@ -1,6 +1,6 @@
 {
   "name": "@storepress/components",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "StorePress Components",
   "author": "StorePress",
   "license": "GPL-2.0-or-later",
@@ -30,7 +30,7 @@
     "build:module": "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
     "build:core": "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
     "build": "npm run build:core && npm run build:module",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": ""
   },
   "dependencies": {
     "@babel/runtime": "7.25.7",
