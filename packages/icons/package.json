@@ -30,18 +30,18 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies" : {
-    "@babel/runtime" : "7.25.7",
-    "@wordpress/icons" : "^10.28.0",
-    "@wordpress/primitives" : "^4.28.0"
+    "@wordpress/icons" : "^11.3.0",
+    "@wordpress/primitives" : "^4.36.0"
   },
   "publishConfig" : {
     "access" : "public"
   },
   "devDependencies" : {
-    "@babel/cli" : "7.25.7",
-    "@babel/preset-env": "7.25.7",
-    "@babel/preset-react" : "7.25.7",
-    "@wordpress/babel-preset-default" : "^8.28.0"
+    "@babel/runtime" : "7.28.3",
+    "@babel/cli" : "7.28.3",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react" : "7.28.5",
+    "@wordpress/babel-preset-default" : "^8.36.0"
   },
   "peerDependencies" : {
     "react" : "^18.3.1",

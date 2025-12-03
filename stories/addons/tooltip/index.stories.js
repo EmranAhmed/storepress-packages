@@ -27,11 +27,11 @@ export default {
         (Story) => {
 
           useEffect(() => {
-            StorePressTooltip();
-            triggerEvent(document, 'storepress_tooltip_init')
+
+            StorePressTooltip.init()
 
             return ()=> {
-              triggerEvent(document, 'storepress_tooltip_destroy')
+              StorePressTooltip.destroy()
             }
           }, []);
 
@@ -54,4 +54,15 @@ export const Basic = {
           </>
         );
     }
+}
+
+export const Image = {
+
+  render : (args) => {
+    return (
+      <>
+        <div className="storepress-tooltip-type-image" style={{ '--tooltip-image':'url(\'https://placehold.co/300x200/ff5c00/fff\')'}} data-storepress-tooltip="Synergistically leverage existing diverse sources for B2B metrics. Seamlessly predominate web-enabled strategic theme areas after world-class e-services. Proactively productivate fully researched infomediaries and timely supply chains. Conveniently exploit enabled web services.">Image Tooltip</div>
+      </>
+    );
+  }
 }

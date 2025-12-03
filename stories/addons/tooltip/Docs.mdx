@@ -20,11 +20,11 @@ import { triggerEvent } from '@storepress/utils';
 import '@storepress/tooltip/src/style.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Setup tooltip
-  StorePressTooltip();
-
   // Init tooltip
-  triggerEvent(document, 'storepress_tooltip_init')
+  StorePressTooltip.init()
+
+  // Destroy tooltip
+  StorePressTooltip.destroy()
 });
 ```
 
@@ -40,7 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
 ## Customized Tooltip
 
 ```html
-<span class="tooltip" data-tooltip="Tooltip text"></span>
+<span class="tooltip" data-storepress-tooltip="Tooltip text"></span>
+
+- For Image tooltip
+<div class="storepress-tooltip-type-image" style="--tooltip-image: url('https://placehold.co/300x200/ff5c00/fff')" data-storepress-tooltip="Monotone ctallysyndicatemarketpositioning.">Text</div>
 ```
 
 ```scss
@@ -51,14 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 @use "~@storepress/tooltip/src/mixins" as tooltip;
 
-:where([data-tooltip]) {
-  // $content-attribute is for tooltip text attribute.
-  @include tooltip.init("data-tooltip");
+:where([data-storepress-tooltip]) {
+	@include tooltip.init("data-storepress-tooltip");
 }
 
 // Changing colors
 // See: "~@storepress/tooltip/src/mixins" variables() mixins.
-[data-tooltip] {
+[data-storepress-tooltip] {
   --tooltip-text-color: #ffffff;
   --tooltip-background-color: #e31616;
 }
@@ -72,10 +74,7 @@ import StorePressTooltip from '@storepress/tooltip'
 import { triggerEvent } from '@storepress/utils'
 
 document.addEventListener('DOMContentLoaded', () => {
-  StorePressTooltip()
-  triggerEvent(document, 'storepress_tooltip_init', {
-    element: ['[data-tooltip]'],
-  })
+  StorePressTooltip.init()
 })
 ```
 

@@ -33,7 +33,6 @@
     "prepublishOnly": ""
   },
   "dependencies": {
-    "@babel/runtime": "7.25.7",
     "@wordpress/icons": "^11.3.0",
     "@wordpress/components": "^30.9.0",
     "@wordpress/element": "^6.36.0",
@@ -46,9 +45,10 @@
     "access": "public"
   },
   "devDependencies": {
-    "@babel/cli": "7.25.7",
-    "@babel/preset-env": "7.25.7",
-    "@babel/preset-react": "7.25.7",
+    "@babel/runtime": "7.28.3",
+    "@babel/cli": "7.28.3",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react": "7.28.5",
     "@wordpress/babel-preset-default": "^8.36.0"
   },
   "peerDependencies" : {
