@@ -15,7 +15,7 @@
   "dependencies": {
     "@storepress/components": "file:packages/components",
     "@storepress/icons": "file:packages/icons",
-    "@storepress/tooltip": "^0.7.0",
+    "@storepress/tooltip": "^0.8.0",
     "@storepress/utils": "file:packages/utils",
     "@wordpress/api-fetch": "^7.36.0"
   },
