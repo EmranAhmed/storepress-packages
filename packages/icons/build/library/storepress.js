@@ -3,12 +3,12 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 var _primitives = require("@wordpress/primitives");
 /**
  * External dependencies
  */
-var _default = exports["default"] = /*#__PURE__*/React.createElement(_primitives.SVG, {
+var _default = exports.default = /*#__PURE__*/React.createElement(_primitives.SVG, {
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 24 24"
 }, /*#__PURE__*/React.createElement("polygon", {

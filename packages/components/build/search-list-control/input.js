@@ -8,26 +8,28 @@ var _element = require("@wordpress/element");
 var _icon = require("./icon");
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Input(props) {
-  var controlProps = props.controlProps,
-    searchValue = props.searchValue,
-    setSearchValue = props.setSearchValue,
-    placeholder = props.placeholder,
-    hideSearchBox = props.hideSearchBox,
-    onSearch = props.onSearch;
+  const {
+    controlProps,
+    searchValue,
+    setSearchValue,
+    placeholder,
+    hideSearchBox,
+    onSearch
+  } = props;
   if (hideSearchBox) {
     return;
   }
-  var ref = (0, _element.useRef)();
-  var handleOnChange = (0, _element.useCallback)(function (event) {
-    var _event$target = event === null || event === void 0 ? void 0 : event.target,
-      value = _event$target.value;
+  const ref = (0, _element.useRef)();
+  const handleOnChange = (0, _element.useCallback)(event => {
+    const {
+      value
+    } = event?.target;
     setSearchValue(value);
   }, []);
-  var onFocus = function onFocus() {
-    var _ref$current;
-    (_ref$current = ref.current) === null || _ref$current === void 0 || _ref$current.focus();
+  const onFocus = () => {
+    ref.current?.focus();
   };
-  (0, _element.useLayoutEffect)(function () {
+  (0, _element.useLayoutEffect)(() => {
     onSearch(searchValue);
   }, [searchValue]);
   return /*#__PURE__*/React.createElement("div", {

@@ -46,7 +46,7 @@
 export function toKebabCase(string) {
   return string
   // Find uppercase letters and insert hyphen before them, then lowercase the letter
-  .replace(/([A-Z])/g, (match, p1) => `-${p1.toLowerCase()}`)
+  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
   // Replace any underscores, dots, or spaces with hyphens
   .replace(/[-._:~\s]/g, '-')
   // Remove any leading or trailing hyphens that may have been created
@@ -121,7 +121,8 @@ export function toKebabCase(string) {
 export function toSnakeCase(string) {
   return string
   // Find uppercase letters and insert underscore before them, then lowercase the letter
-  .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
+  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
+  // .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
   // Replace any hyphens, dots, or spaces with underscores
   .replace(/[-._:~\s]/g, '_')
   // Remove any leading or trailing underscores that may have been created
@@ -1469,7 +1470,7 @@ export function getElements(selectors = []) {
  * 2. Override attributes using hyphenated keys for nested properties
  * 3. Automatic type conversion for strings, numbers, booleans, arrays, objects, and regex
  *
- * @param {HTMLElement} $element - The DOM element containing the data attributes
+ * @param {string|HTMLElement} element - The DOM element containing the data attributes
  * @param {string} dataAttributeName - The base name of the data attribute (without 'data-' prefix)
  * @param {Object} [userFeatures={}] - Configuration object to customize parsing behavior
  * @param {boolean} [userFeatures.parseNumber=true] - Whether to convert numeric strings to numbers
@@ -1490,13 +1491,15 @@ export function getElements(selectors = []) {
  * @example
  * // Using override attributes for nested configuration
  * // HTML: <div data-slider='{"autoplay": true}'
- * //            data-slider-animation-duration="800"
- * //            data-slider-animation-easing="ease-in-out"></div>
+ * //            data-slider--speed-limit="1000"
+ * //            data-slider--animation--duration="800"
+ * //            data-slider--animation--easing="ease-in-out"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'slider');
  * console.log(options);
  * // Result: {
  * //   autoplay: true,
+ * //   speedLimit: 1000,
  * //   animation: {
  * //     duration: 800,
  * //     easing: "ease-in-out"
@@ -1505,11 +1508,11 @@ export function getElements(selectors = []) {
  *
  * @example
  * // Type conversion examples
- * // HTML: <div data-options-enabled="true"
- * //            data-options-count="42"
- * //            data-options-rate="3.14"
- * //            data-options-pattern="/^test$/i"
- * //            data-options-items='["a", "b", "c"]'></div>
+ * // HTML: <div data-options--enabled="true"
+ * //            data-options--count="42"
+ * //            data-options--rate="3.14"
+ * //            data-options--pattern="/^test$/i"
+ * //            data-options--items='["a", "b", "c"]'></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'options');
  * console.log(options);
@@ -1524,10 +1527,10 @@ export function getElements(selectors = []) {
  *
  * @example
  * // Complex nested structure with multiple override levels
- * // HTML: <div data-widget-theme-colors-primary="#ff0000"
- * //            data-widget-theme-colors-secondary="#00ff00"
- * //            data-widget-layout-sidebar-width="300"
- * //            data-widget-layout-sidebar-position="left"></div>
+ * // HTML: <div data-widget--theme--colors--primary="#ff0000"
+ * //            data-widget--theme--colors--secondary="#00ff00"
+ * //            data-widget--layout--sidebar--width="300"
+ * //            data-widget--layout--sidebar--position="left"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'widget');
  * console.log(options);
@@ -1548,12 +1551,12 @@ export function getElements(selectors = []) {
  *
  * @example
  * // Boolean value variations
- * // HTML: <div data-flags-active="true"
- * //            data-flags-visible="yes"
- * //            data-flags-enabled="y"
- * //            data-flags-disabled="false"
- * //            data-flags-hidden="no"
- * //            data-flags-inactive="n"></div>
+ * // HTML: <div data-flags--active="true"
+ * //            data-flags--visible="yes"
+ * //            data-flags--enabled="y"
+ * //            data-flags--disabled="false"
+ * //            data-flags--hidden="no"
+ * //            data-flags--inactive="n"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'flags');
  * console.log(options);
@@ -1569,7 +1572,8 @@ export function getElements(selectors = []) {
  * @throws {Error} Throws error if all JSON parsing strategies fail for nested data
  * @since 0.6.0
  */
-export function getOptionsFromAttribute($element, dataAttributeName, userFeatures = {}) {
+export function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) {
+  const $element = getElement(element);
   const defaultFeatures = {
     parseNumber: true,
     // true | false
@@ -1644,6 +1648,9 @@ export function getOptionsFromAttribute($element, dataAttributeName, userFeature
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const item = data[key];
+          if (target[key] === undefined) {
+            target[key] = {};
+          }
 
           // Set the value for current key
           if (item.value !== undefined) {

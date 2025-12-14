@@ -7,16 +7,18 @@ exports.Icon = Icon;
 var _components = require("@wordpress/components");
 var _icons = require("@wordpress/icons");
 function Icon(props) {
-  var isLoading = props.isLoading,
-    searchValue = props.searchValue,
-    setSearchValue = props.setSearchValue,
-    onClear = props.onClear,
-    clearText = props.clearText,
-    onFocus = props.onFocus;
+  const {
+    isLoading,
+    searchValue,
+    setSearchValue,
+    onClear,
+    clearText,
+    onFocus
+  } = props;
   if (isLoading) {
     return /*#__PURE__*/React.createElement(_components.Spinner, null);
   }
-  var handleClick = function handleClick() {
+  const handleClick = () => {
     setSearchValue('');
     onFocus();
     onClear();

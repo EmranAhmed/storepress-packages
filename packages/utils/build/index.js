@@ -69,29 +69,10 @@ exports.toKebabCase = toKebabCase;
 exports.toSnakeCase = toSnakeCase;
 exports.toUpperCamelCase = toUpperCamelCase;
 exports.triggerEvent = triggerEvent;
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function toKebabCase(string) {
   return string
   // Find uppercase letters and insert hyphen before them, then lowercase the letter
-  .replace(/([A-Z])/g, function (match, p1) {
-    return "-".concat(p1.toLowerCase());
-  })
+  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
   // Replace any underscores, dots, or spaces with hyphens
   .replace(/[-._:~\s]/g, '-')
   // Remove any leading or trailing hyphens that may have been created
@@ -166,9 +147,8 @@ function toKebabCase(string) {
 function toSnakeCase(string) {
   return string
   // Find uppercase letters and insert underscore before them, then lowercase the letter
-  .replace(/([A-Z])/g, function (match, p1) {
-    return "_".concat(p1.toLowerCase());
-  })
+  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
+  // .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
   // Replace any hyphens, dots, or spaces with underscores
   .replace(/[-._:~\s]/g, '_')
   // Remove any leading or trailing underscores that may have been created
@@ -619,7 +599,7 @@ function toCamelCase(string) {
   // OR
   // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start uppercase: lowercase it
-  .replace(/^([a-z])|[-._:~\s](\w)/gi, function (match, p1, p2) {
+  .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
     if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
     return p1.toLowerCase(); // Found uppercase at start - make it lowercase
   });
@@ -847,7 +827,7 @@ function toUpperCamelCase(string) {
   // OR
   // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start lowercase: uppercase it
-  .replace(/^([a-z])|[-._:~\s](\w)/gi, function (match, p1, p2) {
+  .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
     if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
     return p1.toUpperCase(); // Found lowercase at start - make it uppercase
   });
@@ -1028,16 +1008,12 @@ function toUpperCamelCase(string) {
  * console.log(deepMerge({}, { b: 2 }, {})); // { b: 2 }
  * @since 0.6.0
  */
-function deepMerge() {
-  var result = {};
-  for (var _len = arguments.length, sources = new Array(_len), _key = 0; _key < _len; _key++) {
-    sources[_key] = arguments[_key];
-  }
-  for (var _i = 0, _sources = sources; _i < _sources.length; _i++) {
-    var src = _sources[_i];
-    for (var key in src) {
+function deepMerge(...sources) {
+  const result = {};
+  for (const src of sources) {
+    for (const key in src) {
       if (src.hasOwnProperty(key)) {
-        var isObject = _typeof(src[key]) === 'object' && src[key] !== null && !Array.isArray(src[key]) && _typeof(result[key]) === 'object' && result[key] !== null && !Array.isArray(result[key]);
+        const isObject = typeof src[key] === 'object' && src[key] !== null && !Array.isArray(src[key]) && typeof result[key] === 'object' && result[key] !== null && !Array.isArray(result[key]);
         if (isObject) {
           result[key] = deepMerge(result[key], src[key]);
         } else {
@@ -1070,7 +1046,7 @@ function deepMerge() {
  * @since 0.7.0
  */
 function getPluginInstanceStore(namespace) {
-  var name = toUpperCamelCase(namespace);
+  const name = toUpperCamelCase(namespace);
 
   // Ensure nested structure exists
   window.StorePress = window.StorePress || {};
@@ -1084,7 +1060,7 @@ function getPluginInstanceStore(namespace) {
   return window.StorePress.$Plugins[name]['Instance'];
 }
 function getEventStore(namespace) {
-  var name = toUpperCamelCase(namespace);
+  const name = toUpperCamelCase(namespace);
 
   // Ensure nested structure exists
   window.StorePress = window.StorePress || {};
@@ -1267,8 +1243,7 @@ function getEventStore(namespace) {
  *
  * @since 0.3.0
  */
-function getElement() {
-  var selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+function getElement(selector = null) {
   if (null === selector) return null;
   if (document === selector) return document;
   if (typeof selector === 'string') return document.querySelector(selector);
@@ -1505,8 +1480,7 @@ function getElement() {
  *
  * @since 0.3.0
  */
-function getElements() {
-  var selectors = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+function getElements(selectors = []) {
   if (selectors.length === 0) return [];
   if (selectors === document) return [document];
   if (typeof selectors === 'string') return document.querySelectorAll(selectors);
@@ -1522,7 +1496,7 @@ function getElements() {
  * 2. Override attributes using hyphenated keys for nested properties
  * 3. Automatic type conversion for strings, numbers, booleans, arrays, objects, and regex
  *
- * @param {HTMLElement} $element - The DOM element containing the data attributes
+ * @param {string|HTMLElement} element - The DOM element containing the data attributes
  * @param {string} dataAttributeName - The base name of the data attribute (without 'data-' prefix)
  * @param {Object} [userFeatures={}] - Configuration object to customize parsing behavior
  * @param {boolean} [userFeatures.parseNumber=true] - Whether to convert numeric strings to numbers
@@ -1543,13 +1517,15 @@ function getElements() {
  * @example
  * // Using override attributes for nested configuration
  * // HTML: <div data-slider='{"autoplay": true}'
- * //            data-slider-animation-duration="800"
- * //            data-slider-animation-easing="ease-in-out"></div>
+ * //            data-slider--speed-limit="1000"
+ * //            data-slider--animation--duration="800"
+ * //            data-slider--animation--easing="ease-in-out"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'slider');
  * console.log(options);
  * // Result: {
  * //   autoplay: true,
+ * //   speedLimit: 1000,
  * //   animation: {
  * //     duration: 800,
  * //     easing: "ease-in-out"
@@ -1558,11 +1534,11 @@ function getElements() {
  *
  * @example
  * // Type conversion examples
- * // HTML: <div data-options-enabled="true"
- * //            data-options-count="42"
- * //            data-options-rate="3.14"
- * //            data-options-pattern="/^test$/i"
- * //            data-options-items='["a", "b", "c"]'></div>
+ * // HTML: <div data-options--enabled="true"
+ * //            data-options--count="42"
+ * //            data-options--rate="3.14"
+ * //            data-options--pattern="/^test$/i"
+ * //            data-options--items='["a", "b", "c"]'></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'options');
  * console.log(options);
@@ -1577,10 +1553,10 @@ function getElements() {
  *
  * @example
  * // Complex nested structure with multiple override levels
- * // HTML: <div data-widget-theme-colors-primary="#ff0000"
- * //            data-widget-theme-colors-secondary="#00ff00"
- * //            data-widget-layout-sidebar-width="300"
- * //            data-widget-layout-sidebar-position="left"></div>
+ * // HTML: <div data-widget--theme--colors--primary="#ff0000"
+ * //            data-widget--theme--colors--secondary="#00ff00"
+ * //            data-widget--layout--sidebar--width="300"
+ * //            data-widget--layout--sidebar--position="left"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'widget');
  * console.log(options);
@@ -1601,12 +1577,12 @@ function getElements() {
  *
  * @example
  * // Boolean value variations
- * // HTML: <div data-flags-active="true"
- * //            data-flags-visible="yes"
- * //            data-flags-enabled="y"
- * //            data-flags-disabled="false"
- * //            data-flags-hidden="no"
- * //            data-flags-inactive="n"></div>
+ * // HTML: <div data-flags--active="true"
+ * //            data-flags--visible="yes"
+ * //            data-flags--enabled="y"
+ * //            data-flags--disabled="false"
+ * //            data-flags--hidden="no"
+ * //            data-flags--inactive="n"></div>
  * const element = document.querySelector('div');
  * const options = getOptionsFromAttribute(element, 'flags');
  * console.log(options);
@@ -1622,9 +1598,9 @@ function getElements() {
  * @throws {Error} Throws error if all JSON parsing strategies fail for nested data
  * @since 0.6.0
  */
-function getOptionsFromAttribute($element, dataAttributeName) {
-  var userFeatures = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var defaultFeatures = {
+function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) {
+  const $element = getElement(element);
+  const defaultFeatures = {
     parseNumber: true,
     // true | false
     parseBoolean: true,
@@ -1635,14 +1611,17 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     // no | false | n
     parseRegex: true // true | false
   };
-  var FEATURES = _objectSpread(_objectSpread({}, defaultFeatures), userFeatures);
-  var getValue = function getValue(value) {
+  const FEATURES = {
+    ...defaultFeatures,
+    ...userFeatures
+  };
+  const getValue = value => {
     if (typeof value !== 'string') {
       return value;
     }
-    var lowerValue = value.toLowerCase();
-    var isNumber = isNaN(Number(value)) === false;
-    var isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
+    const lowerValue = value.toLowerCase();
+    const isNumber = isNaN(Number(value)) === false;
+    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
 
     // Check for boolean values
 
@@ -1657,14 +1636,12 @@ function getOptionsFromAttribute($element, dataAttributeName) {
 
     // Check for regex pattern: /pattern/flags
     if (FEATURES.parseRegex && isRegExp) {
-      var regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
+      const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/);
       try {
-        var _regexMatch = _slicedToArray(regexMatch, 3),
-          pattern = _regexMatch[1],
-          flags = _regexMatch[2];
+        const [, pattern, flags] = regexMatch;
         return new RegExp(pattern, flags);
       } catch (error) {
-        console.warn("Invalid regex pattern: ".concat(value), error);
+        console.warn(`Invalid regex pattern: ${value}`, error);
         return value; // Return original string if regex is invalid
       }
     }
@@ -1677,31 +1654,29 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     // Return as string if no type conversion applies
     return value;
   };
-  var reviver = function reviver(key, value) {
+  const reviver = (key, value) => {
     return getValue(value);
   };
-  var getJSONData = function getJSONData(value, rv) {
-    var strategies = [function (val) {
-      return val.replaceAll('\'', '"');
-    }, function (val) {
-      return val.replaceAll('\'', '"').replaceAll('\\', '\\\\');
-    }
+  const getJSONData = (value, rv) => {
+    const strategies = [val => val.replaceAll('\'', '"'), val => val.replaceAll('\'', '"').replaceAll('\\', '\\\\')
     //@TODO: Add more strategies here if needed
     ];
-    for (var _i2 = 0, _strategies = strategies; _i2 < _strategies.length; _i2++) {
-      var strategy = _strategies[_i2];
+    for (const strategy of strategies) {
       try {
         return JSON.parse(strategy(value), rv);
-      } catch (_unused) {}
+      } catch {}
     }
     throw new Error('All parsing strategies failed');
   };
-  var makeNestedOptions = function makeNestedOptions(nestedData) {
-    var result = {};
-    var _processLevel = function processLevel(data, target) {
-      for (var key in data) {
+  const makeNestedOptions = nestedData => {
+    const result = {};
+    const processLevel = (data, target) => {
+      for (const key in data) {
         if (data.hasOwnProperty(key)) {
-          var item = data[key];
+          const item = data[key];
+          if (target[key] === undefined) {
+            target[key] = {};
+          }
 
           // Set the value for current key
           if (item.value !== undefined) {
@@ -1709,47 +1684,43 @@ function getOptionsFromAttribute($element, dataAttributeName) {
           }
 
           // Process children recursively if they exist
-          if (item.child && _typeof(item.child) === 'object') {
+          if (item.child && typeof item.child === 'object') {
             // Ensure target[key] is an object to hold nested properties
-            if (_typeof(target[key]) !== 'object' || target[key] === null) {
+            if (typeof target[key] !== 'object' || target[key] === null) {
               target[key] = item.value;
             }
 
             // Recursively process the child data
-            _processLevel(item.child, target[key]);
+            processLevel(item.child, target[key]);
           }
         }
       }
     };
 
     // Start the recursive processing
-    _processLevel(nestedData, result);
+    processLevel(nestedData, result);
     return result;
   };
-  var getOverrideOptions = function getOverrideOptions(keys, dataset) {
+  const getOverrideOptions = (keys, dataset) => {
     // Stable sort: fewer hyphens first
-    var sortedKeys = keys.map(function (key, index) {
-      return {
-        key: key,
-        index: index
-      };
-    }).sort(function (a, b) {
-      var hyphenCountA = (a.key.match(/-/g) || []).length;
-      var hyphenCountB = (b.key.match(/-/g) || []).length;
+    const sortedKeys = keys.map((key, index) => ({
+      key,
+      index
+    })).sort((a, b) => {
+      const hyphenCountA = (a.key.match(/-/g) || []).length;
+      const hyphenCountB = (b.key.match(/-/g) || []).length;
       if (hyphenCountA === hyphenCountB) {
         return a.index - b.index; // preserve original order
       }
       return hyphenCountA - hyphenCountB;
-    }).map(function (item) {
-      return item.key;
-    });
-    var nestedData = {};
-    sortedKeys.forEach(function (key) {
-      var parts = key.split('-');
-      var oldKey = '';
-      var currentKey = '';
-      var currentObj = nestedData;
-      parts.forEach(function (part) {
+    }).map(item => item.key);
+    const nestedData = {};
+    sortedKeys.forEach(key => {
+      const parts = key.split('-');
+      let oldKey = '';
+      let currentKey = '';
+      let currentObj = nestedData;
+      parts.forEach(part => {
         currentKey = currentKey ? currentKey + '-' + part : part;
         if (currentKey === part) {
           return;
@@ -1766,27 +1737,29 @@ function getOptionsFromAttribute($element, dataAttributeName) {
     });
     return makeNestedOptions(nestedData);
   };
-  var options = {};
-  var dataset = _objectSpread({}, $element.dataset);
-  var datasetKey = toCamelCase(dataAttributeName);
-  var datasetValue = dataset[datasetKey];
+  let options = {};
+  const dataset = {
+    ...$element.dataset
+  };
+  const datasetKey = toCamelCase(dataAttributeName);
+  const datasetValue = dataset[datasetKey];
 
   // Parse main data if it exists and is not empty
   if (datasetValue && datasetValue.trim()) {
     try {
       options = getJSONData(datasetValue, reviver);
     } catch (error) {
-      console.warn("Failed to parse JSON from \"".concat(dataAttributeName, "\""), error);
+      console.warn(`Failed to parse JSON from "${dataAttributeName}"`, error);
       options = {};
     }
   }
 
   // Find all override attributes with pattern: data-{dataAttributeName}--key
-  var overridePrefix = "".concat(datasetKey, "-");
-  var overrideAttrs = Object.keys(dataset).filter(function (key) {
+  const overridePrefix = `${datasetKey}-`;
+  const overrideAttrs = Object.keys(dataset).filter(key => {
     return key.startsWith(overridePrefix);
   });
-  var overrideOptions = getOverrideOptions(overrideAttrs, dataset);
+  const overrideOptions = getOverrideOptions(overrideAttrs, dataset);
 
   // Merge base options with override options (overrides take precedence)
   return deepMerge(options, overrideOptions);
@@ -1898,26 +1871,22 @@ function escapeRegex(string) {
   return typeof RegExp.escape === 'function' ? RegExp.escape(string) : string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 function createPluginInstance(selectors, options, plugin, namespace) {
-  var store = getPluginInstanceStore(namespace);
-  return Array.from(getElements(selectors)).map(function (element) {
+  const store = getPluginInstanceStore(namespace);
+  return Array.from(getElements(selectors)).map(element => {
     if (store.has(element)) return store.get(element);
-    var instance = new plugin(element, options);
+    const instance = new plugin(element, options);
     instance.element = element;
-    instance.destroy = function () {
+    instance.destroy = () => {
       triggerEvent(element, 'destroy');
-      store["delete"](element);
+      store.delete(element);
     };
     store.set(element, instance);
     return instance;
   });
 }
 function getPluginInstance(selectors, namespace) {
-  var store = getPluginInstanceStore(namespace);
-  return Array.from(getElements(selectors)).filter(function (element) {
-    return store.has(element);
-  }).map(function (element) {
-    return store.get(element);
-  });
+  const store = getPluginInstanceStore(namespace);
+  return Array.from(getElements(selectors)).filter(element => store.has(element)).map(element => store.get(element));
 }
 
 /**
@@ -2079,20 +2048,24 @@ function getPluginInstance(selectors, namespace) {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent CustomEvent API
  * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent dispatchEvent API
  */
-function triggerEvent($targets, eventType) {
-  var eventDetails = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-  var defaultOptions = {
+function triggerEvent($targets, eventType, eventDetails = {}, options = {}) {
+  const defaultOptions = {
     bubbles: false,
     cancelable: true,
     composed: false
   };
-  var availableOptions = _objectSpread(_objectSpread({}, defaultOptions), options);
-  var $elements = getElements($targets);
-  $elements.forEach(function ($element) {
-    return $element.dispatchEvent(new CustomEvent(eventType, _objectSpread(_objectSpread({}, availableOptions), {}, {
-      detail: _objectSpread({}, eventDetails)
-    })));
+  const availableOptions = {
+    ...defaultOptions,
+    ...options
+  };
+  const $elements = getElements($targets);
+  $elements.forEach($element => {
+    return $element.dispatchEvent(new CustomEvent(eventType, {
+      ...availableOptions,
+      detail: {
+        ...eventDetails
+      }
+    }));
   });
 }
 
@@ -2218,21 +2191,25 @@ function triggerEvent($targets, eventType) {
  * - `moving` {boolean} - True during active swipe, false when completed
  * - `done` {boolean} - True when swipe gesture is complete
  */
-function swipeEvent(target, listenerFn) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var readyToMove = false;
-  var isMoved = false;
-  var xStart = 0;
-  var yStart = 0;
-  var isTouchEvent = false;
-  var defaults = {
+function swipeEvent(target, listenerFn, options = {}) {
+  let readyToMove = false;
+  let isMoved = false;
+  let xStart = 0;
+  let yStart = 0;
+  let isTouchEvent = false;
+  const defaults = {
     offset: 10,
     touchOnly: false
   };
-  var settings = _objectSpread(_objectSpread({}, defaults), options);
-  var controller = new AbortController();
-  var signal = controller.signal;
-  var start = function start(event) {
+  const settings = {
+    ...defaults,
+    ...options
+  };
+  const controller = new AbortController();
+  const {
+    signal
+  } = controller;
+  const start = event => {
     readyToMove = true;
     isMoved = false;
     xStart = event.x;
@@ -2242,29 +2219,30 @@ function swipeEvent(target, listenerFn) {
       return false;
     }
     if (isTouchEvent) {
-      var _event$changedTouches = event.changedTouches[0],
-        clientX = _event$changedTouches.clientX,
-        clientY = _event$changedTouches.clientY;
+      const {
+        clientX,
+        clientY
+      } = event.changedTouches[0];
       xStart = clientX;
       yStart = clientY;
     }
   };
-  var move = function move(event) {
+  const move = event => {
     if (!readyToMove) {
       return;
     }
     if (event.type === 'pointermove' && isTouchEvent) {
       return false;
     }
-    var horizontalDiff = event.x - xStart;
-    var verticalDiff = event.y - yStart;
+    let horizontalDiff = event.x - xStart;
+    let verticalDiff = event.y - yStart;
     if (isTouchEvent) {
-      var touch = event.changedTouches[0];
+      const touch = event.changedTouches[0];
       horizontalDiff = touch.clientX - xStart;
       verticalDiff = touch.clientY - yStart;
     }
     isMoved = true;
-    var details = {
+    const details = {
       x: horizontalDiff,
       y: verticalDiff,
       top: verticalDiff + settings.offset < 0,
@@ -2280,25 +2258,26 @@ function swipeEvent(target, listenerFn) {
     };
     triggerEvent(target, 'swipe', details);
   };
-  var end = function end(event) {
+  const end = event => {
     if (!readyToMove) {
       return;
     }
-    var isPointerEvent = event.type === 'pointerleave' || event.type === 'pointerup';
+    const isPointerEvent = event.type === 'pointerleave' || event.type === 'pointerup';
     if (isPointerEvent && isTouchEvent) {
       return false;
     }
-    var horizontalDiff = event.x - xStart;
-    var verticalDiff = event.y - yStart;
+    let horizontalDiff = event.x - xStart;
+    let verticalDiff = event.y - yStart;
     if (isTouchEvent) {
-      var _event$changedTouches2 = event.changedTouches[0],
-        clientX = _event$changedTouches2.clientX,
-        clientY = _event$changedTouches2.clientY;
+      const {
+        clientX,
+        clientY
+      } = event.changedTouches[0];
       horizontalDiff = clientX - xStart;
       verticalDiff = clientY - yStart;
     }
     if (isMoved) {
-      var details = {
+      const details = {
         x: horizontalDiff,
         y: verticalDiff,
         top: verticalDiff + settings.offset < 0,
@@ -2318,107 +2297,99 @@ function swipeEvent(target, listenerFn) {
     isTouchEvent = false;
     readyToMove = false;
   };
-  var unregister = function unregister() {
+  const unregister = () => {
     controller.abort();
   };
-  var register = function register() {
+  const register = () => {
     target.addEventListener('touchstart', start, {
       passive: true,
-      signal: signal
+      signal
     });
     target.addEventListener('touchmove', move, {
       passive: true,
-      signal: signal
+      signal
     });
     target.addEventListener('touchend', end, {
       passive: true,
-      signal: signal
+      signal
     });
     target.addEventListener('touchcancel', end, {
-      signal: signal
+      signal
     });
     if (!settings.touchOnly) {
       target.addEventListener('pointerdown', start, {
-        signal: signal
+        signal
       });
       target.addEventListener('pointermove', move, {
-        signal: signal
+        signal
       });
       target.addEventListener('pointerup', end, {
-        signal: signal
+        signal
       });
       target.addEventListener('pointerleave', end, {
-        signal: signal
+        signal
       });
     }
     target.addEventListener('swipe', listenerFn, {
-      signal: signal
+      signal
     });
     return unregister;
   };
   return register();
 }
-function findObjectValue(obj, path, defaultValue) {
-  var notation = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : ['.', '-', '_'];
+function findObjectValue(obj, path, defaultValue, notation = ['.', '-', '_']) {
   // If path is not defined or it has false value
   if (!path) return undefined;
 
   // If path is already an array, use it directly
   if (Array.isArray(path)) {
-    var _result = path.reduce(function (prevObj, key) {
-      return prevObj && prevObj[key];
-    }, obj);
-    return _result === undefined ? defaultValue : _result;
+    const result = path.reduce((prevObj, key) => prevObj && prevObj[key], obj);
+    return result === undefined ? defaultValue : result;
   }
 
   // Normalize notation to array
-  var separators = Array.isArray(notation) ? notation : [notation];
+  const separators = Array.isArray(notation) ? notation : [notation];
 
   // Create regex pattern to match separators (escape special regex characters)
-  var escapedSeparators = separators.map(function (separator) {
-    return escapeRegex(separator);
-  });
-  var separatorPattern = escapedSeparators.join('');
+  const escapedSeparators = separators.map(separator => escapeRegex(separator));
+  const separatorPattern = escapedSeparators.join('');
 
   // Create regex to split on separators but not within brackets
-  var regex = new RegExp("([^[".concat(separatorPattern, "\\]])+"), 'g');
-  var pathArray = path.match(regex) || [];
+  const regex = new RegExp(`([^[${separatorPattern}\\]])+`, 'g');
+  const pathArray = path.match(regex) || [];
 
   // Find value
-  var result = pathArray.reduce(function (prevObj, key) {
-    return prevObj && prevObj[key];
-  }, obj);
+  const result = pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj);
 
   // If found value is undefined return default value; otherwise return the value
   return result === undefined ? defaultValue : result;
 }
-function createEventManager(namespace) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-    prefix: 'storepress',
-    separator: ':'
-  };
-  var prefix = options.prefix.length > 0 ? options.prefix : '$global';
-  var separator = options.separator.length > 0 ? options.separator : ':';
-  var controllers = getEventStore(prefix);
-  var _add = function _add($target, eventType, handler) {
-    var eventOptions = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-    var $element = getElement($target);
+function createEventManager(namespace, options = {
+  prefix: 'storepress',
+  separator: ':'
+}) {
+  const prefix = options.prefix.length > 0 ? options.prefix : '$global';
+  const separator = options.separator.length > 0 ? options.separator : ':';
+  const controllers = getEventStore(prefix);
+  const _add = ($target, eventType, handler, eventOptions = {}) => {
+    const $element = getElement($target);
     if (!controllers.has(namespace)) {
       controllers.set(namespace, new Map());
     }
     if (!controllers.get(namespace).has($element)) {
       controllers.get(namespace).set($element, {});
     }
-    var events = controllers.get(namespace).get($element);
-    var eventName = "".concat(prefix).concat(separator).concat(namespace).concat(separator).concat(eventType);
+    const events = controllers.get(namespace).get($element);
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`;
     events[eventName] = new AbortController();
     controllers.get(namespace).set($element, events);
-    var controller = controllers.get(namespace).get($element)[eventName];
-    var type = eventName.split(separator).at(-1);
-    var getType = "on".concat(type) in $element ? type : eventName;
-    $element.addEventListener(getType, handler, _objectSpread(_objectSpread({}, eventOptions), {}, {
+    const controller = controllers.get(namespace).get($element)[eventName];
+    const type = eventName.split(separator).at(-1);
+    const getType = `on${type}` in $element ? type : eventName;
+    $element.addEventListener(getType, handler, {
+      ...eventOptions,
       signal: controller.signal
-    }));
+    });
   };
 
   /**
@@ -2457,40 +2428,25 @@ function createEventManager(namespace) {
    * const button = document.querySelector('#my-button');
    * manager.add(button, 'click', myHandler);
    */
-  var add = function add($targets, eventType, handler) {
-    var eventOptions = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-    var $elements = getElements($targets);
-    $elements.forEach(function ($element) {
+  const add = ($targets, eventType, handler, eventOptions = {}) => {
+    const $elements = getElements($targets);
+    $elements.forEach($element => {
       _add($element, eventType, handler, eventOptions);
     });
   };
-  var _trigger = function _trigger($target, eventType) {
-    var eventDetails = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-    var events = _getEvents($target, eventType);
-    var eventName = "".concat(prefix).concat(separator).concat(namespace).concat(separator).concat(eventType);
-    var _iterator = _createForOfIteratorHelper(events),
-      _step;
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var _step$value = _slicedToArray(_step.value, 3),
-          event = _step$value[0],
-          isNative = _step$value[1],
-          type = _step$value[2];
-        var $element = getElement($target);
-        if (isNative && eventName === event) {
-          $element.dispatchEvent(new Event(type, {
-            bubbles: true,
-            cancelable: true
-          }));
-        } else {
-          triggerEvent($element, event, eventDetails, options);
-        }
+  const _trigger = ($target, eventType, eventDetails = {}, options = {}) => {
+    const events = _getEvents($target, eventType);
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`;
+    for (const [event, isNative, type] of events) {
+      const $element = getElement($target);
+      if (isNative && eventName === event) {
+        $element.dispatchEvent(new Event(type, {
+          bubbles: true,
+          cancelable: true
+        }));
+      } else {
+        triggerEvent($element, event, eventDetails, options);
       }
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
     }
   };
 
@@ -2524,72 +2480,59 @@ function createEventManager(namespace) {
    * // Trigger on multiple elements
    * manager.trigger('.modal', 'close');
    */
-  var trigger = function trigger($targets) {
-    var eventType = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var eventDetails = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-    var $elements = getElements($targets);
+  const trigger = ($targets, eventType = null, eventDetails = {}, options = {}) => {
+    const $elements = getElements($targets);
     if (!controllers.has(namespace)) {
       return;
     }
-    $elements.forEach(function ($element) {
+    $elements.forEach($element => {
       _trigger($element, eventType, eventDetails, options);
     });
   };
-  var _getEvents = function _getEvents($target, eventType) {
+  const _getEvents = ($target, eventType) => {
     if (!controllers.get(namespace).has($target)) {
       return [];
     }
-    var events = controllers.get(namespace).get($target);
-    var available = [];
-    var eventName = "".concat(prefix).concat(separator).concat(namespace).concat(separator).concat(eventType);
+    const events = controllers.get(namespace).get($target);
+    const available = [];
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`;
     if (eventType === null) {
-      for (var _i3 = 0, _Object$entries = Object.entries(events); _i3 < _Object$entries.length; _i3++) {
-        var _Object$entries$_i = _slicedToArray(_Object$entries[_i3], 1),
-          type = _Object$entries$_i[0];
-        var event = type.split(separator).at(-1);
-        var isNative = "on".concat(event) in $target;
+      for (const [type] of Object.entries(events)) {
+        const event = type.split(separator).at(-1);
+        const isNative = `on${event}` in $target;
         available.push([type, isNative, event]);
       }
       return available;
     }
-    for (var _i4 = 0, _Object$entries2 = Object.entries(events); _i4 < _Object$entries2.length; _i4++) {
-      var _Object$entries2$_i = _slicedToArray(_Object$entries2[_i4], 1),
-        _type = _Object$entries2$_i[0];
-      if (_type === eventName || _type.startsWith(eventName)) {
-        var _event = _type.split(separator).at(-1);
-        var _isNative = "on".concat(_event) in $target;
-        available.push([_type, _isNative, _event]);
+    for (const [type] of Object.entries(events)) {
+      if (type === eventName || type.startsWith(eventName)) {
+        const event = type.split(separator).at(-1);
+        const isNative = `on${event}` in $target;
+        available.push([type, isNative, event]);
       }
     }
     return available;
   };
-  var _remove = function _remove($target, eventType) {
-    var $element = getElement($target);
+  const _remove = ($target, eventType) => {
+    const $element = getElement($target);
     if (typeof controllers.get(namespace) === 'undefined') {
-      throw new Error("Namespace: \"".concat(namespace, "\" is not available in \"").concat(prefix, "\" event map."));
+      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`);
     }
     if (!controllers.get(namespace).has($element)) {
       return;
     }
-    var events = controllers.get(namespace).get($element);
+    const events = controllers.get(namespace).get($element);
     if (eventType === null) {
-      for (var _i5 = 0, _Object$entries3 = Object.entries(events); _i5 < _Object$entries3.length; _i5++) {
-        var _Object$entries3$_i = _slicedToArray(_Object$entries3[_i5], 2),
-          _ = _Object$entries3$_i[0],
-          controller = _Object$entries3$_i[1];
+      for (const [_, controller] of Object.entries(events)) {
         controller.abort();
       }
-      controllers.get(namespace)["delete"]($element);
+      controllers.get(namespace).delete($element);
       return;
     }
-    var eventName = "".concat(prefix).concat(separator).concat(namespace).concat(separator).concat(eventType);
-    for (var _i6 = 0, _Object$entries4 = Object.entries(events); _i6 < _Object$entries4.length; _i6++) {
-      var _Object$entries4$_i = _slicedToArray(_Object$entries4[_i6], 2),
-        type = _Object$entries4$_i[0],
-        _controller = _Object$entries4$_i[1];
+    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`;
+    for (const [type, controller] of Object.entries(events)) {
       if (type === eventName || type.startsWith(eventName)) {
-        _controller.abort();
+        controller.abort();
         delete events[type];
       }
     }
@@ -2617,13 +2560,12 @@ function createEventManager(namespace) {
    * // Remove events from multiple elements
    * manager.remove('.temporary-listeners', 'mouseenter');
    */
-  var remove = function remove($targets) {
-    var eventType = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  const remove = ($targets, eventType = null) => {
     if (!controllers.has(namespace)) {
       return;
     }
-    var $elements = getElements($targets);
-    $elements.forEach(function ($element) {
+    const $elements = getElements($targets);
+    $elements.forEach($element => {
       _remove($element, eventType);
     });
   };
@@ -2647,40 +2589,36 @@ function createEventManager(namespace) {
    *   modalEvents.removeAll();
    * }
    */
-  var removeAll = function removeAll() {
+  const removeAll = () => {
     if (!controllers.has(namespace)) {
       return;
     }
-    var events = controllers.get(namespace);
-    for (var _i7 = 0, _arr = _toConsumableArray(events); _i7 < _arr.length; _i7++) {
-      var _arr$_i = _slicedToArray(_arr[_i7], 1),
-        $target = _arr$_i[0];
+    const events = controllers.get(namespace);
+    for (const [$target] of [...events]) {
       _remove($target, null);
     }
-    controllers["delete"](namespace);
+    controllers.delete(namespace);
   };
-  var _get = function _get($target) {
-    var $element = getElement($target);
+  const _get = $target => {
+    const $element = getElement($target);
     if (typeof controllers.get(namespace) === 'undefined') {
-      throw new Error("Namespace: \"".concat(namespace, "\" is not available in \"").concat(prefix, "\" event map."));
+      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`);
     }
     if (!controllers.get(namespace).has($element)) {
       return [];
     }
-    var events = controllers.get(namespace).get($element);
-    var available = [];
-    for (var _i8 = 0, _Object$entries5 = Object.entries(events); _i8 < _Object$entries5.length; _i8++) {
-      var _Object$entries5$_i = _slicedToArray(_Object$entries5[_i8], 1),
-        eventType = _Object$entries5$_i[0];
-      var last = eventType.split(separator).at(-1);
-      var isNative = "on".concat(last) in $element;
+    const events = controllers.get(namespace).get($element);
+    const available = [];
+    for (const [eventType] of Object.entries(events)) {
+      const last = eventType.split(separator).at(-1);
+      const isNative = `on${last}` in $element;
       available.push({
-        eventType: eventType,
-        isNative: isNative,
+        eventType,
+        isNative,
         nativeType: isNative ? last : ''
       });
     }
-    return _toConsumableArray(new Set(available));
+    return [...new Set(available)];
   };
 
   /**
@@ -2710,15 +2648,15 @@ function createEventManager(namespace) {
    * const info = manager.get('#my-element');
    * const hasClickEvent = info[0].$events.some(e => e.nativeType === 'click');
    */
-  var get = function get($targets) {
+  const get = $targets => {
     if (!controllers.has(namespace)) {
       return [];
     }
-    var $elements = getElements($targets);
-    var available = [];
-    $elements.forEach(function ($element) {
+    const $elements = getElements($targets);
+    const available = [];
+    $elements.forEach($element => {
       available.push({
-        $element: $element,
+        $element,
         $events: _get($element)
       });
     });
@@ -2751,100 +2689,82 @@ function createEventManager(namespace) {
    *   console.log(`Total active events: ${totalEvents}`);
    * }
    */
-  var getAll = function getAll() {
+  const getAll = () => {
     if (!controllers.has(namespace)) {
       return [];
     }
-    var events = controllers.get(namespace);
-    var available = [];
-    for (var _i9 = 0, _arr2 = _toConsumableArray(events); _i9 < _arr2.length; _i9++) {
-      var _arr2$_i = _slicedToArray(_arr2[_i9], 1),
-        $element = _arr2$_i[0];
+    const events = controllers.get(namespace);
+    const available = [];
+    for (const [$element] of [...events]) {
       available.push({
-        $element: $element,
+        $element,
         $events: _get($element)
       });
     }
     return available;
   };
   return {
-    add: add,
-    trigger: trigger,
-    remove: remove,
-    removeAll: removeAll,
-    get: get,
-    getAll: getAll
+    add,
+    trigger,
+    remove,
+    removeAll,
+    get,
+    getAll
   };
 }
-function createPlugin(_ref) {
-  var selector = _ref.selector,
-    _ref$options = _ref.options,
-    options = _ref$options === void 0 ? {} : _ref$options,
-    plugin = _ref.plugin,
-    namespace = _ref.namespace,
-    _ref$callback = _ref.callback,
-    callback = _ref$callback === void 0 ? {
-      onSetup: function onSetup() {},
-      onClear: function onClear() {}
-    } : _ref$callback;
-  var initEventType = "init";
-  var destroyEventType = "destroy";
-  var reloadEventType = "reload";
+function createPlugin({
+  selector,
+  options = {},
+  plugin,
+  namespace,
+  callback = {
+    onSetup: () => {},
+    onClear: () => {}
+  }
+}) {
+  const initEventType = `init`;
+  const destroyEventType = `destroy`;
+  const reloadEventType = `reload`;
   return {
     $event: null,
     $controller: null,
     get instance() {
       return {
-        init: function init($element, settings) {
-          var instance = createPluginInstance($element, settings, plugin, namespace);
+        init($element, settings) {
+          const instance = createPluginInstance($element, settings, plugin, namespace);
           if (!instance || instance.length === 0) {
             return;
           }
-          var _iterator2 = _createForOfIteratorHelper(instance),
-            _step2;
-          try {
-            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-              var _step2$value = _step2.value,
-                element = _step2$value.element,
-                reset = _step2$value.reset;
-              if (element && typeof reset === 'function') {
-                element.removeEventListener('destroy', reset, {
-                  passive: true,
-                  once: true
-                });
-                element.addEventListener('destroy', reset, {
-                  passive: true,
-                  once: true
-                });
-              }
+          for (const {
+            element,
+            reset
+          } of instance) {
+            if (element && typeof reset === 'function') {
+              element.removeEventListener('destroy', reset, {
+                passive: true,
+                once: true
+              });
+              element.addEventListener('destroy', reset, {
+                passive: true,
+                once: true
+              });
             }
-          } catch (err) {
-            _iterator2.e(err);
-          } finally {
-            _iterator2.f();
           }
         },
-        destroy: function destroy($element) {
-          var instance = getPluginInstance($element, namespace);
+        destroy($element) {
+          const instance = getPluginInstance($element, namespace);
           if (!instance || instance.length === 0) {
             return;
           }
-          var _iterator3 = _createForOfIteratorHelper(instance),
-            _step3;
-          try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-              var destroy = _step3.value.destroy;
-              if (typeof destroy === 'function') {
-                destroy();
-              }
+          for (const {
+            destroy
+          } of instance) {
+            if (typeof destroy === 'function') {
+              destroy();
             }
-          } catch (err) {
-            _iterator3.e(err);
-          } finally {
-            _iterator3.f();
           }
         },
-        reload: function reload($element, settings) {
+        reload($element, settings) {
           this.destroy($element);
           this.init($element, settings);
         }
@@ -2853,24 +2773,22 @@ function createPlugin(_ref) {
     get controller() {
       return this.$controller;
     },
-    get: function get() {
-      var $element = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.selector;
+    get($element = this.config.selector) {
       return getPluginInstance($element, namespace);
     },
     // Setup events.
-    setup: function setup() {
-      var _this = this;
-      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
-          selector: selector,
-          options: options,
-          callback: callback
-        },
-        $selector = _ref2.selector,
-        $options = _ref2.options,
-        $callback = _ref2.callback;
-      var defaultCallback = {
-        onSetup: function onSetup() {},
-        onClear: function onClear() {}
+    setup({
+      selector: $selector,
+      options: $options,
+      callback: $callback
+    } = {
+      selector,
+      options,
+      callback
+    }) {
+      const defaultCallback = {
+        onSetup: () => {},
+        onClear: () => {}
       };
       this.config = {
         selector: $selector || selector,
@@ -2880,71 +2798,47 @@ function createPlugin(_ref) {
       this.$event = createEventManager(toSnakeCase(namespace));
       this.$controller = new AbortController();
       this.$event.removeAll();
-      var handleInit = function handleInit(event) {
-        var _event$detail, _event$detail2;
-        var defaultSettings = {};
-        var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail = event.detail) === null || _event$detail === void 0 ? void 0 : _event$detail.settings);
-        var element = (_event$detail2 = event.detail) === null || _event$detail2 === void 0 ? void 0 : _event$detail2.element;
+      const handleInit = event => {
+        const defaultSettings = {};
+        const settings = {
+          ...defaultSettings,
+          ...event.detail?.settings
+        };
+        const element = event.detail?.element;
         if (Array.isArray(element)) {
-          var _iterator4 = _createForOfIteratorHelper(element),
-            _step4;
-          try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var el = _step4.value;
-              _this.instance.init(el, settings);
-            }
-          } catch (err) {
-            _iterator4.e(err);
-          } finally {
-            _iterator4.f();
+          for (const el of element) {
+            this.instance.init(el, settings);
           }
         } else {
-          _this.instance.init(element, settings);
+          this.instance.init(element, settings);
         }
       };
-      var handleDestroy = function handleDestroy(event) {
-        var _event$detail3;
-        var element = (_event$detail3 = event.detail) === null || _event$detail3 === void 0 ? void 0 : _event$detail3.element;
+      const handleDestroy = event => {
+        const element = event.detail?.element;
         if (Array.isArray(element)) {
-          var _iterator5 = _createForOfIteratorHelper(element),
-            _step5;
-          try {
-            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-              var el = _step5.value;
-              _this.instance.destroy(el);
-            }
-          } catch (err) {
-            _iterator5.e(err);
-          } finally {
-            _iterator5.f();
+          for (const el of element) {
+            this.instance.destroy(el);
           }
         } else {
-          _this.instance.destroy(element);
+          this.instance.destroy(element);
         }
       };
-      var handleReload = function handleReload(event) {
-        var _event$detail4, _event$detail5;
-        var defaultSettings = {};
-        var settings = _objectSpread(_objectSpread({}, defaultSettings), (_event$detail4 = event.detail) === null || _event$detail4 === void 0 ? void 0 : _event$detail4.settings);
-        var element = (_event$detail5 = event.detail) === null || _event$detail5 === void 0 ? void 0 : _event$detail5.element;
+      const handleReload = event => {
+        const defaultSettings = {};
+        const settings = {
+          ...defaultSettings,
+          ...event.detail?.settings
+        };
+        const element = event.detail?.element;
         if (Array.isArray(element)) {
-          var _iterator6 = _createForOfIteratorHelper(element),
-            _step6;
-          try {
-            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-              var el = _step6.value;
-              _this.instance.reload(el, settings);
-            }
-          } catch (err) {
-            _iterator6.e(err);
-          } finally {
-            _iterator6.f();
+          for (const el of element) {
+            this.instance.reload(el, settings);
           }
         } else {
-          _this.instance.reload(element, settings);
+          this.instance.reload(element, settings);
         }
       };
-      var eventOptions = {
+      const eventOptions = {
         passive: true
       };
 
@@ -2959,33 +2853,27 @@ function createPlugin(_ref) {
       this.config.callback.onSetup.call(this);
     },
     // Clear setup events.
-    clear: function clear() {
-      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.selector;
+    clear($selector = this.config.selector) {
       this.destroy($selector);
       this.$event.removeAll();
       this.controller.abort();
       this.config.callback.onClear.call(this);
     },
     // Init events.
-    init: function init() {
-      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.selector;
-      var $settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.config.options;
+    init($selector = this.config.selector, $settings = this.config.options) {
       this.$event.trigger(document, initEventType, {
         element: $selector,
         settings: $settings
       });
     },
     // Destroy events.
-    destroy: function destroy() {
-      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.selector;
+    destroy($selector = this.config.selector) {
       this.$event.trigger(document, destroyEventType, {
         element: $selector
       });
     },
     // Reload events.
-    reload: function reload() {
-      var $selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.selector;
-      var $settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.config.options;
+    reload($selector = this.config.selector, $settings = this.config.options) {
       this.$event.trigger(document, reloadEventType, {
         element: $selector,
         settings: $settings
@@ -2994,7 +2882,7 @@ function createPlugin(_ref) {
   };
 }
 function getStorePressPlugin(namespace) {
-  var name = toUpperCamelCase(namespace);
+  const name = toUpperCamelCase(namespace);
   window.StorePress = window.StorePress || {};
   window.StorePress.$Plugins = window.StorePress.$Plugins || {};
   window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {};
@@ -3005,25 +2893,24 @@ function getStorePressPlugin(namespace) {
   }
   return window.StorePress.$Plugins[name]['Plugin'];
 }
-function createStorePressPlugin(_ref3) {
-  var selector = _ref3.selector,
-    _ref3$options = _ref3.options,
-    options = _ref3$options === void 0 ? {} : _ref3$options,
-    plugin = _ref3.plugin,
-    namespace = _ref3.namespace,
-    _ref3$callback = _ref3.callback,
-    callback = _ref3$callback === void 0 ? {
-      onSetup: function onSetup() {},
-      onClear: function onClear() {}
-    } : _ref3$callback;
-  var StorePressPlugin = createPlugin({
-    selector: selector,
-    options: options,
-    plugin: plugin,
-    namespace: namespace,
-    callback: callback
+function createStorePressPlugin({
+  selector,
+  options = {},
+  plugin,
+  namespace,
+  callback = {
+    onSetup: () => {},
+    onClear: () => {}
+  }
+}) {
+  const StorePressPlugin = createPlugin({
+    selector,
+    options,
+    plugin,
+    namespace,
+    callback
   });
-  var name = toUpperCamelCase(namespace);
+  const name = toUpperCamelCase(namespace);
 
   // Ensure nested structure exists
   window.StorePress = window.StorePress || {};
@@ -3088,13 +2975,8 @@ function createStorePressPlugin(_ref3) {
  * const result = await processWithDelay('hello');
  * console.log(result); // 'HELLO'
  */
-function testWaitAsync(milliseconds) {
-  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  return new Promise(function (resolve) {
-    return setTimeout(function () {
-      return resolve(data);
-    }, milliseconds);
-  });
+function testWaitAsync(milliseconds, data = {}) {
+  return new Promise(resolve => setTimeout(() => resolve(data), milliseconds));
 }
 
 /**
@@ -3147,9 +3029,8 @@ function testWaitAsync(milliseconds) {
  * console.log('UI unfrozen now');
  *
  */
-function testWaitSync(milliseconds) {
-  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  var start = Date.now();
+function testWaitSync(milliseconds, data = {}) {
+  const start = Date.now();
   while (Date.now() - start < milliseconds) {}
   return data;
 }
