@@ -6,3 +6,4 @@ vendor
 sample
 example
 __*
+.coverage

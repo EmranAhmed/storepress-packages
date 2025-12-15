@@ -231,6 +231,7 @@ function UnitRangeControl({
   return /*#__PURE__*/_jsx(BaseControl, {
     label: label,
     className: "storepress-component-unit-range-control",
+    __nextHasNoMarginBottom: true,
     children: /*#__PURE__*/_jsxs(Flex, {
       children: [/*#__PURE__*/_jsx(FlexItem, {
         isBlock: true,

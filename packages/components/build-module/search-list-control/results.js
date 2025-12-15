@@ -1,10 +1,11 @@
 import { useLayoutEffect, useMemo, useState } from '@wordpress/element';
-import { escapeRegex, findObjectValue } from './utils';
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { escapeRegex, findObjectValue } from '@storepress/utils';
+import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 export function Results(props) {
   const {
     id,
     disableFilter,
+    isLoading,
     searchValue,
     items,
     itemKeyName,
@@ -75,6 +76,9 @@ export function Results(props) {
   useLayoutEffect(() => {
     onSelect(selectedItemKeys, selectedItems);
   }, [selectedItemKeys, selectedItems]);
+  if (isLoading) {
+    return /*#__PURE__*/_jsx(_Fragment, {});
+  }
   return currentItems.length > 0 ? /*#__PURE__*/_jsx("div", {
     className: "results-wrapper",
     children: /*#__PURE__*/_jsx("ul", {

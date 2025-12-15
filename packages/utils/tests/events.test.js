@@ -4,7 +4,7 @@
  * @package @storepress/utils
  */
 
-import { triggerEvent, swipeEvent, createEventManager } from '../src'
+import { triggerEvent, swipeEvent, createEventManager, getEventStore } from '../src'
 
 describe('@storepress/utils - Event Utilities', () => {
   describe('triggerEvent', () => {
@@ -235,6 +235,8 @@ describe('@storepress/utils - Event Utilities', () => {
       document.body.innerHTML = '<div id="test"></div>'
       element = document.getElementById('test')
       manager = createEventManager('test-namespace')
+      // Reset StorePress global namespace
+      delete window.StorePress;
     })
 
     afterEach(() => {
@@ -453,4 +455,18 @@ describe('@storepress/utils - Event Utilities', () => {
       })
     })
   })
+
+  describe( 'getEventStore', () => {
+    it( 'creates and returns a Map', () => {
+      const store = getEventStore( 'test-events' );
+      expect( store ).toBeInstanceOf( Map );
+    } );
+
+    it( 'returns same Map for same namespace', () => {
+      const store1 = getEventStore( 'events' );
+      const store2 = getEventStore( 'events' );
+      expect( store1 ).toBe( store2 );
+    } );
+  } );
+
 })

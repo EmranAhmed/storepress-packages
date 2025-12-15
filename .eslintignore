@@ -1,0 +1,10 @@
+bin
+build
+node_modules
+stories
+tests
+.storybook
+.github
+.cache
+.coverage
+jest.*

@@ -37,16 +37,21 @@ module.exports = {
 
   // Module name mapping for package imports
   moduleNameMapper: {
-    '^@storepress/utils$': '<rootDir>/packages/utils/src/index.js',
-    // '^@storepress/(.*)$': '<rootDir>/packages/$1/src/index.js',
+    ...defaultConfig.moduleNameMapper,
+    // CSS/SCSS mocks
+    '\\.(css|scss|sass)$': '<rootDir>/tests/styleMock.js',
+    // '^@storepress/utils$': '<rootDir>/packages/utils/src/index.js',
+    '^@storepress/(.*)$': '<rootDir>/packages/$1/src/index.js',
   },
 
   testPathIgnorePatterns: [
+    '/.cache/',
     '/.git/',
+    '/.github/',
+    '/.storybook/',
+    '/bin/',
     '/node_modules/',
     '/stories/',
-    '/bin/',
-    '/.storybook/',
     '<rootDir>/.*/build/',
     '<rootDir>/.*/build-module/',
     '<rootDir>/.*/build-types/',
@@ -63,7 +68,7 @@ module.exports = {
 
   // Handle ES modules in node_modules
   transformIgnorePatterns: [
-    '/node_modules/(?!(@wordpress)/)',
+    '/node_modules/(?!(@wordpress|@storepress|@babel/runtime)/)',
   ],
 
   // Projects for per-package configuration (optional)
@@ -73,7 +78,7 @@ module.exports = {
   // ],
 
   // Show verbose test results
-  verbose: true,
+  verbose: false,
 
   // Clear mock calls between tests
   clearMocks: true,
@@ -84,4 +89,28 @@ module.exports = {
   // Add this: Store cache locally in your project
   cacheDirectory: '<rootDir>/.cache/jest',
 
+// Collect coverage from packages source files only
+  collectCoverageFrom: [
+    'packages/*/src/*.js',
+    'packages/*/src/**/*.js',
+    '!packages/*/src/**/*.test.js',
+    '!packages/*/src/**/*.spec.js',
+    '!**/node_modules/**',
+    '!**/dist/**',
+    '!**/build/**',
+    '!**/build-module/**',
+  ],
+
+  // Coverage output directory
+  coverageDirectory: '<rootDir>/.coverage',
+
+  // Coverage thresholds - adjust as your test coverage improves
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
 }

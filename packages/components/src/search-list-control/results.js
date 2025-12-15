@@ -1,142 +1,172 @@
-import { useLayoutEffect, useMemo, useState } from '@wordpress/element'
-import { escapeRegex, findObjectValue } from './utils'
+import { useLayoutEffect, useMemo, useState } from '@wordpress/element';
+import { escapeRegex, findObjectValue } from '@storepress/utils';
 
-export function Results (props) {
+export function Results( props ) {
+	const {
+		id,
+		disableFilter,
+		isLoading,
+		searchValue,
+		items,
+		itemKeyName,
+		itemFilterName,
+		isMultiSelect,
+		itemValueName,
+		itemMetaName,
+		selected,
+		onSelect,
+		noItemsFoundText,
+	} = props;
 
-  const { id, disableFilter, searchValue, items, itemKeyName, itemFilterName, isMultiSelect, itemValueName, itemMetaName, selected, onSelect, noItemsFoundText } = props
+	const [ selectedItemKeys, setSelectedItemKeys ] = useState(
+		selected || []
+	);
 
-  const [selectedItemKeys, setSelectedItemKeys] = useState(selected || [])
+	const inputName = `${ id }-result-item`;
 
-  const inputName = `${id}-result-item`
+	const handleMultiSelection = ( currentId, isSelected ) => {
+		if ( isSelected ) {
+			setSelectedItemKeys( ( values ) => {
+				values.push( currentId );
+				return [ ...new Set( values ) ];
+			} );
+		} else {
+			setSelectedItemKeys( ( values ) =>
+				values.filter( ( value ) => value !== currentId )
+			);
+		}
+	};
 
-  const handleMultiSelection = (currentId, isSelected) => {
-    if (isSelected) {
-      setSelectedItemKeys((values) => {
-        values.push(currentId)
-        return [...new Set(values)]
-      })
-    } else {
-      setSelectedItemKeys((values) =>
-        values.filter((value) => value !== currentId),
-      )
-    }
-  }
+	const handleSingleSelection = ( currentId, isSelected ) => {
+		if ( isSelected ) {
+			setSelectedItemKeys( [ currentId ] );
+		} else {
+			setSelectedItemKeys( [] );
+		}
+	};
 
-  const handleSingleSelection = (currentId, isSelected) => {
-    if (isSelected) {
-      setSelectedItemKeys([currentId])
-    } else {
-      setSelectedItemKeys([])
-    }
-  }
+	const handleSelected = ( event ) => {
+		const { value, checked } = event?.target;
 
-  const handleSelected = (event) => {
-    const { value, checked } = event?.target
+		if ( isMultiSelect ) {
+			handleMultiSelection( value, checked );
+		} else {
+			handleSingleSelection( value, checked );
+		}
+	};
 
-    if (isMultiSelect) {
-      handleMultiSelection(value, checked)
-    } else {
-      handleSingleSelection(value, checked)
-    }
-  }
+	const handleChecked = ( selectedItems, currentItem ) => {
+		return (
+			selectedItems.includes( currentItem ) ||
+			selectedItems.includes( currentItem?.toString() )
+		);
+	};
 
-  const handleChecked = (selectedItems, currentItem) => {
-    return (
-      selectedItems.includes(currentItem) ||
-      selectedItems.includes(currentItem?.toString())
-    )
-  }
+	const currentItems = useMemo( () => {
+		if ( disableFilter ) {
+			return items;
+		}
 
-  const currentItems = useMemo(() => {
+		if ( searchValue.length > 0 ) {
+			const re = new RegExp( escapeRegex( searchValue ), 'i' );
 
-    if (disableFilter) {
-      return items
-    }
+			return items
+				.map( ( item ) => {
+					const text = itemFilterName
+						?.reduce( ( str, filterKey ) => {
+							const text = findObjectValue( item, filterKey );
+							str.push( text );
+							return str;
+						}, [] )
+						.join( ' ' );
 
-    if (searchValue.length > 0) {
+					return re.test( text ) ? item : false;
+				} )
+				.filter( Boolean );
+		}
 
-      const re = new RegExp(escapeRegex(searchValue), 'i')
+		return items;
+	}, [ searchValue, items, disableFilter ] );
 
-      return items.map((item) => {
+	const selectedItems = useMemo( () => {
+		return items
+			.map( ( item ) => {
+				const key = findObjectValue( item, itemKeyName );
+				return selectedItemKeys.includes( key ) ||
+					selectedItemKeys.includes( key?.toString() )
+					? item
+					: false;
+			} )
+			.filter( Boolean );
+	}, [ selectedItemKeys, currentItems ] );
 
-        const text = itemFilterName?.reduce((str, filterKey) => {
+	useLayoutEffect( () => {
+		onSelect( selectedItemKeys, selectedItems );
+	}, [ selectedItemKeys, selectedItems ] );
 
-          const text = findObjectValue(item, filterKey)
-          str.push(text)
-          return str
-        }, []).join(' ')
+	if ( isLoading ) {
+		return <></>;
+	}
 
-        return re.test(text) ? item : false
-      }).filter(Boolean)
-    }
+	return currentItems.length > 0 ? (
+		<div className="results-wrapper">
+			<ul>
+				{ currentItems.map( ( item, index ) => {
+					const key = findObjectValue( item, itemKeyName );
+					// const value = findObjectValue(item, itemValueName);
 
-    return items
+					const meta = itemMetaName
+						?.reduce( ( metas, currentMeta ) => {
+							const m = findObjectValue( item, currentMeta );
+							metas.push( m );
+							return metas;
+						}, [] )
+						.join( ', ' );
 
-  }, [searchValue, items, disableFilter])
+					const value = itemValueName
+						?.reduce( ( values, currentValue ) => {
+							const m = findObjectValue( item, currentValue );
+							values.push( m );
+							return values;
+						}, [] )
+						.join( ' - ' );
 
-  const selectedItems = useMemo(() => {
-    return items.map((item) => {
-      const key = findObjectValue(item, itemKeyName)
-      return (selectedItemKeys.includes(key) || selectedItemKeys.includes(key?.toString())) ? item : false
-    }).filter(Boolean)
+					const id = `${ inputName }-${ index }`;
 
-  }, [selectedItemKeys, currentItems])
-
-  useLayoutEffect(() => {
-    onSelect(selectedItemKeys, selectedItems)
-  }, [selectedItemKeys, selectedItems])
-
-  return currentItems.length > 0 ? (
-    <div className="results-wrapper">
-      <ul>
-        {currentItems.map((item, index) => {
-          const key = findObjectValue(item, itemKeyName)
-          // const value = findObjectValue(item, itemValueName);
-
-          const meta = itemMetaName?.reduce((metas, currentMeta) => {
-
-            const m = findObjectValue(item, currentMeta)
-            metas.push(m)
-            return metas
-
-          }, []).join(', ')
-
-          const value = itemValueName?.reduce((values, currentValue) => {
-
-            const m = findObjectValue(item, currentValue)
-            values.push(m)
-            return values
-
-          }, []).join(' - ')
-
-          const id = `${inputName}-${index}`
-
-          return (
-            <li key={index} className="result-item">
-              <input
-                checked={handleChecked(selectedItemKeys, key)}
-                onChange={handleSelected}
-                id={id}
-                name={inputName}
-                value={key}
-                type={isMultiSelect ? 'checkbox' : 'radio'}
-              />
-              <label htmlFor={id} className="result-item__label">
+					return (
+						<li key={ index } className="result-item">
+							<input
+								checked={ handleChecked(
+									selectedItemKeys,
+									key
+								) }
+								onChange={ handleSelected }
+								id={ id }
+								name={ inputName }
+								value={ key }
+								type={ isMultiSelect ? 'checkbox' : 'radio' }
+							/>
+							<label
+								htmlFor={ id }
+								className="result-item__label"
+							>
 								<span className="result-item__title">
-									{value}
+									{ value }
 								</span>
-              </label>
-              {meta && (
-                <small className="result-item__meta">
-                  {meta}
-                </small>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
-  ) : (
-    <div className="results-wrapper error not-found">{noItemsFoundText}</div>
-  )
+							</label>
+							{ meta && (
+								<small className="result-item__meta">
+									{ meta }
+								</small>
+							) }
+						</li>
+					);
+				} ) }
+			</ul>
+		</div>
+	) : (
+		<div className="results-wrapper error not-found">
+			{ noItemsFoundText }
+		</div>
+	);
 }

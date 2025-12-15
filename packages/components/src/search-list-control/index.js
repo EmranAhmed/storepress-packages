@@ -3,78 +3,87 @@
  */
 import { useState } from '@wordpress/element';
 import PropTypes from 'prop-types';
-import { BaseControl, useBaseControlProps } from "@wordpress/components";
-import { useInstanceId } from "@wordpress/compose";
+import { BaseControl, useBaseControlProps } from '@wordpress/components';
+import { useInstanceId } from '@wordpress/compose';
 
 /**
  * Internal dependencies
  */
-import { Input } from './input'
-import { Results } from './results'
+import { Input } from './input';
+import { Results } from './results';
 
-function SearchListControl(props) {
+function SearchListControl( props ) {
+	const { id } = props;
 
-    const {id} = props;
+	const idProps = useInstanceId(
+		SearchListControl,
+		'search-list-control',
+		id
+	);
 
-    const idProps = useInstanceId(SearchListControl, 'search-list-control', id);
+	const { baseControlProps, controlProps } = useBaseControlProps( {
+		...props,
+		id: idProps,
+	} );
 
-    const {baseControlProps, controlProps} = useBaseControlProps({...props, id : idProps});
+	const [ searchValue, setSearchValue ] = useState( '' );
 
-    const [searchValue, setSearchValue] = useState('');
-
-    return (
-        <BaseControl {...baseControlProps}>
-            <div className="storepress-component-search-list">
-                <Input searchValue={searchValue} setSearchValue={setSearchValue} controlProps={controlProps} {...baseControlProps} />
-                <Results searchValue={searchValue} {...baseControlProps}/>
-            </div>
-        </BaseControl>
-    );
+	return (
+		<BaseControl { ...baseControlProps }>
+			<div className="storepress-component-search-list">
+				<Input
+					searchValue={ searchValue }
+					setSearchValue={ setSearchValue }
+					controlProps={ controlProps }
+					{ ...baseControlProps }
+				/>
+				<Results searchValue={ searchValue } { ...baseControlProps } />
+			</div>
+		</BaseControl>
+	);
 }
 
 // @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
 SearchListControl.propTypes = {
+	id: PropTypes.string,
 
-    id: PropTypes.string,
+	label: PropTypes.string,
 
-    label: PropTypes.string,
+	help: PropTypes.string,
 
-    help: PropTypes.string,
+	hideLabelFromVision: PropTypes.bool,
 
-    hideLabelFromVision: PropTypes.bool,
+	className: PropTypes.string,
 
-    className: PropTypes.string,
+	items: PropTypes.array.isRequired,
 
-    items: PropTypes.array.isRequired,
+	selected: PropTypes.array,
 
-    selected: PropTypes.array,
+	disableFilter: PropTypes.bool,
 
-    disableFilter: PropTypes.bool,
+	itemKeyName: PropTypes.string,
 
-    itemKeyName: PropTypes.string,
+	itemValueName: PropTypes.array,
 
-    itemValueName: PropTypes.array,
+	itemMetaName: PropTypes.array,
 
-    itemMetaName: PropTypes.array,
+	itemFilterName: PropTypes.array,
 
-    itemFilterName: PropTypes.array,
+	placeholder: PropTypes.string,
 
-    placeholder: PropTypes.string,
+	noItemsFoundText: PropTypes.string,
 
-    noItemsFoundText: PropTypes.string,
+	isLoading: PropTypes.bool,
 
-    isLoading: PropTypes.bool,
+	hideSearchBox: PropTypes.bool,
 
-    hideSearchBox: PropTypes.bool,
+	isMultiSelect: PropTypes.bool,
 
-    isMultiSelect: PropTypes.bool,
+	onSearch: PropTypes.func,
 
-    onSearch: PropTypes.func,
+	onSelect: PropTypes.func,
 
-    onSelect: PropTypes.func,
-
-    onClear: PropTypes.func,
-}
+	onClear: PropTypes.func,
+};
 
 export default SearchListControl;
-

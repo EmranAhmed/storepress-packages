@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 /**
  * Converts a string to kebab-case (also known as dash-case or lisp-case).
@@ -8,7 +8,7 @@
  * where words are lowercase and separated by hyphens.
  *
  * @param {string} string - The input string to convert to kebab-case
- * @returns {string} The converted string in kebab-case format
+ * @return {string} The converted string in kebab-case format
  *
  * @example
  * // Converting from camelCase
@@ -41,18 +41,19 @@
  * toKebabCase('iPhone13Pro') // Returns: 'i-phone13-pro'
  *
  * @since 0.8.0
- *
  */
-export function toKebabCase (string) {
-  return string
-    // Find uppercase letters and insert hyphen before them, then lowercase the letter
-    .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
-    // Replace any underscores, dots, or spaces with hyphens
-    .replace(/[-._:~\s]/g, '-')
-    // Remove any leading or trailing hyphens that may have been created
-    .replace(/^-+|-+$/g, '')
-    // Convert the entire string to lowercase
-    .toLowerCase()
+export function toKebabCase( string ) {
+	return (
+		string
+			// Find uppercase letters and insert hyphen before them, then lowercase the letter
+			.replace( /([^A-Z-_\s+])([A-Z])/g, '$1-$2' )
+			// Replace any underscores, dots, or spaces with hyphens
+			.replace( /[-._:~\s]/g, '-' )
+			// Remove any leading or trailing hyphens that may have been created
+			.replace( /^-+|-+$/g, '' )
+			// Convert the entire string to lowercase
+			.toLowerCase()
+	);
 }
 
 /**
@@ -63,7 +64,7 @@ export function toKebabCase (string) {
  * where words are lowercase and separated by underscores.
  *
  * @param {string} string - The input string to convert to snake_case
- * @returns {string} The converted string in snake_case format
+ * @return {string} The converted string in snake_case format
  *
  * @example
  * // Converting from camelCase
@@ -116,19 +117,20 @@ export function toKebabCase (string) {
  * );
  * // Result: { first_name: 'John', last_name: 'Doe', email_address: 'john@example.com', phone_number: '+1234567890' }
  * @since 0.8.0
- *
  */
-export function toSnakeCase (string) {
-  return string
-    // Find uppercase letters and insert underscore before them, then lowercase the letter
-    .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
-    // .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
-    // Replace any hyphens, dots, or spaces with underscores
-    .replace(/[-._:~\s]/g, '_')
-    // Remove any leading or trailing underscores that may have been created
-    .replace(/^_+|_+$/g, '')
-    // Convert the entire string to lowercase
-    .toLowerCase()
+export function toSnakeCase( string ) {
+	return (
+		string
+			// Find uppercase letters and insert underscore before them, then lowercase the letter
+			.replace( /([^A-Z-_\s+])([A-Z])/g, '$1-$2' )
+			// .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
+			// Replace any hyphens, dots, or spaces with underscores
+			.replace( /[-._:~\s]/g, '_' )
+			// Remove any leading or trailing underscores that may have been created
+			.replace( /^_+|_+$/g, '' )
+			// Convert the entire string to lowercase
+			.toLowerCase()
+	);
 }
 
 /**
@@ -140,7 +142,7 @@ export function toSnakeCase (string) {
  * convention for constants, environment variables, and configuration keys.
  *
  * @param {string} string - The input string to convert to CONSTANT_CASE
- * @returns {string} The converted string in CONSTANT_CASE format
+ * @return {string} The converted string in CONSTANT_CASE format
  *
  * @example
  * // Converting from camelCase
@@ -228,18 +230,19 @@ export function toSnakeCase (string) {
  * // };
  *
  * @since 0.8.0
- *
  */
-export function toConstantCase (string) {
-  return string
-    // Insert underscores before uppercase letters (but not at start)
-    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    // Replace any separator characters with underscore
-    .replace(/[-._:~\s]+/g, '_')
-    // Remove leading/trailing underscores
-    .replace(/^_+|_+$/g, '')
-    // Convert the entire string to uppercase
-    .toUpperCase()
+export function toConstantCase( string ) {
+	return (
+		string
+			// Insert underscores before uppercase letters (but not at start)
+			.replace( /([a-z0-9])([A-Z])/g, '$1_$2' )
+			// Replace any separator characters with underscore
+			.replace( /[-._:~\s]+/g, '_' )
+			// Remove leading/trailing underscores
+			.replace( /^_+|_+$/g, '' )
+			// Convert the entire string to uppercase
+			.toUpperCase()
+	);
 }
 
 /**
@@ -251,7 +254,7 @@ export function toConstantCase (string) {
  * convention for variables, properties, and method names in JavaScript.
  *
  * @param {string} string - The string to convert to camelCase
- * @returns {string} The converted string in camelCase format
+ * @return {string} The converted string in camelCase format
  *
  * @example
  * // Basic conversions from different formats
@@ -566,17 +569,21 @@ export function toConstantCase (string) {
  *
  * @since 0.3.0
  */
-export function toCamelCase (string) {
-  return string
-    // Match:
-    // 1) uppercase letter at start ^([A-Z])
-    // OR
-    // 2) word char after separator [-._:~\s](\w)
-    // If separator+char: uppercase the char | If start uppercase: lowercase it
-    .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
-      if (p2) return p2.toUpperCase() // Found char after separator - make it uppercase
-      return p1.toLowerCase() // Found uppercase at start - make it lowercase
-    })
+export function toCamelCase( string ) {
+	return (
+		string
+			// Match:
+			// 1) uppercase letter at start ^([A-Z])
+			// OR
+			// 2) word char after separator [-._:~\s](\w)
+			// If separator+char: uppercase the char | If start uppercase: lowercase it
+			.replace( /^([a-z])|[-._:~\s](\w)/gi, ( match, p1, p2 ) => {
+				if ( p2 ) {
+					return p2.toUpperCase(); // Found char after separator - make it uppercase
+				}
+				return p1.toLowerCase(); // Found uppercase at start - make it lowercase
+			} )
+	);
 }
 
 /**
@@ -588,7 +595,7 @@ export function toCamelCase (string) {
  * constructor functions, and component names in JavaScript.
  *
  * @param {string} string - The string to convert to UpperCamelCase
- * @returns {string} The converted string in UpperCamelCase format
+ * @return {string} The converted string in UpperCamelCase format
  *
  * @example
  * // Basic conversions from different formats
@@ -791,20 +798,24 @@ export function toCamelCase (string) {
  *
  * @since 0.3.0
  */
-export function toUpperCamelCase (string) {
-  if (string.toLowerCase() === 'storepress') {
-    return 'StorePress'
-  }
-  return string
-    // Match:
-    // 1) lowercase letter at start ^([a-z])
-    // OR
-    // 2) word char after separator [-._:~\s](\w)
-    // If separator+char: uppercase the char | If start lowercase: uppercase it
-    .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
-      if (p2) return p2.toUpperCase() // Found char after separator - make it uppercase
-      return p1.toUpperCase() // Found lowercase at start - make it uppercase
-    })
+export function toUpperCamelCase( string ) {
+	if ( string.toLowerCase() === 'storepress' ) {
+		return 'StorePress';
+	}
+	return (
+		string
+			// Match:
+			// 1) lowercase letter at start ^([a-z])
+			// OR
+			// 2) word char after separator [-._:~\s](\w)
+			// If separator+char: uppercase the char | If start lowercase: uppercase it
+			.replace( /^([a-z])|[-._:~\s](\w)/gi, ( match, p1, p2 ) => {
+				if ( p2 ) {
+					return p2.toUpperCase(); // Found char after separator - make it uppercase
+				}
+				return p1.toUpperCase(); // Found lowercase at start - make it uppercase
+			} )
+	);
 }
 
 /**
@@ -820,7 +831,7 @@ export function toUpperCamelCase (string) {
  * - Later sources override earlier sources at each level
  *
  * @param {...Object} sources - One or more objects to merge
- * @returns {Object} A new object containing the merged properties from all sources
+ * @return {Object} A new object containing the merged properties from all sources
  *
  * @example
  * // Basic object merging
@@ -982,21 +993,27 @@ export function toUpperCamelCase (string) {
  * console.log(deepMerge({}, { b: 2 }, {})); // { b: 2 }
  * @since 0.6.0
  */
-export function deepMerge (...sources) {
-  const result = {}
-  for (const src of sources) {
-    for (const key in src) {
-      if (src.hasOwnProperty(key)) {
-        const isObject = typeof src[key] === 'object' && src[key] !== null && !Array.isArray(src[key]) && typeof result[key] === 'object' && result[key] !== null && !Array.isArray(result[key])
-        if (isObject) {
-          result[key] = deepMerge(result[key], src[key])
-        } else {
-          result[key] = src[key]
-        }
-      }
-    }
-  }
-  return result
+export function deepMerge( ...sources ) {
+	const result = {};
+	for ( const src of sources ) {
+		for ( const key in src ) {
+			if ( src.hasOwnProperty( key ) ) {
+				const isObject =
+					typeof src[ key ] === 'object' &&
+					src[ key ] !== null &&
+					! Array.isArray( src[ key ] ) &&
+					typeof result[ key ] === 'object' &&
+					result[ key ] !== null &&
+					! Array.isArray( result[ key ] );
+				if ( isObject ) {
+					result[ key ] = deepMerge( result[ key ], src[ key ] );
+				} else {
+					result[ key ] = src[ key ];
+				}
+			}
+		}
+	}
+	return result;
 }
 
 /**
@@ -1009,8 +1026,7 @@ export function deepMerge (...sources) {
  * that reduces the likelihood of naming conflicts with other libraries.
  *
  * @param {string} namespace - The namespace identifier used to create a unique WeakMap key
- * @returns {WeakMap} A global WeakMap instance with the specified namespace
-
+ * @return {WeakMap} A global WeakMap instance with the specified namespace
  * @throws {TypeError} Throws if the global WeakMap constructor is not available
  * @throws {ReferenceError} Throws if the window object is not available (Node.js environments)
  *
@@ -1019,33 +1035,34 @@ export function deepMerge (...sources) {
  *
  * @since 0.7.0
  */
-export function getPluginInstanceStore (namespace) {
-  const name = toUpperCamelCase(namespace)
+export function getPluginInstanceStore( namespace ) {
+	const name = toUpperCamelCase( namespace );
 
-  // Ensure nested structure exists
-  window.StorePress = window.StorePress || {}
-  window.StorePress.$Plugins = window.StorePress.$Plugins || {}
-  window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {}
+	// Ensure nested structure exists
+	window.StorePress = window.StorePress || {};
+	window.StorePress.$Plugins = window.StorePress.$Plugins || {};
+	window.StorePress.$Plugins[ name ] =
+		window.StorePress.$Plugins[ name ] || {};
 
-  // Create WeakMap if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Instance']) {
-    window.StorePress.$Plugins[name]['Instance'] = new WeakMap()
-  }
-  return window.StorePress.$Plugins[name]['Instance']
+	// Create WeakMap if it doesn't exist
+	if ( ! window.StorePress.$Plugins[ name ].Instance ) {
+		window.StorePress.$Plugins[ name ].Instance = new WeakMap();
+	}
+	return window.StorePress.$Plugins[ name ].Instance;
 }
 
-export function getEventStore (namespace) {
-  const name = toUpperCamelCase(namespace)
+export function getEventStore( namespace ) {
+	const name = toUpperCamelCase( namespace );
 
-  // Ensure nested structure exists
-  window.StorePress = window.StorePress || {}
-  window.StorePress.$Events = window.StorePress.$Events || {}
+	// Ensure nested structure exists
+	window.StorePress = window.StorePress || {};
+	window.StorePress.$Events = window.StorePress.$Events || {};
 
-  // Create Map if it doesn't exist
-  if (!window.StorePress.$Events[name]) {
-    window.StorePress.$Events[name] = new Map()
-  }
-  return window.StorePress.$Events[name]
+	// Create Map if it doesn't exist
+	if ( ! window.StorePress.$Events[ name ] ) {
+		window.StorePress.$Events[ name ] = new Map();
+	}
+	return window.StorePress.$Events[ name ];
 }
 
 /**
@@ -1056,7 +1073,7 @@ export function getEventStore (namespace) {
  * functions where you want to provide flexibility in how users specify target elements.
  *
  * @param {string|HTMLElement|null|Document} [selector=null] - The element selector or element itself
- * @returns {HTMLElement|null|Document} The resolved HTMLElement, or null if not found/invalid
+ * @return {HTMLElement|null|Document} The resolved HTMLElement, or null if not found/invalid
  *
  * @example
  * // Using CSS selector string
@@ -1218,11 +1235,17 @@ export function getEventStore (namespace) {
  *
  * @since 0.3.0
  */
-export function getElement (selector = null) {
-  if (null === selector) return null
-  if (document === selector) return document
-  if (typeof selector === 'string') return document.querySelector(selector)
-  return selector instanceof HTMLElement ? selector : null
+export function getElement( selector = null ) {
+	if ( null === selector ) {
+		return null;
+	}
+	if ( document === selector ) {
+		return document;
+	}
+	if ( typeof selector === 'string' ) {
+		return document.querySelector( selector );
+	}
+	return selector instanceof HTMLElement ? selector : null;
 }
 
 /**
@@ -1234,7 +1257,7 @@ export function getElement (selector = null) {
  * flexibility in input types.
  *
  * @param {string|HTMLElement|HTMLElement[]|NodeList|Array|Document[]} [selectors=[]] - The element selector(s) or element(s)
- * @returns {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
+ * @return {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
  *
  * @example
  * // Using CSS selector string (returns NodeList)
@@ -1455,11 +1478,17 @@ export function getElement (selector = null) {
  *
  * @since 0.3.0
  */
-export function getElements (selectors = []) {
-  if (selectors.length === 0) return []
-  if (selectors === document) return [document]
-  if (typeof selectors === 'string') return document.querySelectorAll(selectors)
-  return selectors instanceof HTMLElement ? [selectors] : selectors
+export function getElements( selectors = [] ) {
+	if ( selectors.length === 0 ) {
+		return [];
+	}
+	if ( selectors === document ) {
+		return [ document ];
+	}
+	if ( typeof selectors === 'string' ) {
+		return document.querySelectorAll( selectors );
+	}
+	return selectors instanceof HTMLElement ? [ selectors ] : selectors;
 }
 
 /**
@@ -1471,16 +1500,16 @@ export function getElements (selectors = []) {
  * 2. Override attributes using hyphenated keys for nested properties
  * 3. Automatic type conversion for strings, numbers, booleans, arrays, objects, and regex
  *
- * @param {string|HTMLElement} element - The DOM element containing the data attributes
- * @param {string} dataAttributeName - The base name of the data attribute (without 'data-' prefix)
- * @param {Object} [userFeatures={}] - Configuration object to customize parsing behavior
- * @param {boolean} [userFeatures.parseNumber=true] - Whether to convert numeric strings to numbers
- * @param {boolean} [userFeatures.parseBoolean=true] - Whether to convert boolean strings to booleans
- * @param {string[]} [userFeatures.truthyStrings=['yes', 'true']] - Strings that should be parsed as true
- * @param {string[]} [userFeatures.falsyStrings=['no', 'false']] - Strings that should be parsed as false
- * @param {boolean} [userFeatures.parseRegex=true] - Whether to parse regex patterns like /pattern/flags
+ * @param {string|HTMLElement} element                                      - The DOM element containing the data attributes
+ * @param {string}             dataAttributeName                            - The base name of the data attribute (without 'data-' prefix)
+ * @param {Object}             [userFeatures={}]                            - Configuration object to customize parsing behavior
+ * @param {boolean}            [userFeatures.parseNumber=true]              - Whether to convert numeric strings to numbers
+ * @param {boolean}            [userFeatures.parseBoolean=true]             - Whether to convert boolean strings to booleans
+ * @param {string[]}           [userFeatures.truthyStrings=['yes', 'true']] - Strings that should be parsed as true
+ * @param {string[]}           [userFeatures.falsyStrings=['no', 'false']]  - Strings that should be parsed as false
+ * @param {boolean}            [userFeatures.parseRegex=true]               - Whether to parse regex patterns like /pattern/flags
  *
- * @returns {Object} The parsed configuration object with all options merged and type-converted
+ * @return {Object} The parsed configuration object with all options merged and type-converted
  *
  * @example
  * // Basic usage with JSON in data attribute
@@ -1573,177 +1602,191 @@ export function getElements (selectors = []) {
  * @throws {Error} Throws error if all JSON parsing strategies fail for nested data
  * @since 0.6.0
  */
-export function getOptionsFromAttribute (element, dataAttributeName, userFeatures = {}) {
+export function getOptionsFromAttribute(
+	element,
+	dataAttributeName,
+	userFeatures = {}
+) {
+	const $element = getElement( element );
 
-  const $element = getElement(element)
+	const defaultFeatures = {
+		parseNumber: true,
+		// true | false
+		parseBoolean: true,
+		// true | false
+		truthyStrings: [ 'yes', 'true' ],
+		// yes | true | y
+		falsyStrings: [ 'no', 'false' ],
+		// no | false | n
+		parseRegex: true, // true | false
+	};
 
-  const defaultFeatures = {
-    parseNumber: true,
-    // true | false
-    parseBoolean: true,
-    // true | false
-    truthyStrings: ['yes', 'true'],
-    // yes | true | y
-    falsyStrings: ['no', 'false'],
-    // no | false | n
-    parseRegex: true, // true | false
-  }
+	const FEATURES = {
+		...defaultFeatures,
+		...userFeatures,
+	};
+	const getValue = ( value ) => {
+		if ( typeof value !== 'string' ) {
+			return value;
+		}
+		const lowerValue = value.toLowerCase();
 
-  const FEATURES = {
-    ...defaultFeatures,
-    ...userFeatures,
-  }
-  const getValue = value => {
-    if (typeof value !== 'string') {
-      return value
-    }
-    const lowerValue = value.toLowerCase()
-    const isNumber = isNaN(Number(value)) === false
-    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value)
+		// Check for boolean values
 
-    // Check for boolean values
+		if ( FEATURES.parseBoolean ) {
+			if ( FEATURES.truthyStrings.includes( lowerValue ) ) {
+				return true;
+			}
+			if ( FEATURES.falsyStrings.includes( lowerValue ) ) {
+				return false;
+			}
+		}
 
-    if (FEATURES.parseBoolean) {
-      if (FEATURES.truthyStrings.includes(lowerValue)) {
-        return true
-      }
-      if (FEATURES.falsyStrings.includes(lowerValue)) {
-        return false
-      }
-    }
+		const isRegExp = new RegExp( '^/(.+)/([gimsuyx]*)$' ).test( value );
 
-    // Check for regex pattern: /pattern/flags
-    if (FEATURES.parseRegex && isRegExp) {
-      const regexMatch = value.match(/^\/(.+)\/([gimsuyx]*)$/)
-      try {
-        const [, pattern, flags] = regexMatch
-        return new RegExp(pattern, flags)
-      } catch (error) {
-        console.warn(`Invalid regex pattern: ${value}`, error)
-        return value // Return original string if regex is invalid
-      }
-    }
+		// Check for regex pattern: /pattern/flags
+		if ( FEATURES.parseRegex && isRegExp ) {
+			const regexMatch = value.match( /^\/(.+)\/([gimsuyx]*)$/ );
+			try {
+				const [ , pattern, flags ] = regexMatch;
+				return new RegExp( pattern, flags );
+			} catch ( error ) {
+				console.warn( `Invalid regex pattern: ${ value }`, error );
+				return value; // Return original string if regex is invalid
+			}
+		}
 
-    // Check for numeric values
-    if (FEATURES.parseNumber) {
-      return isNumber ? Number(value) : value
-    }
+		const isNumber = isNaN( Number( value ) ) === false;
 
-    // Return as string if no type conversion applies
-    return value
-  }
-  const reviver = (key, value) => {
-    return getValue(value)
-  }
-  const getJSONData = (value, rv) => {
-    const strategies = [
-      val => val.replaceAll('\'', '"'), val => val.replaceAll('\'', '"').replaceAll('\\', '\\\\'),
-      //@TODO: Add more strategies here if needed
-    ]
-    for (const strategy of strategies) {
-      try {
-        return JSON.parse(strategy(value), rv)
-      } catch {}
-    }
-    throw new Error('All parsing strategies failed')
-  }
-  const makeNestedOptions = nestedData => {
-    const result = {}
-    const processLevel = (data, target) => {
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          const item = data[key]
+		// Check for numeric values
+		if ( FEATURES.parseNumber ) {
+			return isNumber ? Number( value ) : value;
+		}
 
+		// Return as string if no type conversion applies
+		return value;
+	};
+	const reviver = ( key, value ) => {
+		return getValue( value );
+	};
+	const getJSONData = ( value, rv ) => {
+		const strategies = [
+			( val ) => val.replaceAll( "'", '"' ),
+			( val ) => val.replaceAll( "'", '"' ).replaceAll( '\\', '\\\\' ),
+			//@TODO: Add more strategies here if needed
+		];
+		for ( const strategy of strategies ) {
+			try {
+				return JSON.parse( strategy( value ), rv );
+			} catch {}
+		}
+		throw new Error( 'All parsing strategies failed' );
+	};
+	const makeNestedOptions = ( nestedData ) => {
+		const result = {};
+		const processLevel = ( data, target ) => {
+			for ( const key in data ) {
+				if ( data.hasOwnProperty( key ) ) {
+					const item = data[ key ];
 
-          if (target[key] === undefined) {
-            target[key] = {}
-          }
+					if ( target[ key ] === undefined ) {
+						target[ key ] = {};
+					}
 
-          // Set the value for current key
-          if (item.value !== undefined) {
-            target[key] = item.value
-          }
+					// Set the value for current key
+					if ( item.value !== undefined ) {
+						target[ key ] = item.value;
+					}
 
-          // Process children recursively if they exist
-          if (item.child && typeof item.child === 'object') {
-            // Ensure target[key] is an object to hold nested properties
-            if (typeof target[key] !== 'object' || target[key] === null) {
-              target[key] = item.value
-            }
+					// Process children recursively if they exist
+					if ( item.child && typeof item.child === 'object' ) {
+						// Ensure target[key] is an object to hold nested properties
+						if (
+							typeof target[ key ] !== 'object' ||
+							target[ key ] === null
+						) {
+							target[ key ] = item.value;
+						}
 
-            // Recursively process the child data
-            processLevel(item.child, target[key])
-          }
-        }
-      }
-    }
+						// Recursively process the child data
+						processLevel( item.child, target[ key ] );
+					}
+				}
+			}
+		};
 
-    // Start the recursive processing
-    processLevel(nestedData, result)
-    return result
-  }
-  const getOverrideOptions = (keys, dataset) => {
-    // Stable sort: fewer hyphens first
-    const sortedKeys = keys.map((key, index) => ({
-      key,
-      index,
-    })).sort((a, b) => {
-      const hyphenCountA = (a.key.match(/-/g) || []).length
-      const hyphenCountB = (b.key.match(/-/g) || []).length
-      if (hyphenCountA === hyphenCountB) {
-        return a.index - b.index // preserve original order
-      }
-      return hyphenCountA - hyphenCountB
-    }).map(item => item.key)
-    const nestedData = {}
-    sortedKeys.forEach(key => {
-      const parts = key.split('-')
-      let oldKey = ''
-      let currentKey = ''
-      let currentObj = nestedData
-      parts.forEach(part => {
-        currentKey = currentKey ? currentKey + '-' + part : part
-        if (currentKey === part) {
-          return
-        }
-        oldKey = toCamelCase(part)
-        if (!currentObj[oldKey]) {
-          currentObj[oldKey] = {
-            value: getValue(dataset[currentKey]),
-            child: {},
-          }
-        }
-        currentObj = currentObj[oldKey].child
-      })
-    })
-    return makeNestedOptions(nestedData)
-  }
-  let options = {}
-  const dataset = {
-    ...$element.dataset,
-  }
-  const datasetKey = toCamelCase(dataAttributeName)
-  const datasetValue = dataset[datasetKey]
+		// Start the recursive processing
+		processLevel( nestedData, result );
+		return result;
+	};
+	const getOverrideOptions = ( keys, dataset ) => {
+		// Stable sort: fewer hyphens first
+		const sortedKeys = keys
+			.map( ( key, index ) => ( {
+				key,
+				index,
+			} ) )
+			.sort( ( a, b ) => {
+				const hyphenCountA = ( a.key.match( /-/g ) || [] ).length;
+				const hyphenCountB = ( b.key.match( /-/g ) || [] ).length;
+				if ( hyphenCountA === hyphenCountB ) {
+					return a.index - b.index; // preserve original order
+				}
+				return hyphenCountA - hyphenCountB;
+			} )
+			.map( ( item ) => item.key );
+		const nestedData = {};
+		sortedKeys.forEach( ( key ) => {
+			const parts = key.split( '-' );
+			let oldKey = '';
+			let currentKey = '';
+			let currentObj = nestedData;
+			parts.forEach( ( part ) => {
+				currentKey = currentKey ? currentKey + '-' + part : part;
+				if ( currentKey === part ) {
+					return;
+				}
+				oldKey = toCamelCase( part );
+				if ( ! currentObj[ oldKey ] ) {
+					currentObj[ oldKey ] = {
+						value: getValue( dataset[ currentKey ] ),
+						child: {},
+					};
+				}
+				currentObj = currentObj[ oldKey ].child;
+			} );
+		} );
+		return makeNestedOptions( nestedData );
+	};
+	let options = {};
+	const dataset = {
+		...$element.dataset,
+	};
+	const datasetKey = toCamelCase( dataAttributeName );
+	const datasetValue = dataset[ datasetKey ];
 
-  // Parse main data if it exists and is not empty
-  if (datasetValue && datasetValue.trim()) {
-    try {
-      options = getJSONData(datasetValue, reviver)
-    } catch (error) {
-      console.warn(`Failed to parse JSON from "${dataAttributeName}"`, error)
-      options = {}
-    }
-  }
+	// Parse main data if it exists and is not empty
+	if ( datasetValue && datasetValue.trim() ) {
+		try {
+			options = getJSONData( datasetValue, reviver );
+		} catch ( error ) {
+			console.warn(
+				`Failed to parse JSON from "${ dataAttributeName }"`,
+				error
+			);
+			options = {};
+		}
+	}
 
-  // Find all override attributes with pattern: data-{dataAttributeName}--key
-  const overridePrefix = `${datasetKey}-`
-  const overrideAttrs = Object.keys(dataset).filter(key => {
-    return key.startsWith(overridePrefix)
-  })
-  const overrideOptions = getOverrideOptions(overrideAttrs, dataset)
+	// Find all override attributes with pattern: data-{dataAttributeName}--key
+	const overridePrefix = `${ datasetKey }-`;
+	const overrideAttrs = Object.keys( dataset ).filter( ( key ) => {
+		return key.startsWith( overridePrefix );
+	} );
+	const overrideOptions = getOverrideOptions( overrideAttrs, dataset );
 
-  // Merge base options with override options (overrides take precedence)
-  return deepMerge(options, overrideOptions)
+	// Merge base options with override options (overrides take precedence)
+	return deepMerge( options, overrideOptions );
 }
 
 /**
@@ -1755,7 +1798,7 @@ export function getOptionsFromAttribute (element, dataAttributeName, userFeature
  * replacement approach.
  *
  * @param {string} string - The string containing characters to escape for regex use
- * @returns {string} The escaped string safe for use in regular expression patterns
+ * @return {string} The escaped string safe for use in regular expression patterns
  *
  * @example
  * // Basic escaping of common regex metacharacters
@@ -1848,43 +1891,48 @@ export function getOptionsFromAttribute (element, dataAttributeName, userFeature
  *
  * @since 0.6.0
  */
-export function escapeRegex (string) {
-  return typeof RegExp.escape === 'function' ? RegExp.escape(string) : string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
+export function escapeRegex( string ) {
+	return typeof RegExp.escape === 'function'
+		? RegExp.escape( string )
+		: string.replace( /[/\-\\^$*+?.()|[\]{}]/g, '\\$&' );
 }
 
-export function createPluginInstance (selectors, options, plugin, namespace) {
-
-  const store = getPluginInstanceStore(namespace)
-  return Array.from(getElements(selectors)).map(element => {
-    if (store.has(element)) return store.get(element)
-    const instance = new plugin(element, options)
-    instance.element = element
-    instance.destroy = () => {
-      triggerEvent(element, 'destroy')
-      store.delete(element)
-    }
-    store.set(element, instance)
-    return instance
-  })
+export function createPluginInstance( selectors, options, plugin, namespace ) {
+	const store = getPluginInstanceStore( namespace );
+	return Array.from( getElements( selectors ) ).map( ( element ) => {
+		if ( store.has( element ) ) {
+			return store.get( element );
+		}
+		const instance = new plugin( element, options );
+		instance.element = element;
+		instance.destroy = () => {
+			triggerEvent( element, 'destroy' );
+			store.delete( element );
+		};
+		store.set( element, instance );
+		return instance;
+	} );
 }
 
-export function getPluginInstance (selectors, namespace) {
-  const store = getPluginInstanceStore(namespace)
-  return Array.from(getElements(selectors)).filter(element => store.has(element)).map(element => store.get(element))
+export function getPluginInstance( selectors, namespace ) {
+	const store = getPluginInstanceStore( namespace );
+	return Array.from( getElements( selectors ) )
+		.filter( ( element ) => store.has( element ) )
+		.map( ( element ) => store.get( element ) );
 }
 
 /**
  * Dispatches a custom event on a target DOM element with optional event details and configuration.
  * Provides a convenient wrapper around the native CustomEvent constructor and dispatchEvent method.
  *
- * @param {HTMLElement[]|HTMLElement|EventTarget} $targets - The DOM element or EventTarget to dispatch the event on
- * @param {string} eventType - The name/type of the custom event to dispatch
- * @param {Object} [eventDetails={}] - Data to include in the event's detail property
- * @param {Object} [options={}] - CustomEvent configuration options
- * @param {boolean} [options.bubbles=false] - Whether the event bubbles up through the DOM tree
- * @param {boolean} [options.cancelable=true] - Whether the event can be canceled with preventDefault()
- * @param {boolean} [options.composed=false] - Whether the event will trigger listeners outside of a shadow root
- * @returns {boolean} True if the event was not canceled, false if preventDefault() was called
+ * @param {HTMLElement[]|HTMLElement|EventTarget} $targets                  - The DOM element or EventTarget to dispatch the event on
+ * @param {string}                                eventType                 - The name/type of the custom event to dispatch
+ * @param {Object}                                [eventDetails={}]         - Data to include in the event's detail property
+ * @param {Object}                                [options={}]              - CustomEvent configuration options
+ * @param {boolean}                               [options.bubbles=false]   - Whether the event bubbles up through the DOM tree
+ * @param {boolean}                               [options.cancelable=true] - Whether the event can be canceled with preventDefault()
+ * @param {boolean}                               [options.composed=false]  - Whether the event will trigger listeners outside of a shadow root
+ * @return {boolean} True if the event was not canceled, false if preventDefault() was called
  * @example
  * // Basic custom event dispatch
  * const button = document.getElementById('my-button');
@@ -2032,37 +2080,44 @@ export function getPluginInstance (selectors, namespace) {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent CustomEvent API
  * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent dispatchEvent API
  */
-export function triggerEvent ($targets, eventType, eventDetails = {}, options = {}) {
-  const defaultOptions = {
-    bubbles: false,
-    cancelable: true,
-    composed: false,
-  }
-  const availableOptions = {
-    ...defaultOptions,
-    ...options,
-  }
-  const $elements = getElements($targets)
-  $elements.forEach($element => {
-    return $element.dispatchEvent(new CustomEvent(eventType, {
-      ...availableOptions,
-      detail: {
-        ...eventDetails,
-      },
-    }))
-  })
+export function triggerEvent(
+	$targets,
+	eventType,
+	eventDetails = {},
+	options = {}
+) {
+	const defaultOptions = {
+		bubbles: false,
+		cancelable: true,
+		composed: false,
+	};
+	const availableOptions = {
+		...defaultOptions,
+		...options,
+	};
+	const $elements = getElements( $targets );
+	$elements.forEach( ( $element ) => {
+		return $element.dispatchEvent(
+			new CustomEvent( eventType, {
+				...availableOptions,
+				detail: {
+					...eventDetails,
+				},
+			} )
+		);
+	} );
 }
 
 /**
  * Attaches swipe gesture detection to a DOM element, supporting both touch and pointer events.
  * Automatically registers event listeners and provides directional swipe detection with customizable offset.
  *
- * @param {HTMLElement} target - The DOM element to attach swipe detection to
- * @param {Function} listenerFn - Callback function that handles swipe events
- * @param {Object} [options={}] - Configuration options
- * @param {number} [options.offset=10] - Minimum pixel distance to register a directional swipe
- * @param {boolean} [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
- * @returns {Function} A cleanup function to remove all event listeners and abort the controller
+ * @param {HTMLElement} target                    - The DOM element to attach swipe detection to
+ * @param {Function}    listenerFn                - Callback function that handles swipe events
+ * @param {Object}      [options={}]              - Configuration options
+ * @param {number}      [options.offset=10]       - Minimum pixel distance to register a directional swipe
+ * @param {boolean}     [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
+ * @return {Function} A cleanup function to remove all event listeners and abort the controller
  *
  * @example
  * // Basic swipe detection on a div element
@@ -2175,723 +2230,793 @@ export function triggerEvent ($targets, eventType, eventDetails = {}, options = 
  * - `moving` {boolean} - True during active swipe, false when completed
  * - `done` {boolean} - True when swipe gesture is complete
  */
-export function swipeEvent (target, listenerFn, options = {}) {
-  let readyToMove = false
-  let isMoved = false
-  let xStart = 0
-  let yStart = 0
-  let isTouchEvent = false
-  const defaults = {
-    offset: 10,
-    touchOnly: false,
-  }
-  const settings = {
-    ...defaults,
-    ...options,
-  }
-  const controller = new AbortController()
-  const {
-    signal,
-  } = controller
-  const start = event => {
-    readyToMove = true
-    isMoved = false
-    xStart = event.x
-    yStart = event.y
-    isTouchEvent = event.type === 'touchstart'
-    if (event.type === 'pointerdown' && isTouchEvent) {
-      return false
-    }
-    if (isTouchEvent) {
-      const {
-        clientX,
-        clientY,
-      } = event.changedTouches[0]
-      xStart = clientX
-      yStart = clientY
-    }
-  }
-  const move = event => {
-    if (!readyToMove) {
-      return
-    }
-    if (event.type === 'pointermove' && isTouchEvent) {
-      return false
-    }
-    let horizontalDiff = event.x - xStart
-    let verticalDiff = event.y - yStart
-    if (isTouchEvent) {
-      const touch = event.changedTouches[0]
-      horizontalDiff = touch.clientX - xStart
-      verticalDiff = touch.clientY - yStart
-    }
-    isMoved = true
-    const details = {
-      x: horizontalDiff,
-      y: verticalDiff,
-      top: verticalDiff + settings.offset < 0,
-      // to top
-      bottom: verticalDiff - settings.offset > 0,
-      // to bottom
-      left: horizontalDiff + settings.offset < 0,
-      // to left
-      right: horizontalDiff - settings.offset > 0,
-      // to right
-      moving: true,
-      done: false,
-    }
-    triggerEvent(target, 'swipe', details)
-  }
-  const end = event => {
-    if (!readyToMove) {
-      return
-    }
-    const isPointerEvent = event.type === 'pointerleave' || event.type === 'pointerup'
-    if (isPointerEvent && isTouchEvent) {
-      return false
-    }
-    let horizontalDiff = event.x - xStart
-    let verticalDiff = event.y - yStart
-    if (isTouchEvent) {
-      const {
-        clientX,
-        clientY,
-      } = event.changedTouches[0]
-      horizontalDiff = clientX - xStart
-      verticalDiff = clientY - yStart
-    }
-    if (isMoved) {
-      const details = {
-        x: horizontalDiff,
-        y: verticalDiff,
-        top: verticalDiff + settings.offset < 0,
-        // to top
-        bottom: verticalDiff - settings.offset > 0,
-        // to bottom
-        left: horizontalDiff + settings.offset < 0,
-        // to left
-        right: horizontalDiff - settings.offset > 0,
-        // to right
-        moving: false,
-        done: true,
-      }
-      triggerEvent(target, 'swipe', details)
-    }
-    isMoved = false
-    isTouchEvent = false
-    readyToMove = false
-  }
-  const unregister = () => {
-    controller.abort()
-  }
-  const register = () => {
-    target.addEventListener('touchstart', start, {
-      passive: true,
-      signal,
-    })
-    target.addEventListener('touchmove', move, {
-      passive: true,
-      signal,
-    })
-    target.addEventListener('touchend', end, {
-      passive: true,
-      signal,
-    })
-    target.addEventListener('touchcancel', end, {
-      signal,
-    })
-    if (!settings.touchOnly) {
-      target.addEventListener('pointerdown', start, {
-        signal,
-      })
-      target.addEventListener('pointermove', move, {
-        signal,
-      })
-      target.addEventListener('pointerup', end, {
-        signal,
-      })
-      target.addEventListener('pointerleave', end, {
-        signal,
-      })
-    }
-    target.addEventListener('swipe', listenerFn, {
-      signal,
-    })
-    return unregister
-  }
-  return register()
+export function swipeEvent( target, listenerFn, options = {} ) {
+	let readyToMove = false;
+	let isMoved = false;
+	let xStart = 0;
+	let yStart = 0;
+	let isTouchEvent = false;
+	const defaults = {
+		offset: 10,
+		touchOnly: false,
+	};
+	const settings = {
+		...defaults,
+		...options,
+	};
+	const controller = new AbortController();
+	const { signal } = controller;
+	const start = ( event ) => {
+		readyToMove = true;
+		isMoved = false;
+		xStart = event.x;
+		yStart = event.y;
+		isTouchEvent = event.type === 'touchstart';
+		if ( event.type === 'pointerdown' && isTouchEvent ) {
+			return false;
+		}
+		if ( isTouchEvent ) {
+			const { clientX, clientY } = event.changedTouches[ 0 ];
+			xStart = clientX;
+			yStart = clientY;
+		}
+	};
+	const move = ( event ) => {
+		if ( ! readyToMove ) {
+			return;
+		}
+		if ( event.type === 'pointermove' && isTouchEvent ) {
+			return false;
+		}
+		let horizontalDiff = event.x - xStart;
+		let verticalDiff = event.y - yStart;
+		if ( isTouchEvent ) {
+			const touch = event.changedTouches[ 0 ];
+			horizontalDiff = touch.clientX - xStart;
+			verticalDiff = touch.clientY - yStart;
+		}
+		isMoved = true;
+		const details = {
+			x: horizontalDiff,
+			y: verticalDiff,
+			top: verticalDiff + settings.offset < 0,
+			// to top
+			bottom: verticalDiff - settings.offset > 0,
+			// to bottom
+			left: horizontalDiff + settings.offset < 0,
+			// to left
+			right: horizontalDiff - settings.offset > 0,
+			// to right
+			moving: true,
+			done: false,
+		};
+		triggerEvent( target, 'swipe', details );
+	};
+	const end = ( event ) => {
+		if ( ! readyToMove ) {
+			return;
+		}
+		const isPointerEvent =
+			event.type === 'pointerleave' || event.type === 'pointerup';
+		if ( isPointerEvent && isTouchEvent ) {
+			return false;
+		}
+		let horizontalDiff = event.x - xStart;
+		let verticalDiff = event.y - yStart;
+		if ( isTouchEvent ) {
+			const { clientX, clientY } = event.changedTouches[ 0 ];
+			horizontalDiff = clientX - xStart;
+			verticalDiff = clientY - yStart;
+		}
+		if ( isMoved ) {
+			const details = {
+				x: horizontalDiff,
+				y: verticalDiff,
+				top: verticalDiff + settings.offset < 0,
+				// to top
+				bottom: verticalDiff - settings.offset > 0,
+				// to bottom
+				left: horizontalDiff + settings.offset < 0,
+				// to left
+				right: horizontalDiff - settings.offset > 0,
+				// to right
+				moving: false,
+				done: true,
+			};
+			triggerEvent( target, 'swipe', details );
+		}
+		isMoved = false;
+		isTouchEvent = false;
+		readyToMove = false;
+	};
+	const unregister = () => {
+		controller.abort();
+	};
+	const register = () => {
+		target.addEventListener( 'touchstart', start, {
+			passive: true,
+			signal,
+		} );
+		target.addEventListener( 'touchmove', move, {
+			passive: true,
+			signal,
+		} );
+		target.addEventListener( 'touchend', end, {
+			passive: true,
+			signal,
+		} );
+		target.addEventListener( 'touchcancel', end, {
+			signal,
+		} );
+		if ( ! settings.touchOnly ) {
+			target.addEventListener( 'pointerdown', start, {
+				signal,
+			} );
+			target.addEventListener( 'pointermove', move, {
+				signal,
+			} );
+			target.addEventListener( 'pointerup', end, {
+				signal,
+			} );
+			target.addEventListener( 'pointerleave', end, {
+				signal,
+			} );
+		}
+		target.addEventListener( 'swipe', listenerFn, {
+			signal,
+		} );
+		return unregister;
+	};
+	return register();
 }
 
-export function findObjectValue (obj, path, defaultValue, notation = ['.', '-', '_']) {
-  // If path is not defined or it has false value
-  if (!path) return undefined
+export function findObjectValue(
+	obj,
+	path,
+	defaultValue,
+	notation = [ '.', '-', '_' ]
+) {
+	// If path is not defined or it has false value
+	if ( ! path ) {
+		return undefined;
+	}
 
-  // If path is already an array, use it directly
-  if (Array.isArray(path)) {
-    const result = path.reduce((prevObj, key) => prevObj && prevObj[key], obj)
-    return result === undefined ? defaultValue : result
-  }
+	// If path is already an array, use it directly
+	if ( Array.isArray( path ) ) {
+		const result = path.reduce(
+			( prevObj, key ) => prevObj && prevObj[ key ],
+			obj
+		);
+		return result === undefined ? defaultValue : result;
+	}
 
-  // Normalize notation to array
-  const separators = Array.isArray(notation) ? notation : [notation]
+	// Normalize notation to array
+	const separators = Array.isArray( notation ) ? notation : [ notation ];
 
-  // Create regex pattern to match separators (escape special regex characters)
-  const escapedSeparators = separators.map(separator => escapeRegex(separator))
-  const separatorPattern = escapedSeparators.join('')
+	// Create regex pattern to match separators (escape special regex characters)
+	const escapedSeparators = separators.map( ( separator ) =>
+		escapeRegex( separator )
+	);
+	const separatorPattern = escapedSeparators.join( '' );
 
-  // Create regex to split on separators but not within brackets
-  const regex = new RegExp(`([^[${separatorPattern}\\]])+`, 'g')
-  const pathArray = path.match(regex) || []
+	// Create regex to split on separators but not within brackets
+	const regex = new RegExp( `([^[${ separatorPattern }\\]])+`, 'g' );
+	const pathArray = path.match( regex ) || [];
 
-  // Find value
-  const result = pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj)
+	// Find value
+	const result = pathArray.reduce(
+		( prevObj, key ) => prevObj && prevObj[ key ],
+		obj
+	);
 
-  // If found value is undefined return default value; otherwise return the value
-  return result === undefined ? defaultValue : result
+	// If found value is undefined return default value; otherwise return the value
+	return result === undefined ? defaultValue : result;
 }
 
-export function createEventManager (namespace, options = { prefix: 'storepress', separator: ':' }) {
-  const prefix = options.prefix.length > 0 ? options.prefix : '$global'
-  const separator = options.separator.length > 0 ? options.separator : ':'
-  const controllers = getEventStore(prefix)
-  const _add = ($target, eventType, handler, eventOptions = {}) => {
-    const $element = getElement($target)
-    if (!controllers.has(namespace)) {
-      controllers.set(namespace, new Map())
-    }
-    if (!controllers.get(namespace).has($element)) {
-      controllers.get(namespace).set($element, {})
-    }
-    const events = controllers.get(namespace).get($element)
-    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
+export function createEventManager(
+	namespace,
+	options = { prefix: 'storepress', separator: ':' }
+) {
+	const prefix = options.prefix.length > 0 ? options.prefix : '$global';
+	const separator = options.separator.length > 0 ? options.separator : ':';
+	const controllers = getEventStore( prefix );
+	const _add = ( $target, eventType, handler, eventOptions = {} ) => {
+		const $element = getElement( $target );
+		if ( ! controllers.has( namespace ) ) {
+			controllers.set( namespace, new Map() );
+		}
+		if ( ! controllers.get( namespace ).has( $element ) ) {
+			controllers.get( namespace ).set( $element, {} );
+		}
+		const events = controllers.get( namespace ).get( $element );
+		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
 
-    events[eventName] = new AbortController()
-    controllers.get(namespace).set($element, events)
-    const controller = controllers.get(namespace).get($element)[eventName]
-    const type = eventName.split(separator).at(-1)
-    const getType = `on${type}` in $element ? type : eventName
-    $element.addEventListener(getType, handler, {
-      ...eventOptions,
-      signal: controller.signal,
-    })
-  }
+		events[ eventName ] = new AbortController();
+		controllers.get( namespace ).set( $element, events );
+		const controller = controllers.get( namespace ).get( $element )[
+			eventName
+		];
+		const type = eventName.split( separator ).at( -1 );
+		const getType = `on${ type }` in $element ? type : eventName;
+		$element.addEventListener( getType, handler, {
+			...eventOptions,
+			signal: controller.signal,
+		} );
+	};
 
-  /**
-   * Adds event listeners to one or more DOM elements.
-   * Creates namespaced event handlers that can be easily managed and removed later.
-   *
-   * @method add
-   * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
-   * @param {string} eventType - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
-   * @param {Function} handler - The event handler function to execute when the event is triggered.
-   * @param {Object} [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
-   *
-   * @example
-   * // Add click handler to a single element
-   * manager.add('#submit-btn', 'click', (e) => {
-   *   e.preventDefault();
-   *   console.log('Form submitted');
-   * });
-   *
-   * @example
-   * // Add event to multiple elements using selector
-   * manager.add('.toggle-btn', 'click', (e) => {
-   *   e.target.classList.toggle('active');
-   * });
-   *
-   * @example
-   * // Add event with options
-   * manager.add('.drag-item', 'touchstart', handleTouch, {
-   *   passive: false,
-   *   once: false
-   * });
-   *
-   * @example
-   * // Add to DOM element directly
-   * const button = document.querySelector('#my-button');
-   * manager.add(button, 'click', myHandler);
-   */
-  const add = ($targets, eventType, handler, eventOptions = {}) => {
-    const $elements = getElements($targets)
-    $elements.forEach($element => {
-      _add($element, eventType, handler, eventOptions)
-    })
-  }
-  const _trigger = ($target, eventType, eventDetails = {}, options = {}) => {
-    const events = _getEvents($target, eventType)
-    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
-    for (const [event, isNative, type] of events) {
-      const $element = getElement($target)
-      if (isNative && eventName === event) {
-        $element.dispatchEvent(new Event(type, {
-          bubbles: true,
-          cancelable: true,
-        }))
-      } else {
-        triggerEvent($element, event, eventDetails, options)
-      }
-    }
-  }
+	/**
+	 * Adds event listeners to one or more DOM elements.
+	 * Creates namespaced event handlers that can be easily managed and removed later.
+	 *
+	 * @function add
+	 * @memberof createEventManager
+	 * @param {string|Element|NodeList|Array|Document} $targets          - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
+	 * @param {string}                                 eventType         - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
+	 * @param {Function}                               handler           - The event handler function to execute when the event is triggered.
+	 * @param {Object}                                 [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
+	 *
+	 * @example
+	 * // Add click handler to a single element
+	 * manager.add('#submit-btn', 'click', (e) => {
+	 *   e.preventDefault();
+	 *   console.log('Form submitted');
+	 * });
+	 *
+	 * @example
+	 * // Add event to multiple elements using selector
+	 * manager.add('.toggle-btn', 'click', (e) => {
+	 *   e.target.classList.toggle('active');
+	 * });
+	 *
+	 * @example
+	 * // Add event with options
+	 * manager.add('.drag-item', 'touchstart', handleTouch, {
+	 *   passive: false,
+	 *   once: false
+	 * });
+	 *
+	 * @example
+	 * // Add to DOM element directly
+	 * const button = document.querySelector('#my-button');
+	 * manager.add(button, 'click', myHandler);
+	 */
+	const add = ( $targets, eventType, handler, eventOptions = {} ) => {
+		const $elements = getElements( $targets );
+		$elements.forEach( ( $element ) => {
+			_add( $element, eventType, handler, eventOptions );
+		} );
+	};
+	const _trigger = (
+		$target,
+		eventType,
+		eventDetails = {},
+		options = {}
+	) => {
+		const events = _getEvents( $target, eventType );
+		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		for ( const [ event, isNative, type ] of events ) {
+			const $element = getElement( $target );
+			if ( isNative && eventName === event ) {
+				$element.dispatchEvent(
+					new Event( type, {
+						bubbles: true,
+						cancelable: true,
+					} )
+				);
+			} else {
+				triggerEvent( $element, event, eventDetails, options );
+			}
+		}
+	};
 
-  /**
-   * Triggers events on one or more DOM elements.
-   * Can trigger both native events and custom events with optional data.
-   *
-   * @method trigger
-   * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to trigger events on.
-   * @param {string|null} [eventType=null] - The event type to trigger. If null, triggers all events for the element.
-   * @param {Object} [eventDetails={}] - Custom data to pass with the event (for custom events).
-   * @param {Object} [options={}] - Additional options for event dispatching.
-   *
-   * @example
-   * // Trigger specific event type
-   * manager.trigger('#my-button', 'click');
-   *
-   * @example
-   * // Trigger all events on element
-   * manager.trigger('#my-element', null);
-   *
-   * @example
-   * // Trigger with custom data
-   * manager.trigger('.notification', 'show', {
-   *   message: 'Hello World',
-   *   type: 'success'
-   * });
-   *
-   * @example
-   * // Trigger on multiple elements
-   * manager.trigger('.modal', 'close');
-   */
-  const trigger = ($targets, eventType = null, eventDetails = {}, options = {}) => {
-    const $elements = getElements($targets)
-    if (!controllers.has(namespace)) {
-      return
-    }
-    $elements.forEach($element => {
-      _trigger($element, eventType, eventDetails, options)
-    })
-  }
-  const _getEvents = ($target, eventType) => {
-    if (!controllers.get(namespace).has($target)) {
-      return []
-    }
-    const events = controllers.get(namespace).get($target)
-    const available = []
-    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
-    if (eventType === null) {
-      for (const [type] of Object.entries(events)) {
-        const event = type.split(separator).at(-1)
-        const isNative = `on${event}` in $target
-        available.push([type, isNative, event])
-      }
-      return available
-    }
-    for (const [type] of Object.entries(events)) {
-      if (type === eventName || type.startsWith(eventName)) {
-        const event = type.split(separator).at(-1)
-        const isNative = `on${event}` in $target
-        available.push([type, isNative, event])
-      }
-    }
-    return available
-  }
-  const _remove = ($target, eventType) => {
-    const $element = getElement($target)
-    if (typeof controllers.get(namespace) === 'undefined') {
-      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`)
-    }
-    if (!controllers.get(namespace).has($element)) {
-      return
-    }
-    const events = controllers.get(namespace).get($element)
-    if (eventType === null) {
-      for (const [_, controller] of Object.entries(events)) {
-        controller.abort()
-      }
-      controllers.get(namespace).delete($element)
-      return
-    }
-    const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`
-    for (const [type, controller] of Object.entries(events)) {
-      if (type === eventName || type.startsWith(eventName)) {
-        controller.abort()
-        delete events[type]
-      }
-    }
-    controllers.get(namespace).set($target, events)
-  }
+	/**
+	 * Triggers events on one or more DOM elements.
+	 * Can trigger both native events and custom events with optional data.
+	 *
+	 * @function trigger
+	 * @memberof createEventManager
+	 * @param {string|Element|NodeList|Array|Document} $targets          - Target element(s) to trigger events on.
+	 * @param {string|null}                            [eventType=null]  - The event type to trigger. If null, triggers all events for the element.
+	 * @param {Object}                                 [eventDetails={}] - Custom data to pass with the event (for custom events).
+	 * @param {Object}                                 [options={}]      - Additional options for event dispatching.
+	 *
+	 * @example
+	 * // Trigger specific event type
+	 * manager.trigger('#my-button', 'click');
+	 *
+	 * @example
+	 * // Trigger all events on element
+	 * manager.trigger('#my-element', null);
+	 *
+	 * @example
+	 * // Trigger with custom data
+	 * manager.trigger('.notification', 'show', {
+	 *   message: 'Hello World',
+	 *   type: 'success'
+	 * });
+	 *
+	 * @example
+	 * // Trigger on multiple elements
+	 * manager.trigger('.modal', 'close');
+	 */
+	const trigger = (
+		$targets,
+		eventType = null,
+		eventDetails = {},
+		options = {}
+	) => {
+		const $elements = getElements( $targets );
+		if ( ! controllers.has( namespace ) ) {
+			return;
+		}
+		$elements.forEach( ( $element ) => {
+			_trigger( $element, eventType, eventDetails, options );
+		} );
+	};
+	const _getEvents = ( $target, eventType ) => {
+		if ( ! controllers.get( namespace ).has( $target ) ) {
+			return [];
+		}
+		const events = controllers.get( namespace ).get( $target );
+		const available = [];
+		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		if ( eventType === null ) {
+			for ( const [ type ] of Object.entries( events ) ) {
+				const event = type.split( separator ).at( -1 );
+				const isNative = `on${ event }` in $target;
+				available.push( [ type, isNative, event ] );
+			}
+			return available;
+		}
+		for ( const [ type ] of Object.entries( events ) ) {
+			if ( type === eventName || type.startsWith( eventName ) ) {
+				const event = type.split( separator ).at( -1 );
+				const isNative = `on${ event }` in $target;
+				available.push( [ type, isNative, event ] );
+			}
+		}
+		return available;
+	};
+	const _remove = ( $target, eventType ) => {
+		const $element = getElement( $target );
+		if ( typeof controllers.get( namespace ) === 'undefined' ) {
+			throw new Error(
+				`Namespace: "${ namespace }" is not available in "${ prefix }" event map.`
+			);
+		}
+		if ( ! controllers.get( namespace ).has( $element ) ) {
+			return;
+		}
+		const events = controllers.get( namespace ).get( $element );
+		if ( eventType === null ) {
+			for ( const [ _, controller ] of Object.entries( events ) ) {
+				controller.abort();
+			}
+			controllers.get( namespace ).delete( $element );
+			return;
+		}
+		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		for ( const [ type, controller ] of Object.entries( events ) ) {
+			if ( type === eventName || type.startsWith( eventName ) ) {
+				controller.abort();
+				delete events[ type ];
+			}
+		}
+		controllers.get( namespace ).set( $target, events );
+	};
 
-  /**
-   * Removes event listeners from one or more DOM elements.
-   * Uses AbortController to cleanly remove listeners without memory leaks.
-   *
-   * @method remove
-   * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to remove events from.
-   * @param {string|null} [eventType=null] - The event type to remove. If null, removes all events from the element.
-   *
-   * @example
-   * // Remove specific event type
-   * manager.remove('#my-button', 'click');
-   *
-   * @example
-   * // Remove all events from element
-   * manager.remove('#my-element', null);
-   *
-   * @example
-   * // Remove events from multiple elements
-   * manager.remove('.temporary-listeners', 'mouseenter');
-   */
-  const remove = ($targets, eventType = null) => {
-    if (!controllers.has(namespace)) {
-      return
-    }
-    const $elements = getElements($targets)
-    $elements.forEach($element => {
-      _remove($element, eventType)
-    })
-  }
+	/**
+	 * Removes event listeners from one or more DOM elements.
+	 * Uses AbortController to cleanly remove listeners without memory leaks.
+	 *
+	 * @function remove
+	 * @memberof createEventManager
+	 * @param {string|Element|NodeList|Array|Document} $targets         - Target element(s) to remove events from.
+	 * @param {string|null}                            [eventType=null] - The event type to remove. If null, removes all events from the element.
+	 *
+	 * @example
+	 * // Remove specific event type
+	 * manager.remove('#my-button', 'click');
+	 *
+	 * @example
+	 * // Remove all events from element
+	 * manager.remove('#my-element', null);
+	 *
+	 * @example
+	 * // Remove events from multiple elements
+	 * manager.remove('.temporary-listeners', 'mouseenter');
+	 */
+	const remove = ( $targets, eventType = null ) => {
+		if ( ! controllers.has( namespace ) ) {
+			return;
+		}
+		const $elements = getElements( $targets );
+		$elements.forEach( ( $element ) => {
+			_remove( $element, eventType );
+		} );
+	};
 
-  /**
-   * Removes all event listeners for this namespace and cleans up the namespace entirely.
-   * This is useful for cleanup when a component or module is being destroyed.
-   *
-   * @method removeAll
-   * @memberof createEventManager
-   *
-   * @example
-   * // Clean up all events when component unmounts
-   * componentWillUnmount() {
-   *   this.eventManager.removeAll();
-   * }
-   *
-   * @example
-   * // Clean up modal events when modal is closed permanently
-   * function destroyModal() {
-   *   modalEvents.removeAll();
-   * }
-   */
-  const removeAll = () => {
-    if (!controllers.has(namespace)) {
-      return
-    }
-    const events = controllers.get(namespace)
-    for (const [$target] of [...events]) {
-      _remove($target, null)
-    }
-    controllers.delete(namespace)
-  }
-  const _get = $target => {
-    const $element = getElement($target)
-    if (typeof controllers.get(namespace) === 'undefined') {
-      throw new Error(`Namespace: "${namespace}" is not available in "${prefix}" event map.`)
-    }
-    if (!controllers.get(namespace).has($element)) {
-      return []
-    }
-    const events = controllers.get(namespace).get($element)
-    const available = []
-    for (const [eventType] of Object.entries(events)) {
-      const last = eventType.split(separator).at(-1)
-      const isNative = `on${last}` in $element
-      available.push({
-        eventType,
-        isNative,
-        nativeType: isNative ? last : '',
-      })
-    }
-    return [...new Set(available)]
-  }
+	/**
+	 * Removes all event listeners for this namespace and cleans up the namespace entirely.
+	 * This is useful for cleanup when a component or module is being destroyed.
+	 *
+	 * @function removeAll
+	 * @memberof createEventManager
+	 *
+	 * @example
+	 * // Clean up all events when component unmounts
+	 * componentWillUnmount() {
+	 *   this.eventManager.removeAll();
+	 * }
+	 *
+	 * @example
+	 * // Clean up modal events when modal is closed permanently
+	 * function destroyModal() {
+	 *   modalEvents.removeAll();
+	 * }
+	 */
+	const removeAll = () => {
+		if ( ! controllers.has( namespace ) ) {
+			return;
+		}
+		const events = controllers.get( namespace );
+		for ( const [ $target ] of [ ...events ] ) {
+			_remove( $target, null );
+		}
+		controllers.delete( namespace );
+	};
+	const _get = ( $target ) => {
+		const $element = getElement( $target );
+		if ( typeof controllers.get( namespace ) === 'undefined' ) {
+			throw new Error(
+				`Namespace: "${ namespace }" is not available in "${ prefix }" event map.`
+			);
+		}
+		if ( ! controllers.get( namespace ).has( $element ) ) {
+			return [];
+		}
+		const events = controllers.get( namespace ).get( $element );
+		const available = [];
+		for ( const [ eventType ] of Object.entries( events ) ) {
+			const last = eventType.split( separator ).at( -1 );
+			const isNative = `on${ last }` in $element;
+			available.push( {
+				eventType,
+				isNative,
+				nativeType: isNative ? last : '',
+			} );
+		}
+		return [ ...new Set( available ) ];
+	};
 
-  /**
-   * Gets information about events attached to specific elements.
-   * Returns an array of objects containing element and event information.
-   *
-   * @method get
-   * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to get event information for.
-   * @returns {Array<Object>} Array of objects containing element and event data.
-   * @returns {Element} returns[].$element - The DOM element.
-   * @returns {Array<Object>} returns[].$events - Array of event information objects.
-   * @returns {string} returns[].$events[].eventType - The full namespaced event type.
-   * @returns {boolean} returns[].$events[].isNative - Whether this is a native DOM event.
-   * @returns {string} returns[].$events[].nativeType - The native event type if applicable.
-   *
-   * @example
-   * // Get events for specific elements
-   * const eventInfo = manager.get('.my-buttons');
-   * eventInfo.forEach(({$element, $events}) => {
-   *   console.log('Element:', $element);
-   *   console.log('Events:', $events);
-   * });
-   *
-   * @example
-   * // Check if element has specific events
-   * const info = manager.get('#my-element');
-   * const hasClickEvent = info[0].$events.some(e => e.nativeType === 'click');
-   */
-  const get = $targets => {
-    if (!controllers.has(namespace)) {
-      return []
-    }
-    const $elements = getElements($targets)
-    const available = []
-    $elements.forEach($element => {
-      available.push({
-        $element,
-        $events: _get($element),
-      })
-    })
-    return available
-  }
+	/**
+	 * Gets information about events attached to specific elements.
+	 * Returns an array of objects containing element and event information.
+	 *
+	 * @function get
+	 * @memberof createEventManager
+	 * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to get event information for.
+	 * @return {Element|string|boolean|Array<Object>} Array of objects containing element and event data.
+	 *
+	 * @example
+	 * // Get events for specific elements
+	 * const eventInfo = manager.get('.my-buttons');
+	 * eventInfo.forEach(({$element, $events}) => {
+	 *   console.log('Element:', $element);
+	 *   console.log('Events:', $events);
+	 * });
+	 *
+	 * @example
+	 * // Check if element has specific events
+	 * const info = manager.get('#my-element');
+	 * const hasClickEvent = info[0].$events.some(e => e.nativeType === 'click');
+	 */
+	const get = ( $targets ) => {
+		if ( ! controllers.has( namespace ) ) {
+			return [];
+		}
+		const $elements = getElements( $targets );
+		const available = [];
+		$elements.forEach( ( $element ) => {
+			available.push( {
+				$element,
+				$events: _get( $element ),
+			} );
+		} );
+		return available;
+	};
 
-  /**
-   * Gets information about all events in this namespace across all elements.
-   * Useful for debugging or monitoring the current state of event listeners.
-   *
-   * @method getAll
-   * @memberof createEventManager
-   * @returns {Array<Object>} Array of objects containing all elements and their events in this namespace.
-   * @returns {Element} returns[].$element - The DOM element.
-   * @returns {Array<Object>} returns[].$events - Array of event information objects for this element.
-   *
-   * @example
-   * // Debug all events in namespace
-   * const allEvents = manager.getAll();
-   * console.log(`Total elements with events: ${allEvents.length}`);
-   * allEvents.forEach(({$element, $events}) => {
-   *   console.log(`Element ${$element.tagName} has ${$events.length} events`);
-   * });
-   *
-   * @example
-   * // Audit event usage
-   * function auditEvents() {
-   *   const events = manager.getAll();
-   *   const totalEvents = events.reduce((sum, {$events}) => sum + $events.length, 0);
-   *   console.log(`Total active events: ${totalEvents}`);
-   * }
-   */
-  const getAll = () => {
-    if (!controllers.has(namespace)) {
-      return []
-    }
-    const events = controllers.get(namespace)
-    const available = []
-    for (const [$element] of [...events]) {
-      available.push({
-        $element,
-        $events: _get($element),
-      })
-    }
-    return available
-  }
-  return {
-    add,
-    trigger,
-    remove,
-    removeAll,
-    get,
-    getAll,
-  }
+	/**
+	 * Gets information about all events in this namespace across all elements.
+	 * Useful for debugging or monitoring the current state of event listeners.
+	 *
+	 * @function getAll
+	 * @memberof createEventManager
+	 * @return {Array<Object>} Array of objects containing all elements and their events in this namespace.
+	 * @return {Element} returns[].$element - The DOM element.
+	 * @return {Array<Object>} returns[].$events - Array of event information objects for this element.
+	 *
+	 * @example
+	 * // Debug all events in namespace
+	 * const allEvents = manager.getAll();
+	 * console.log(`Total elements with events: ${allEvents.length}`);
+	 * allEvents.forEach(({$element, $events}) => {
+	 *   console.log(`Element ${$element.tagName} has ${$events.length} events`);
+	 * });
+	 *
+	 * @example
+	 * // Audit event usage
+	 * function auditEvents() {
+	 *   const events = manager.getAll();
+	 *   const totalEvents = events.reduce((sum, {$events}) => sum + $events.length, 0);
+	 *   console.log(`Total active events: ${totalEvents}`);
+	 * }
+	 */
+	const getAll = () => {
+		if ( ! controllers.has( namespace ) ) {
+			return [];
+		}
+		const events = controllers.get( namespace );
+		const available = [];
+		for ( const [ $element ] of [ ...events ] ) {
+			available.push( {
+				$element,
+				$events: _get( $element ),
+			} );
+		}
+		return available;
+	};
+	return {
+		add,
+		trigger,
+		remove,
+		removeAll,
+		get,
+		getAll,
+	};
 }
 
-export function createPlugin ({ selector, options = {}, plugin, namespace, callback = { onSetup: () => {}, onClear: () => {} } }) {
-  const initEventType = `init`
-  const destroyEventType = `destroy`
-  const reloadEventType = `reload`
-  return {
-    $event: null,
-    $controller: null,
+export function createPlugin( {
+	selector,
+	options = {},
+	plugin,
+	namespace,
+	callback = { onSetup: () => {}, onClear: () => {} },
+} ) {
+	const initEventType = `init`;
+	const destroyEventType = `destroy`;
+	const reloadEventType = `reload`;
+	return {
+		$event: null,
+		$controller: null,
 
-    get instance () {
-      return {
-        init ($element, settings) {
-          const instance = createPluginInstance($element, settings, plugin, namespace)
-          if (!instance || instance.length === 0) {
-            return
-          }
-          for (const {
-            element,
-            reset
-          } of instance) {
-            if (element && typeof reset === 'function') {
-              element.removeEventListener('destroy', reset, {
-                passive: true,
-                once: true,
-              })
-              element.addEventListener('destroy', reset, {
-                passive: true,
-                once: true,
-              })
-            }
-          }
-        },
-        destroy ($element) {
-          const instance = getPluginInstance($element, namespace)
-          if (!instance || instance.length === 0) {
-            return
-          }
-          for (const {
-            destroy
-          } of instance) {
-            if (typeof destroy === 'function') {
-              destroy()
-            }
-          }
-        },
-        reload ($element, settings) {
-          this.destroy($element)
-          this.init($element, settings)
-        },
-      }
-    },
-    get controller () {
-      return this.$controller
-    },
+		get instance() {
+			return {
+				init( $element, settings ) {
+					const instance = createPluginInstance(
+						$element,
+						settings,
+						plugin,
+						namespace
+					);
+					if ( ! instance || instance.length === 0 ) {
+						return;
+					}
+					for ( const { element, reset } of instance ) {
+						if ( element && typeof reset === 'function' ) {
+							element.removeEventListener( 'destroy', reset, {
+								passive: true,
+								once: true,
+							} );
+							element.addEventListener( 'destroy', reset, {
+								passive: true,
+								once: true,
+							} );
+						}
+					}
+				},
+				destroy( $element ) {
+					const instance = getPluginInstance( $element, namespace );
+					if ( ! instance || instance.length === 0 ) {
+						return;
+					}
+					for ( const { destroy } of instance ) {
+						if ( typeof destroy === 'function' ) {
+							destroy();
+						}
+					}
+				},
+				reload( $element, settings ) {
+					this.destroy( $element );
+					this.init( $element, settings );
+				},
+			};
+		},
+		get controller() {
+			return this.$controller;
+		},
 
-    get ($element = this.config.selector) {
-      return getPluginInstance($element, namespace)
-    },
+		get( $element = this.config.selector ) {
+			return getPluginInstance( $element, namespace );
+		},
 
-    // Setup events.
-    setup ({ selector: $selector, options: $options, callback: $callback } = { selector, options, callback }) {
+		// Setup events.
+		setup(
+			{ selector: $selector, options: $options, callback: $callback } = {
+				selector,
+				options,
+				callback,
+			}
+		) {
+			const defaultCallback = {
+				onSetup: () => {},
+				onClear: () => {},
+			};
 
-      const defaultCallback = {
-        onSetup: () => {},
-        onClear: () => {},
-      }
+			this.config = {
+				selector: $selector || selector,
+				options: deepMerge( options, $options ),
+				callback: deepMerge( defaultCallback, callback, $callback ),
+			};
 
-      this.config = {
-        selector: $selector || selector,
-        options: deepMerge(options, $options),
-        callback: deepMerge(defaultCallback, callback, $callback),
-      }
+			this.$event = createEventManager( toSnakeCase( namespace ) );
+			this.$controller = new AbortController();
 
-      this.$event = createEventManager(toSnakeCase(namespace))
-      this.$controller = new AbortController()
+			this.$event.removeAll();
 
-      this.$event.removeAll()
+			const handleInit = ( event ) => {
+				const defaultSettings = {};
+				const settings = {
+					...defaultSettings,
+					...event.detail?.settings,
+				};
+				const element = event.detail?.element;
+				if ( Array.isArray( element ) ) {
+					for ( const el of element ) {
+						this.instance.init( el, settings );
+					}
+				} else {
+					this.instance.init( element, settings );
+				}
+			};
+			const handleDestroy = ( event ) => {
+				const element = event.detail?.element;
+				if ( Array.isArray( element ) ) {
+					for ( const el of element ) {
+						this.instance.destroy( el );
+					}
+				} else {
+					this.instance.destroy( element );
+				}
+			};
+			const handleReload = ( event ) => {
+				const defaultSettings = {};
+				const settings = {
+					...defaultSettings,
+					...event.detail?.settings,
+				};
+				const element = event.detail?.element;
+				if ( Array.isArray( element ) ) {
+					for ( const el of element ) {
+						this.instance.reload( el, settings );
+					}
+				} else {
+					this.instance.reload( element, settings );
+				}
+			};
+			const eventOptions = {
+				passive: true,
+			};
 
-      const handleInit = event => {
-        const defaultSettings = {}
-        const settings = {
-          ...defaultSettings,
-          ...event.detail?.settings,
-        }
-        const element = event.detail?.element
-        if (Array.isArray(element)) {
-          for (const el of element) {
-            this.instance.init(el, settings)
-          }
-        } else {
-          this.instance.init(element, settings)
-        }
-      }
-      const handleDestroy = event => {
-        const element = event.detail?.element
-        if (Array.isArray(element)) {
-          for (const el of element) {
-            this.instance.destroy(el)
-          }
-        } else {
-          this.instance.destroy(element)
-        }
-      }
-      const handleReload = event => {
-        const defaultSettings = {}
-        const settings = {
-          ...defaultSettings,
-          ...event.detail?.settings,
-        }
-        const element = event.detail?.element
-        if (Array.isArray(element)) {
-          for (const el of element) {
-            this.instance.reload(el, settings)
-          }
-        } else {
-          this.instance.reload(element, settings)
-        }
-      }
-      const eventOptions = {
-        passive: true,
-      }
+			// Init.
+			this.$event.add(
+				document,
+				initEventType,
+				handleInit,
+				eventOptions
+			);
 
-      // Init.
-      this.$event.add(document, initEventType, handleInit, eventOptions)
+			// Destroy.
+			this.$event.add(
+				document,
+				destroyEventType,
+				handleDestroy,
+				eventOptions
+			);
 
-      // Destroy.
-      this.$event.add(document, destroyEventType, handleDestroy, eventOptions)
+			// Reload.
+			this.$event.add(
+				document,
+				reloadEventType,
+				handleReload,
+				eventOptions
+			);
 
-      // Reload.
-      this.$event.add(document, reloadEventType, handleReload, eventOptions)
-
-      this.config.callback.onSetup.call(this)
-    },
-    // Clear setup events.
-    clear ($selector = this.config.selector) {
-      this.destroy($selector)
-      this.$event.removeAll()
-      this.controller.abort()
-      this.config.callback.onClear.call(this)
-    },
-    // Init events.
-    init ($selector = this.config.selector, $settings = this.config.options) {
-      this.$event.trigger(document, initEventType, {
-        element: $selector,
-        settings: $settings,
-      })
-    },
-    // Destroy events.
-    destroy ($selector = this.config.selector) {
-      this.$event.trigger(document, destroyEventType, {
-        element: $selector,
-      })
-    },
-    // Reload events.
-    reload ($selector = this.config.selector, $settings = this.config.options) {
-      this.$event.trigger(document, reloadEventType, {
-        element: $selector,
-        settings: $settings,
-      })
-    },
-  }
+			this.config.callback.onSetup.call( this );
+		},
+		// Clear setup events.
+		clear( $selector = this.config.selector ) {
+			this.destroy( $selector );
+			this.$event.removeAll();
+			this.controller.abort();
+			this.config.callback.onClear.call( this );
+		},
+		// Init events.
+		init(
+			$selector = this.config.selector,
+			$settings = this.config.options
+		) {
+			this.$event.trigger( document, initEventType, {
+				element: $selector,
+				settings: $settings,
+			} );
+		},
+		// Destroy events.
+		destroy( $selector = this.config.selector ) {
+			this.$event.trigger( document, destroyEventType, {
+				element: $selector,
+			} );
+		},
+		// Reload events.
+		reload(
+			$selector = this.config.selector,
+			$settings = this.config.options
+		) {
+			this.$event.trigger( document, reloadEventType, {
+				element: $selector,
+				settings: $settings,
+			} );
+		},
+	};
 }
 
-export function getStorePressPlugin (namespace) {
-  const name = toUpperCamelCase(namespace)
+export function getStorePressPlugin( namespace ) {
+	const name = toUpperCamelCase( namespace );
 
-  window.StorePress = window.StorePress || {}
-  window.StorePress.$Plugins = window.StorePress.$Plugins || {}
-  window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {}
+	window.StorePress = window.StorePress || {};
+	window.StorePress.$Plugins = window.StorePress.$Plugins || {};
+	window.StorePress.$Plugins[ name ] =
+		window.StorePress.$Plugins[ name ] || {};
 
-  // Create if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Plugin']) {
-    window.StorePress.$Plugins[name]['Plugin'] = {}
-  }
+	// Create if it doesn't exist
+	if ( ! window.StorePress.$Plugins[ name ].Plugin ) {
+		window.StorePress.$Plugins[ name ].Plugin = {};
+	}
 
-  return window.StorePress.$Plugins[name]['Plugin']
+	return window.StorePress.$Plugins[ name ].Plugin;
 }
 
-export function createStorePressPlugin ({ selector, options = {}, plugin, namespace, callback = { onSetup: () => {}, onClear: () => {} } }) {
-  const StorePressPlugin = createPlugin({ selector, options, plugin, namespace, callback })
+export function createStorePressPlugin( {
+	selector,
+	options = {},
+	plugin,
+	namespace,
+	callback = { onSetup: () => {}, onClear: () => {} },
+} ) {
+	const StorePressPlugin = createPlugin( {
+		selector,
+		options,
+		plugin,
+		namespace,
+		callback,
+	} );
 
-  const name = toUpperCamelCase(namespace)
+	const name = toUpperCamelCase( namespace );
 
-  // Ensure nested structure exists
-  window.StorePress = window.StorePress || {}
-  window.StorePress.$Plugins = window.StorePress.$Plugins || {}
-  window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {}
+	// Ensure nested structure exists
+	window.StorePress = window.StorePress || {};
+	window.StorePress.$Plugins = window.StorePress.$Plugins || {};
+	window.StorePress.$Plugins[ name ] =
+		window.StorePress.$Plugins[ name ] || {};
 
-  // Create if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Plugin']) {
-    window.StorePress.$Plugins[name]['Plugin'] = {}
-  }
+	// Create if it doesn't exist
+	if ( ! window.StorePress.$Plugins[ name ].Plugin ) {
+		window.StorePress.$Plugins[ name ].Plugin = {};
+	}
 
-  window.StorePress.$Plugins[name]['Plugin'] = StorePressPlugin
+	window.StorePress.$Plugins[ name ].Plugin = StorePressPlugin;
 
-  return StorePressPlugin
+	return StorePressPlugin;
 }
 
 /**
@@ -2900,8 +3025,8 @@ export function createStorePressPlugin ({ selector, options = {}, plugin, namesp
  *  artificial delays in processing without blocking the UI thread.
  *
  * @param {number} milliseconds - The number of milliseconds to wait before resolving
- * @param {*} [data={}] - Optional data to resolve with after the delay
- * @returns {Promise<*>} A promise that resolves after the specified duration
+ * @param {*}      [data={}]    - Optional data to resolve with after the delay
+ * @return {Promise<*>} A promise that resolves after the specified duration
  *
  * @example
  * // Basic usage - wait 1 second
@@ -2944,8 +3069,10 @@ export function createStorePressPlugin ({ selector, options = {}, plugin, namesp
  * const result = await processWithDelay('hello');
  * console.log(result); // 'HELLO'
  */
-export function testWaitAsync (milliseconds, data = {}) {
-  return new Promise(resolve => setTimeout(() => resolve(data), milliseconds))
+export function testWaitAsync( milliseconds, data = {} ) {
+	return new Promise( ( resolve ) =>
+		setTimeout( () => resolve( data ), milliseconds )
+	);
 }
 
 /**
@@ -2954,8 +3081,8 @@ export function testWaitAsync (milliseconds, data = {}) {
  * WARNING: This will freeze the UI during execution.
  *
  * @param {number} milliseconds - The number of milliseconds to block execution.
- * @param {*} [data={}] - Optional data to return after the delay.
- * @returns {*} The provided data after the synchronous delay
+ * @param {*}      [data={}]    - Optional data to return after the delay.
+ * @return {*} The provided data after the synchronous delay
  *
  * @example
  * // Basic usage - block for 1 second (⚠️ blocks everything!)
@@ -2996,10 +3123,9 @@ export function testWaitAsync (milliseconds, data = {}) {
  * console.log('UI will freeze during this:');
  * waitSync(3000); // ⚠️ Browser UI will be completely unresponsive
  * console.log('UI unfrozen now');
- *
  */
-export function testWaitSync (milliseconds, data = {}) {
-  const start = Date.now()
-  while (Date.now() - start < milliseconds) {}
-  return data
+export function testWaitSync( milliseconds, data = {} ) {
+	const start = Date.now();
+	while ( Date.now() - start < milliseconds ) {}
+	return data;
 }

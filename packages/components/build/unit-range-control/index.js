@@ -229,7 +229,8 @@ function UnitRangeControl({
   };
   return /*#__PURE__*/React.createElement(_components.BaseControl, {
     label: label,
-    className: "storepress-component-unit-range-control"
+    className: "storepress-component-unit-range-control",
+    __nextHasNoMarginBottom: true
   }, /*#__PURE__*/React.createElement(_components.Flex, null, /*#__PURE__*/React.createElement(_components.FlexItem, {
     isBlock: true
   }, /*#__PURE__*/React.createElement(_components.__experimentalUnitControl, {

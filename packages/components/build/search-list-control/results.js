@@ -5,11 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Results = Results;
 var _element = require("@wordpress/element");
-var _utils = require("./utils");
+var _utils = require("@storepress/utils");
 function Results(props) {
   const {
     id,
     disableFilter,
+    isLoading,
     searchValue,
     items,
     itemKeyName,
@@ -80,6 +81,9 @@ function Results(props) {
   (0, _element.useLayoutEffect)(() => {
     onSelect(selectedItemKeys, selectedItems);
   }, [selectedItemKeys, selectedItems]);
+  if (isLoading) {
+    return /*#__PURE__*/React.createElement(React.Fragment, null);
+  }
   return currentItems.length > 0 ? /*#__PURE__*/React.createElement("div", {
     className: "results-wrapper"
   }, /*#__PURE__*/React.createElement("ul", null, currentItems.map((item, index) => {

@@ -111,6 +111,7 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
         onSearch={ debouncedOnProductSearch }
         isLoading={ isLoading }
         placeholder={ __('Search Product', 'textdomain') }
+        noItemsFoundText={ __('No Product Found', 'textdomain') }
       />
     </PanelBody>
   );
@@ -140,6 +141,7 @@ export const Example = () => {
         hideSearchBox={false}
         isMultiSelect={true}
         isLoading={loding}
+        noItemsFoundText={ __('No Product Found', 'textdomain') }
         onSearch={(searchString) => {
           // return filtered values.
         }}
@@ -159,7 +161,6 @@ export const Example = () => {
 ### Props
 
 The component accepts the following props:
-
 
 #### `id`: `string`
 
