@@ -28,7 +28,7 @@ describe('UnitRangeControl', () => {
   describe('rendering', () => {
     it('renders with label', () => {
       render(<UnitRangeControl {...defaultProps} />)
-      expect(screen.getByText('Width', { selector: 'span.components-base-control__label' })).toBeInTheDocument()
+      expect(screen.getByText('Width', { selector: 'label.components-base-control__label' })).toBeInTheDocument()
     })
 
     it('renders UnitControl with correct value', () => {
@@ -332,7 +332,7 @@ describe('UnitRangeControl', () => {
       render(<UnitRangeControl {...defaultProps} label="Container Width" />);
 
       // Label should be visible
-      expect(screen.getByText('Container Width', { selector: 'span.components-base-control__label' })).toBeInTheDocument();
+      expect(screen.getByText('Container Width', { selector: 'label.components-base-control__label' })).toBeInTheDocument();
     });
 
     it('slider and input are focusable', async () => {

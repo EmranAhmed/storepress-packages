@@ -13,7 +13,7 @@ import { Input } from './input';
 import { Results } from './results';
 
 function SearchListControl( props ) {
-	const { id } = props;
+	const { id, hideSearchBox } = props;
 
 	const idProps = useInstanceId(
 		SearchListControl,
@@ -31,12 +31,14 @@ function SearchListControl( props ) {
 	return (
 		<BaseControl { ...baseControlProps }>
 			<div className="storepress-component-search-list">
-				<Input
-					searchValue={ searchValue }
-					setSearchValue={ setSearchValue }
-					controlProps={ controlProps }
-					{ ...baseControlProps }
-				/>
+				{ hideSearchBox && (
+					<Input
+						searchValue={ searchValue }
+						setSearchValue={ setSearchValue }
+						controlProps={ controlProps }
+						{ ...baseControlProps }
+					/>
+				) }
 				<Results searchValue={ searchValue } { ...baseControlProps } />
 			</div>
 		</BaseControl>

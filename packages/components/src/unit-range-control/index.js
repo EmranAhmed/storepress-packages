@@ -188,7 +188,10 @@ function UnitRangeControl( {
 		}
 	};
 
-	const id = useInstanceId( UnitRangeControl, 'storepress-component-unit-range-control' );
+	const id = useInstanceId(
+		UnitRangeControl,
+		'storepress-component-unit-range-control'
+	);
 
 	return (
 		<BaseControl

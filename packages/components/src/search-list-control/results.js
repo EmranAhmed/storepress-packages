@@ -74,8 +74,11 @@ export function Results( props ) {
 				.map( ( item ) => {
 					const text = itemFilterName
 						?.reduce( ( str, filterKey ) => {
-							const text = findObjectValue( item, filterKey );
-							str.push( text );
+							const innerText = findObjectValue(
+								item,
+								filterKey
+							);
+							str.push( innerText );
 							return str;
 						}, [] )
 						.join( ' ' );
@@ -131,7 +134,7 @@ export function Results( props ) {
 						}, [] )
 						.join( ' - ' );
 
-					const id = `${ inputName }-${ index }`;
+					const listId = `${ inputName }-${ index }`;
 
 					return (
 						<li key={ index } className="result-item">
@@ -141,13 +144,13 @@ export function Results( props ) {
 									key
 								) }
 								onChange={ handleSelected }
-								id={ id }
+								id={ listId }
 								name={ inputName }
 								value={ key }
 								type={ isMultiSelect ? 'checkbox' : 'radio' }
 							/>
 							<label
-								htmlFor={ id }
+								htmlFor={ listId }
 								className="result-item__label"
 							>
 								<span className="result-item__title">

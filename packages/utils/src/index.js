@@ -1931,8 +1931,7 @@ export function getPluginInstance( selectors, namespace ) {
  * @param {Object}                                [options={}]              - CustomEvent configuration options
  * @param {boolean}                               [options.bubbles=false]   - Whether the event bubbles up through the DOM tree
  * @param {boolean}                               [options.cancelable=true] - Whether the event can be canceled with preventDefault()
- * @param {boolean}                               [options.composed=false]  - Whether the event will trigger listeners outside of a shadow root
- * @return {boolean} True if the event was not canceled, false if preventDefault() was called
+ * @param {boolean}                               [options.composed=false]  - Whether the event will trigger listeners outside a shadow root
  * @example
  * // Basic custom event dispatch
  * const button = document.getElementById('my-button');
@@ -2454,6 +2453,7 @@ export function createEventManager(
 	 * @param {string}                                 eventType         - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
 	 * @param {Function}                               handler           - The event handler function to execute when the event is triggered.
 	 * @param {Object}                                 [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
+	 * @return {createEventManager} Return createEventManager.
 	 *
 	 * @example
 	 * // Add click handler to a single element
@@ -2485,12 +2485,15 @@ export function createEventManager(
 		$elements.forEach( ( $element ) => {
 			_add( $element, eventType, handler, eventOptions );
 		} );
+
+		return this;
 	};
+
 	const _trigger = (
 		$target,
 		eventType,
 		eventDetails = {},
-		options = {}
+		triggerOptions = {}
 	) => {
 		const events = _getEvents( $target, eventType );
 		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
@@ -2504,7 +2507,7 @@ export function createEventManager(
 					} )
 				);
 			} else {
-				triggerEvent( $element, event, eventDetails, options );
+				triggerEvent( $element, event, eventDetails, triggerOptions );
 			}
 		}
 	};
@@ -2515,11 +2518,11 @@ export function createEventManager(
 	 *
 	 * @function trigger
 	 * @memberof createEventManager
-	 * @param {string|Element|NodeList|Array|Document} $targets          - Target element(s) to trigger events on.
-	 * @param {string|null}                            [eventType=null]  - The event type to trigger. If null, triggers all events for the element.
-	 * @param {Object}                                 [eventDetails={}] - Custom data to pass with the event (for custom events).
-	 * @param {Object}                                 [options={}]      - Additional options for event dispatching.
-	 *
+	 * @param {string|Element|NodeList|Array|Document} $targets            - Target element(s) to trigger events on.
+	 * @param {string|null}                            [eventType=null]    - The event type to trigger. If null, triggers all events for the element.
+	 * @param {Object}                                 [eventDetails={}]   - Custom data to pass with the event (for custom events).
+	 * @param {Object}                                 [triggerOptions={}] - Additional options for event dispatching.
+	 * @return {createEventManager} return createEventManager.
 	 * @example
 	 * // Trigger specific event type
 	 * manager.trigger('#my-button', 'click');
@@ -2543,16 +2546,19 @@ export function createEventManager(
 		$targets,
 		eventType = null,
 		eventDetails = {},
-		options = {}
+		triggerOptions = {}
 	) => {
-		const $elements = getElements( $targets );
 		if ( ! controllers.has( namespace ) ) {
-			return;
+			return this;
 		}
+		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
-			_trigger( $element, eventType, eventDetails, options );
+			_trigger( $element, eventType, eventDetails, triggerOptions );
 		} );
+
+		return this;
 	};
+
 	const _getEvents = ( $target, eventType ) => {
 		if ( ! controllers.get( namespace ).has( $target ) ) {
 			return [];
@@ -2577,6 +2583,7 @@ export function createEventManager(
 		}
 		return available;
 	};
+
 	const _remove = ( $target, eventType ) => {
 		const $element = getElement( $target );
 		if ( typeof controllers.get( namespace ) === 'undefined' ) {
@@ -2589,7 +2596,7 @@ export function createEventManager(
 		}
 		const events = controllers.get( namespace ).get( $element );
 		if ( eventType === null ) {
-			for ( const [ _, controller ] of Object.entries( events ) ) {
+			for ( const [ , controller ] of Object.entries( events ) ) {
 				controller.abort();
 			}
 			controllers.get( namespace ).delete( $element );
@@ -2613,7 +2620,7 @@ export function createEventManager(
 	 * @memberof createEventManager
 	 * @param {string|Element|NodeList|Array|Document} $targets         - Target element(s) to remove events from.
 	 * @param {string|null}                            [eventType=null] - The event type to remove. If null, removes all events from the element.
-	 *
+	 * @return {createEventManager} Return createEventManager.
 	 * @example
 	 * // Remove specific event type
 	 * manager.remove('#my-button', 'click');
@@ -2628,12 +2635,14 @@ export function createEventManager(
 	 */
 	const remove = ( $targets, eventType = null ) => {
 		if ( ! controllers.has( namespace ) ) {
-			return;
+			return this;
 		}
 		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
 			_remove( $element, eventType );
 		} );
+
+		return this;
 	};
 
 	/**
@@ -2665,6 +2674,7 @@ export function createEventManager(
 		}
 		controllers.delete( namespace );
 	};
+
 	const _get = ( $target ) => {
 		const $element = getElement( $target );
 		if ( typeof controllers.get( namespace ) === 'undefined' ) {
@@ -2732,9 +2742,7 @@ export function createEventManager(
 	 *
 	 * @function getAll
 	 * @memberof createEventManager
-	 * @return {Array<Object>} Array of objects containing all elements and their events in this namespace.
-	 * @return {Element} returns[].$element - The DOM element.
-	 * @return {Array<Object>} returns[].$events - Array of event information objects for this element.
+	 * @return {Array<Object>|Element} Array of objects containing all elements and their events in this namespace.
 	 *
 	 * @example
 	 * // Debug all events in namespace
@@ -2766,6 +2774,7 @@ export function createEventManager(
 		}
 		return available;
 	};
+
 	return {
 		add,
 		trigger,

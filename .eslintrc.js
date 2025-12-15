@@ -69,6 +69,7 @@ module.exports = {
     StorePress: true,
   },
   rules: {
+    'no-console': 'off',
     '@woocommerce/dependency-group': 'off',
     'react-hooks/exhaustive-deps': 'off',
     'react/react-in-jsx-scope': 'off',

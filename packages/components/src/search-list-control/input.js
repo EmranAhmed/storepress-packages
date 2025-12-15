@@ -2,18 +2,8 @@ import { useCallback, useLayoutEffect, useRef } from '@wordpress/element';
 import { Icon } from './icon';
 
 export function Input( props ) {
-	const {
-		controlProps,
-		searchValue,
-		setSearchValue,
-		placeholder,
-		hideSearchBox,
-		onSearch,
-	} = props;
-
-	if ( hideSearchBox ) {
-		return;
-	}
+	const { controlProps, searchValue, setSearchValue, placeholder, onSearch } =
+		props;
 
 	const ref = useRef();
 
