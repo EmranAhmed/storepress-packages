@@ -45,7 +45,8 @@ export const Remote = {
   loaders: [
     async () => ({
       items: await apiFetch({
-        url: 'https://jsonplaceholder.typicode.com/users',
+       url: 'https://jsonplaceholder.typicode.com/users',
+        // url: 'https://jsonplaceholder.typicode.com/posts',
       }),
     }),
   ],

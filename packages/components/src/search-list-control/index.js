@@ -13,7 +13,7 @@ import { Input } from './input';
 import { Results } from './results';
 
 function SearchListControl( props ) {
-	const { id, hideSearchBox } = props;
+	const { id, hideSearchBox = false } = props;
 
 	const idProps = useInstanceId(
 		SearchListControl,
@@ -31,7 +31,7 @@ function SearchListControl( props ) {
 	return (
 		<BaseControl { ...baseControlProps }>
 			<div className="storepress-component-search-list">
-				{ hideSearchBox && (
+				{ ! hideSearchBox && (
 					<Input
 						searchValue={ searchValue }
 						setSearchValue={ setSearchValue }
