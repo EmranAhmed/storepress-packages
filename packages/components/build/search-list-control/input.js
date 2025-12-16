@@ -13,12 +13,8 @@ function Input(props) {
     searchValue,
     setSearchValue,
     placeholder,
-    hideSearchBox,
     onSearch
   } = props;
-  if (hideSearchBox) {
-    return;
-  }
   const ref = (0, _element.useRef)();
   const handleOnChange = (0, _element.useCallback)(event => {
     const {

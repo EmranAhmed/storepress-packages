@@ -12,7 +12,9 @@ export function Results( props ) {
 		itemFilterName,
 		isMultiSelect,
 		itemValueName,
+		itemValueNameSeparator,
 		itemMetaName,
+		itemMetaNameSeparator,
 		selected,
 		onSelect,
 		noItemsFoundText,
@@ -124,7 +126,7 @@ export function Results( props ) {
 							metas.push( m );
 							return metas;
 						}, [] )
-						.join( ', ' );
+						.join( itemMetaNameSeparator );
 
 					const value = itemValueName
 						?.reduce( ( values, currentValue ) => {
@@ -132,7 +134,7 @@ export function Results( props ) {
 							values.push( m );
 							return values;
 						}, [] )
-						.join( ' - ' );
+						.join( itemValueNameSeparator );
 
 					const listId = `${ inputName }-${ index }`;
 

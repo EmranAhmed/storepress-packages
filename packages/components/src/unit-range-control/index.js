@@ -79,8 +79,8 @@ export function unitConverter(
 		const { fromUnits, toUnits, operator, digit } = operation;
 
 		if ( toUnits.includes( newUnit ) && fromUnits.includes( oldUnit ) ) {
-			if ( operator === '/' ) {
-				const newValue = ( currentValue / digit ).toFixed( 2 );
+			if ( operator === '*' ) {
+				const newValue = Math.round( currentValue * digit );
 				return {
 					unitName: newUnit,
 					unitValue: newValue,
@@ -88,8 +88,8 @@ export function unitConverter(
 				};
 			}
 
-			if ( operator === '*' ) {
-				const newValue = Math.round( currentValue * digit );
+			if ( operator === '/' ) {
+				const newValue = ( currentValue / digit ).toFixed( 2 );
 				return {
 					unitName: newUnit,
 					unitValue: newValue,

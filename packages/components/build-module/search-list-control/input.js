@@ -7,12 +7,8 @@ export function Input(props) {
     searchValue,
     setSearchValue,
     placeholder,
-    hideSearchBox,
     onSearch
   } = props;
-  if (hideSearchBox) {
-    return;
-  }
   const ref = useRef();
   const handleOnChange = useCallback(event => {
     const {

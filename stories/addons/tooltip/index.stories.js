@@ -49,8 +49,9 @@ export const Basic = {
     render : (args) => {
         return (
           <>
-            <div style={{'width': 'max-content'}} data-storepress-tooltip="Distinctively">Data</div>
-            <div style={{'width': 'max-content'}} data-storepress-tooltip="Synergistically leverage existing diverse sources for B2B metrics. Seamlessly predominate web-enabled strategic theme areas after world-class e-services. Proactively productivate fully researched infomediaries and timely supply chains. Conveniently exploit enabled web services.">Data 2</div>
+            <div style={{'width': 'max-content'}} data-storepress-tooltip="Distinctively">Text</div>
+            <div style={{'width': 'max-content'}} data-storepress-tooltip="Conveniently exploit enabled web services.">Data 2</div>
+            <button style={{'width': 'max-content'}} data-storepress-tooltip="Seamlessly predominate web-enabled strategic theme areas after world-class e-services.">Button</button>
           </>
         );
     }
@@ -61,7 +62,8 @@ export const Image = {
   render : (args) => {
     return (
       <>
-        <div className="storepress-tooltip-type-image" style={{ '--tooltip-image':'url(\'https://placehold.co/300x200/ff5c00/fff\')'}} data-storepress-tooltip="Synergistically leverage existing diverse sources for B2B metrics. Seamlessly predominate web-enabled strategic theme areas after world-class e-services. Proactively productivate fully researched infomediaries and timely supply chains. Conveniently exploit enabled web services.">Image Tooltip</div>
+        <div className="storepress-tooltip-type-image" style={{ '--tooltip-image':'url(\'https://picsum.photos/300/200\')'}} data-storepress-tooltip="Sample">Image Tooltip</div>
+        <div className="storepress-tooltip-type-image" style={{ '--tooltip-image':'url(\'https://picsum.photos/150\')'}} data-storepress-tooltip="Long tooltip text with strategic">Image Tooltip</div>
       </>
     );
   }

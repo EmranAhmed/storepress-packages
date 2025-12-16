@@ -103,7 +103,6 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
   return (
     <PanelBody title={ __( 'Product Settings', 'textdomain' ) }>
       <SearchListControl
-        disableFilter={ true }
         itemMetaName={ [ 'type' ] }
         items={ queryProductsList }
         selected={ [ productId ] }
@@ -123,14 +122,23 @@ export const Example = () => {
   
 // Fetch Attributes
   useEffect(() => {
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     apiFetch({
       path : 'wc/store/v1/products/attributes',
+      signal: signal,
     }).then((result) => {
       if (result && result.length > 0) {
         setLoading(false)
         setSugessionList(result)
       }
     })
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   return (
@@ -216,8 +224,8 @@ Unique key from item single object.
 
 Value key from item single object.
 
--   Default: `[name]`
--   Required: no if `[name]`
+-   Default: `['name']`
+-   Required: no if `['name']`
 
 #### `itemMetaName`: `array`
 
@@ -242,7 +250,14 @@ Is loading state or not
 
 #### `disableFilter`: `boolean`
 
-Disable show list by text search.
+Disable filtering.
+
+-   Default: `false`
+-   Required: no 
+
+#### `hideSearchBox`: `boolean`
+
+Hide search box.
 
 -   Default: `false`
 -   Required: no 
@@ -256,13 +271,7 @@ Make dropdown with checkbox select or radio select.
 
 #### `placeholder`: `string`
 
-Control placeholder text
-
--   Required: no 
-
-#### `clearText`: `string`
-
-Control clear button text
+Input placeholder text
 
 -   Required: no
 

@@ -12,24 +12,28 @@ import { useInstanceId } from '@wordpress/compose';
 import { Input } from './input';
 import { Results } from './results';
 
-function SearchListControl( props ) {
-	const { id, hideSearchBox = false } = props;
-
-	const idProps = useInstanceId(
+function SearchListControl( {
+	id = '',
+	hideSearchBox = false,
+	itemValueNameSeparator = ' - ',
+	itemMetaNameSeparator = ', ',
+	...baseProps
+} ) {
+	const preferredId = useInstanceId(
 		SearchListControl,
-		'search-list-control',
+		'storepress-search-list-control',
 		id
 	);
 
 	const { baseControlProps, controlProps } = useBaseControlProps( {
-		...props,
-		id: idProps,
+		...baseProps,
+		id: preferredId,
 	} );
 
 	const [ searchValue, setSearchValue ] = useState( '' );
 
 	return (
-		<BaseControl { ...baseControlProps }>
+		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
 			<div className="storepress-component-search-list">
 				{ ! hideSearchBox && (
 					<Input
@@ -39,13 +43,17 @@ function SearchListControl( props ) {
 						{ ...baseControlProps }
 					/>
 				) }
-				<Results searchValue={ searchValue } { ...baseControlProps } />
+				<Results
+					itemValueNameSeparator={ itemValueNameSeparator }
+					itemMetaNameSeparator={ itemMetaNameSeparator }
+					searchValue={ searchValue }
+					{ ...baseControlProps }
+				/>
 			</div>
 		</BaseControl>
 	);
 }
 
-// @TODO: Add itemMetaNameSeparator, itemValueNameSeparator
 SearchListControl.propTypes = {
 	id: PropTypes.string,
 
@@ -67,7 +75,11 @@ SearchListControl.propTypes = {
 
 	itemValueName: PropTypes.array,
 
+	itemValueNameSeparator: PropTypes.string,
+
 	itemMetaName: PropTypes.array,
+
+	itemMetaNameSeparator: PropTypes.string,
 
 	itemFilterName: PropTypes.array,
 

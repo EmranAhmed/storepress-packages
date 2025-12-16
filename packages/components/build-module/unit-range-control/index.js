@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { useInstanceId } from '@wordpress/compose';
 import { useMemo } from '@wordpress/element';
 import { BaseControl, RangeControl, Flex, FlexItem,
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
@@ -139,16 +140,16 @@ export function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
       digit
     } = operation;
     if (toUnits.includes(newUnit) && fromUnits.includes(oldUnit)) {
-      if (operator === '/') {
-        const newValue = (currentValue / digit).toFixed(2);
+      if (operator === '*') {
+        const newValue = Math.round(currentValue * digit);
         return {
           unitName: newUnit,
           unitValue: newValue,
           unitString: `${newValue}${newUnit}`
         };
       }
-      if (operator === '*') {
-        const newValue = Math.round(currentValue * digit);
+      if (operator === '/') {
+        const newValue = (currentValue / digit).toFixed(2);
         return {
           unitName: newUnit,
           unitValue: newValue,
@@ -175,13 +176,12 @@ export function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
  *
  *
  * @param {Object}          props
- * @param {string}          props.label                                              - A label for the control.
- * @param {onChange}        props.onChange                                           - Called when the value changes.
- * @param {string}          props.value                                              - The current value with unit.
+ * @param {string}          props.label                                   - A label for the control.
+ * @param {onChange}        props.onChange                                - Called when the value changes.
+ * @param {string}          props.value                                   - The current value with unit.
  * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] - Available values.
- * @param {availableUnit[]} [props.defaultUnits]                                     - Default units.
- * @param {unitOperation[]} [props.convertUnits]                                     - Unit value conversion logic.
- *
+ * @param {availableUnit[]} [props.defaultUnits]                          - Default units.
+ * @param {unitOperation[]} [props.convertUnits]                          - Unit value conversion logic.
  */
 function UnitRangeControl({
   label,
@@ -228,7 +228,9 @@ function UnitRangeControl({
       onChange(unitString);
     }
   };
+  const id = useInstanceId(UnitRangeControl, 'storepress-component-unit-range-control');
   return /*#__PURE__*/_jsx(BaseControl, {
+    id: id,
     label: label,
     className: "storepress-component-unit-range-control",
     __nextHasNoMarginBottom: true,
@@ -236,6 +238,7 @@ function UnitRangeControl({
       children: [/*#__PURE__*/_jsx(FlexItem, {
         isBlock: true,
         children: /*#__PURE__*/_jsx(UnitControl, {
+          id: id,
           value: value,
           units: units,
           onChange: onChange,

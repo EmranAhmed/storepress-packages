@@ -42,6 +42,13 @@ If this property is added, a label will be generated using label property as the
 
 -   Type: `String`
 -   Required: Yes
+- 
+#### value
+
+If this property is added, a value is added as number.
+
+-   Type: `Number`
+-   Required: Yes
 
 
 #### onChange
@@ -49,8 +56,7 @@ If this property is added, a label will be generated using label property as the
 Callback when the `value` changes.
 
 -   Type: `Function`
--   Required: No
--   Default: `noop`
+-   Required: Yes
 
 
 #### allowedUnits

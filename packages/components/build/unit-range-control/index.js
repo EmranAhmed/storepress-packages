@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = exports.availableUnits = void 0;
 exports.unitConverter = unitConverter;
 exports.unitOperations = void 0;
+var _compose = require("@wordpress/compose");
 var _element = require("@wordpress/element");
 var _components = require("@wordpress/components");
 var _propTypes = _interopRequireDefault(require("prop-types"));
@@ -139,16 +140,16 @@ function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
       digit
     } = operation;
     if (toUnits.includes(newUnit) && fromUnits.includes(oldUnit)) {
-      if (operator === '/') {
-        const newValue = (currentValue / digit).toFixed(2);
+      if (operator === '*') {
+        const newValue = Math.round(currentValue * digit);
         return {
           unitName: newUnit,
           unitValue: newValue,
           unitString: `${newValue}${newUnit}`
         };
       }
-      if (operator === '*') {
-        const newValue = Math.round(currentValue * digit);
+      if (operator === '/') {
+        const newValue = (currentValue / digit).toFixed(2);
         return {
           unitName: newUnit,
           unitValue: newValue,
@@ -175,13 +176,12 @@ function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
  *
  *
  * @param {Object}          props
- * @param {string}          props.label                                              - A label for the control.
- * @param {onChange}        props.onChange                                           - Called when the value changes.
- * @param {string}          props.value                                              - The current value with unit.
+ * @param {string}          props.label                                   - A label for the control.
+ * @param {onChange}        props.onChange                                - Called when the value changes.
+ * @param {string}          props.value                                   - The current value with unit.
  * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] - Available values.
- * @param {availableUnit[]} [props.defaultUnits]                                     - Default units.
- * @param {unitOperation[]} [props.convertUnits]                                     - Unit value conversion logic.
- *
+ * @param {availableUnit[]} [props.defaultUnits]                          - Default units.
+ * @param {unitOperation[]} [props.convertUnits]                          - Unit value conversion logic.
  */
 function UnitRangeControl({
   label,
@@ -227,13 +227,16 @@ function UnitRangeControl({
       onChange(unitString);
     }
   };
+  const id = (0, _compose.useInstanceId)(UnitRangeControl, 'storepress-component-unit-range-control');
   return /*#__PURE__*/React.createElement(_components.BaseControl, {
+    id: id,
     label: label,
     className: "storepress-component-unit-range-control",
     __nextHasNoMarginBottom: true
   }, /*#__PURE__*/React.createElement(_components.Flex, null, /*#__PURE__*/React.createElement(_components.FlexItem, {
     isBlock: true
   }, /*#__PURE__*/React.createElement(_components.__experimentalUnitControl, {
+    id: id,
     value: value,
     units: units,
     onChange: onChange,

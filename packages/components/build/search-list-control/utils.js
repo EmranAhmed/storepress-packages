@@ -13,10 +13,10 @@ exports.findObjectValue = findObjectValue;
  * and bracket notation (e.g., 'users[0].email') for accessing object properties and array elements.
  * If the specified path doesn't exist, it returns a default value instead of throwing an error.
  *
- * @param {Object|Array} obj - The object or array to search in
- * @param {string|string[]} path - The property path as a string (dot/bracket notation) or array of keys
- * @param {*} [defValue] - The default value to return if the path doesn't exist or resolves to undefined
- * @returns {*} The value at the specified path, or the default value if not found
+ * @param {Object|Array}    obj        - The object or array to search in
+ * @param {string|string[]} path       - The property path as a string (dot/bracket notation) or array of keys
+ * @param {*}               [defValue] - The default value to return if the path doesn't exist or resolves to undefined
+ * @return {*} The value at the specified path, or the default value if not found
  *
  * @example
  * // Basic object property access
@@ -254,7 +254,9 @@ exports.findObjectValue = findObjectValue;
 
 function findObjectValue(obj, path, defValue) {
   // If path is not defined or it has false value
-  if (!path) return undefined;
+  if (!path) {
+    return undefined;
+  }
   // Check if path is string or array. Regex : ensure that we do not have '.' and brackets.
   // Regex explained: https://regexr.com/58j0k
   const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g);

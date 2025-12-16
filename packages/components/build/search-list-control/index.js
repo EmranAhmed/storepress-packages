@@ -18,7 +18,10 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
  */
 function SearchListControl(props) {
   const {
-    id
+    id,
+    hideSearchBox = false,
+    itemValueNameSeparator = ' _ ',
+    itemMetaNameSeparator = ', '
   } = props;
   const idProps = (0, _compose.useInstanceId)(SearchListControl, 'search-list-control', id);
   const {
@@ -29,13 +32,19 @@ function SearchListControl(props) {
     id: idProps
   });
   const [searchValue, setSearchValue] = (0, _element.useState)('');
-  return /*#__PURE__*/React.createElement(_components.BaseControl, baseControlProps, /*#__PURE__*/React.createElement("div", {
+  console.log(props);
+  return;
+  return /*#__PURE__*/React.createElement(_components.BaseControl, _extends({}, baseControlProps, {
+    __nextHasNoMarginBottom: true
+  }), /*#__PURE__*/React.createElement("div", {
     className: "storepress-component-search-list"
-  }, /*#__PURE__*/React.createElement(_input.Input, _extends({
+  }, !hideSearchBox && /*#__PURE__*/React.createElement(_input.Input, _extends({
     searchValue: searchValue,
     setSearchValue: setSearchValue,
     controlProps: controlProps
   }, baseControlProps)), /*#__PURE__*/React.createElement(_results.Results, _extends({
+    itemValueNameSeparator: itemValueNameSeparator,
+    itemMetaNameSeparator: itemMetaNameSeparator,
     searchValue: searchValue
   }, baseControlProps))));
 }
@@ -52,7 +61,9 @@ SearchListControl.propTypes = {
   disableFilter: _propTypes.default.bool,
   itemKeyName: _propTypes.default.string,
   itemValueName: _propTypes.default.array,
+  itemValueNameSeparator: _propTypes.default.string,
   itemMetaName: _propTypes.default.array,
+  itemMetaNameSeparator: _propTypes.default.string,
   itemFilterName: _propTypes.default.array,
   placeholder: _propTypes.default.string,
   noItemsFoundText: _propTypes.default.string,

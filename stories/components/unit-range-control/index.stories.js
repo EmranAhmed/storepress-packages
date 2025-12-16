@@ -39,7 +39,7 @@ export const Basic = {
 
   render: ( args ) => {
 
-    const [ value, setValue ] = useState( '100px' );
+    const [ value, setValue ] = useState( args.value );
 
     return (
       <UnitRangeControl

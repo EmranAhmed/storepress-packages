@@ -3,8 +3,8 @@
  */
 import { useState } from '@wordpress/element';
 import PropTypes from 'prop-types';
-import { BaseControl, useBaseControlProps } from "@wordpress/components";
-import { useInstanceId } from "@wordpress/compose";
+import { BaseControl, useBaseControlProps } from '@wordpress/components';
+import { useInstanceId } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -14,7 +14,10 @@ import { Results } from './results';
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 function SearchListControl(props) {
   const {
-    id
+    id,
+    hideSearchBox = false,
+    itemValueNameSeparator = ' _ ',
+    itemMetaNameSeparator = ', '
   } = props;
   const idProps = useInstanceId(SearchListControl, 'search-list-control', id);
   const {
@@ -25,16 +28,21 @@ function SearchListControl(props) {
     id: idProps
   });
   const [searchValue, setSearchValue] = useState('');
+  console.log(props);
+  return;
   return /*#__PURE__*/_jsx(BaseControl, {
     ...baseControlProps,
+    __nextHasNoMarginBottom: true,
     children: /*#__PURE__*/_jsxs("div", {
       className: "storepress-component-search-list",
-      children: [/*#__PURE__*/_jsx(Input, {
+      children: [!hideSearchBox && /*#__PURE__*/_jsx(Input, {
         searchValue: searchValue,
         setSearchValue: setSearchValue,
         controlProps: controlProps,
         ...baseControlProps
       }), /*#__PURE__*/_jsx(Results, {
+        itemValueNameSeparator: itemValueNameSeparator,
+        itemMetaNameSeparator: itemMetaNameSeparator,
         searchValue: searchValue,
         ...baseControlProps
       })]
@@ -54,7 +62,9 @@ SearchListControl.propTypes = {
   disableFilter: PropTypes.bool,
   itemKeyName: PropTypes.string,
   itemValueName: PropTypes.array,
+  itemValueNameSeparator: PropTypes.string,
   itemMetaName: PropTypes.array,
+  itemMetaNameSeparator: PropTypes.string,
   itemFilterName: PropTypes.array,
   placeholder: PropTypes.string,
   noItemsFoundText: PropTypes.string,

@@ -12,7 +12,9 @@ export function Results(props) {
     itemFilterName,
     isMultiSelect,
     itemValueName,
+    itemValueNameSeparator,
     itemMetaName,
+    itemMetaNameSeparator,
     selected,
     onSelect,
     noItemsFoundText
@@ -58,8 +60,8 @@ export function Results(props) {
       const re = new RegExp(escapeRegex(searchValue), 'i');
       return items.map(item => {
         const text = itemFilterName?.reduce((str, filterKey) => {
-          const text = findObjectValue(item, filterKey);
-          str.push(text);
+          const innerText = findObjectValue(item, filterKey);
+          str.push(innerText);
           return str;
         }, []).join(' ');
         return re.test(text) ? item : false;
@@ -90,24 +92,24 @@ export function Results(props) {
           const m = findObjectValue(item, currentMeta);
           metas.push(m);
           return metas;
-        }, []).join(', ');
+        }, []).join(itemMetaNameSeparator);
         const value = itemValueName?.reduce((values, currentValue) => {
           const m = findObjectValue(item, currentValue);
           values.push(m);
           return values;
-        }, []).join(' - ');
-        const id = `${inputName}-${index}`;
+        }, []).join(itemValueNameSeparator);
+        const listId = `${inputName}-${index}`;
         return /*#__PURE__*/_jsxs("li", {
           className: "result-item",
           children: [/*#__PURE__*/_jsx("input", {
             checked: handleChecked(selectedItemKeys, key),
             onChange: handleSelected,
-            id: id,
+            id: listId,
             name: inputName,
             value: key,
             type: isMultiSelect ? 'checkbox' : 'radio'
           }), /*#__PURE__*/_jsx("label", {
-            htmlFor: id,
+            htmlFor: listId,
             className: "result-item__label",
             children: /*#__PURE__*/_jsx("span", {
               className: "result-item__title",

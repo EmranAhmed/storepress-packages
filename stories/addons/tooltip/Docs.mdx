@@ -5,8 +5,8 @@ import * as Stories from './index.stories';
 
 ## Install
 
-```shell
-npm i @storepress/tooltip @storepress/utils --save
+```sh
+npm i @storepress/tooltip --save
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ npm i @storepress/tooltip @storepress/utils --save
  * External dependencies
  */
 import StorePressTooltip from '@storepress/tooltip';
-import { triggerEvent } from '@storepress/utils';
+
 import '@storepress/tooltip/src/style.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -39,17 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ## Customized Tooltip
 
+- Add `storepress-tooltip-type-image` class for image tooltip.
+
 ```html
-<span class="tooltip" data-storepress-tooltip="Tooltip text"></span>
+<span data-storepress-tooltip="Tooltip text"></span>
 
 - For Image tooltip
-<div class="storepress-tooltip-type-image" style="--tooltip-image: url('https://placehold.co/300x200/ff5c00/fff')" data-storepress-tooltip="Monotone ctallysyndicatemarketpositioning.">Text</div>
+<div class="storepress-tooltip-type-image" style="--tooltip-image: url('https://picsum.photos/150')" data-storepress-tooltip="Monotone ctallysyndicatemarketpositioning.">Text</div>
 ```
 
 ```scss
-
-// style.scss
-
 @charset "UTF-8";
 
 @use "~@storepress/tooltip/src/mixins" as tooltip;
@@ -71,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
  * External dependencies
  */
 import StorePressTooltip from '@storepress/tooltip'
-import { triggerEvent } from '@storepress/utils'
 
 document.addEventListener('DOMContentLoaded', () => {
   StorePressTooltip.init()

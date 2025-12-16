@@ -3,7 +3,7 @@
  */
 
 import apiFetch from '@wordpress/api-fetch'
-
+import { useEffect, useState } from '@wordpress/element'
 import { fn } from '@storybook/test'
 
 /**
@@ -18,11 +18,20 @@ export default {
   parameters: {
     controls: { expanded: true },
   },
-}
+
+  argTypes: {
+    onSearch: { control: false },
+    onSelect: { control: false },
+    onClear: { control: false },
+  },}
 
 export const Basic = {
 
   args: {
+    label: 'Your favourite fruit',
+    isLoading: false,
+    isMultiSelect: false,
+    disableFilter: false,
     itemKeyName: 'value',
     itemValueName: ['label'],
     itemMetaName: ['price'],
@@ -45,7 +54,7 @@ export const Remote = {
   loaders: [
     async () => ({
       items: await apiFetch({
-       url: 'https://jsonplaceholder.typicode.com/users',
+        url: 'https://jsonplaceholder.typicode.com/users',
         // url: 'https://jsonplaceholder.typicode.com/posts',
       }),
     }),
@@ -65,6 +74,7 @@ export const Remote = {
   },
 
   render: (args, { loaded: { items } }) => {
+    
     return <SearchListControl {...args} items={items} />
   },
 }

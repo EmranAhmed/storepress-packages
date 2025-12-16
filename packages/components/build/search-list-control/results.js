@@ -17,7 +17,9 @@ function Results(props) {
     itemFilterName,
     isMultiSelect,
     itemValueName,
+    itemValueNameSeparator,
     itemMetaName,
+    itemMetaNameSeparator,
     selected,
     onSelect,
     noItemsFoundText
@@ -63,8 +65,8 @@ function Results(props) {
       const re = new RegExp((0, _utils.escapeRegex)(searchValue), 'i');
       return items.map(item => {
         const text = itemFilterName?.reduce((str, filterKey) => {
-          const text = (0, _utils.findObjectValue)(item, filterKey);
-          str.push(text);
+          const innerText = (0, _utils.findObjectValue)(item, filterKey);
+          str.push(innerText);
           return str;
         }, []).join(' ');
         return re.test(text) ? item : false;
@@ -94,25 +96,25 @@ function Results(props) {
       const m = (0, _utils.findObjectValue)(item, currentMeta);
       metas.push(m);
       return metas;
-    }, []).join(', ');
+    }, []).join(itemMetaNameSeparator);
     const value = itemValueName?.reduce((values, currentValue) => {
       const m = (0, _utils.findObjectValue)(item, currentValue);
       values.push(m);
       return values;
-    }, []).join(' - ');
-    const id = `${inputName}-${index}`;
+    }, []).join(itemValueNameSeparator);
+    const listId = `${inputName}-${index}`;
     return /*#__PURE__*/React.createElement("li", {
       key: index,
       className: "result-item"
     }, /*#__PURE__*/React.createElement("input", {
       checked: handleChecked(selectedItemKeys, key),
       onChange: handleSelected,
-      id: id,
+      id: listId,
       name: inputName,
       value: key,
       type: isMultiSelect ? 'checkbox' : 'radio'
     }), /*#__PURE__*/React.createElement("label", {
-      htmlFor: id,
+      htmlFor: listId,
       className: "result-item__label"
     }, /*#__PURE__*/React.createElement("span", {
       className: "result-item__title"

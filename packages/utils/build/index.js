@@ -8,7 +8,7 @@
  * where words are lowercase and separated by hyphens.
  *
  * @param {string} string - The input string to convert to kebab-case
- * @returns {string} The converted string in kebab-case format
+ * @return {string} The converted string in kebab-case format
  *
  * @example
  * // Converting from camelCase
@@ -41,7 +41,6 @@
  * toKebabCase('iPhone13Pro') // Returns: 'i-phone13-pro'
  *
  * @since 0.8.0
- *
  */
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -72,7 +71,7 @@ exports.triggerEvent = triggerEvent;
 function toKebabCase(string) {
   return string
   // Find uppercase letters and insert hyphen before them, then lowercase the letter
-  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
+  .replace(/([^A-Z-_\s+])([A-Z])/g, '$1-$2')
   // Replace any underscores, dots, or spaces with hyphens
   .replace(/[-._:~\s]/g, '-')
   // Remove any leading or trailing hyphens that may have been created
@@ -89,7 +88,7 @@ function toKebabCase(string) {
  * where words are lowercase and separated by underscores.
  *
  * @param {string} string - The input string to convert to snake_case
- * @returns {string} The converted string in snake_case format
+ * @return {string} The converted string in snake_case format
  *
  * @example
  * // Converting from camelCase
@@ -142,12 +141,11 @@ function toKebabCase(string) {
  * );
  * // Result: { first_name: 'John', last_name: 'Doe', email_address: 'john@example.com', phone_number: '+1234567890' }
  * @since 0.8.0
- *
  */
 function toSnakeCase(string) {
   return string
   // Find uppercase letters and insert underscore before them, then lowercase the letter
-  .replace(/([^A-Z-_\s+])([A-Z])/g, "$1-$2")
+  .replace(/([^A-Z-_\s+])([A-Z])/g, '$1-$2')
   // .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
   // Replace any hyphens, dots, or spaces with underscores
   .replace(/[-._:~\s]/g, '_')
@@ -166,7 +164,7 @@ function toSnakeCase(string) {
  * convention for constants, environment variables, and configuration keys.
  *
  * @param {string} string - The input string to convert to CONSTANT_CASE
- * @returns {string} The converted string in CONSTANT_CASE format
+ * @return {string} The converted string in CONSTANT_CASE format
  *
  * @example
  * // Converting from camelCase
@@ -254,7 +252,6 @@ function toSnakeCase(string) {
  * // };
  *
  * @since 0.8.0
- *
  */
 function toConstantCase(string) {
   return string
@@ -277,7 +274,7 @@ function toConstantCase(string) {
  * convention for variables, properties, and method names in JavaScript.
  *
  * @param {string} string - The string to convert to camelCase
- * @returns {string} The converted string in camelCase format
+ * @return {string} The converted string in camelCase format
  *
  * @example
  * // Basic conversions from different formats
@@ -600,7 +597,9 @@ function toCamelCase(string) {
   // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start uppercase: lowercase it
   .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
-    if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
+    if (p2) {
+      return p2.toUpperCase(); // Found char after separator - make it uppercase
+    }
     return p1.toLowerCase(); // Found uppercase at start - make it lowercase
   });
 }
@@ -614,7 +613,7 @@ function toCamelCase(string) {
  * constructor functions, and component names in JavaScript.
  *
  * @param {string} string - The string to convert to UpperCamelCase
- * @returns {string} The converted string in UpperCamelCase format
+ * @return {string} The converted string in UpperCamelCase format
  *
  * @example
  * // Basic conversions from different formats
@@ -828,7 +827,9 @@ function toUpperCamelCase(string) {
   // 2) word char after separator [-._:~\s](\w)
   // If separator+char: uppercase the char | If start lowercase: uppercase it
   .replace(/^([a-z])|[-._:~\s](\w)/gi, (match, p1, p2) => {
-    if (p2) return p2.toUpperCase(); // Found char after separator - make it uppercase
+    if (p2) {
+      return p2.toUpperCase(); // Found char after separator - make it uppercase
+    }
     return p1.toUpperCase(); // Found lowercase at start - make it uppercase
   });
 }
@@ -846,7 +847,7 @@ function toUpperCamelCase(string) {
  * - Later sources override earlier sources at each level
  *
  * @param {...Object} sources - One or more objects to merge
- * @returns {Object} A new object containing the merged properties from all sources
+ * @return {Object} A new object containing the merged properties from all sources
  *
  * @example
  * // Basic object merging
@@ -1035,8 +1036,7 @@ function deepMerge(...sources) {
  * that reduces the likelihood of naming conflicts with other libraries.
  *
  * @param {string} namespace - The namespace identifier used to create a unique WeakMap key
- * @returns {WeakMap} A global WeakMap instance with the specified namespace
-
+ * @return {WeakMap} A global WeakMap instance with the specified namespace
  * @throws {TypeError} Throws if the global WeakMap constructor is not available
  * @throws {ReferenceError} Throws if the window object is not available (Node.js environments)
  *
@@ -1054,10 +1054,10 @@ function getPluginInstanceStore(namespace) {
   window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {};
 
   // Create WeakMap if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Instance']) {
-    window.StorePress.$Plugins[name]['Instance'] = new WeakMap();
+  if (!window.StorePress.$Plugins[name].Instance) {
+    window.StorePress.$Plugins[name].Instance = new WeakMap();
   }
-  return window.StorePress.$Plugins[name]['Instance'];
+  return window.StorePress.$Plugins[name].Instance;
 }
 function getEventStore(namespace) {
   const name = toUpperCamelCase(namespace);
@@ -1081,7 +1081,7 @@ function getEventStore(namespace) {
  * functions where you want to provide flexibility in how users specify target elements.
  *
  * @param {string|HTMLElement|null|Document} [selector=null] - The element selector or element itself
- * @returns {HTMLElement|null|Document} The resolved HTMLElement, or null if not found/invalid
+ * @return {HTMLElement|null|Document} The resolved HTMLElement, or null if not found/invalid
  *
  * @example
  * // Using CSS selector string
@@ -1244,9 +1244,15 @@ function getEventStore(namespace) {
  * @since 0.3.0
  */
 function getElement(selector = null) {
-  if (null === selector) return null;
-  if (document === selector) return document;
-  if (typeof selector === 'string') return document.querySelector(selector);
+  if (null === selector) {
+    return null;
+  }
+  if (document === selector) {
+    return document;
+  }
+  if (typeof selector === 'string') {
+    return document.querySelector(selector);
+  }
   return selector instanceof HTMLElement ? selector : null;
 }
 
@@ -1259,7 +1265,7 @@ function getElement(selector = null) {
  * flexibility in input types.
  *
  * @param {string|HTMLElement|HTMLElement[]|NodeList|Array|Document[]} [selectors=[]] - The element selector(s) or element(s)
- * @returns {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
+ * @return {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
  *
  * @example
  * // Using CSS selector string (returns NodeList)
@@ -1481,9 +1487,15 @@ function getElement(selector = null) {
  * @since 0.3.0
  */
 function getElements(selectors = []) {
-  if (selectors.length === 0) return [];
-  if (selectors === document) return [document];
-  if (typeof selectors === 'string') return document.querySelectorAll(selectors);
+  if (selectors.length === 0) {
+    return [];
+  }
+  if (selectors === document) {
+    return [document];
+  }
+  if (typeof selectors === 'string') {
+    return document.querySelectorAll(selectors);
+  }
   return selectors instanceof HTMLElement ? [selectors] : selectors;
 }
 
@@ -1496,16 +1508,16 @@ function getElements(selectors = []) {
  * 2. Override attributes using hyphenated keys for nested properties
  * 3. Automatic type conversion for strings, numbers, booleans, arrays, objects, and regex
  *
- * @param {string|HTMLElement} element - The DOM element containing the data attributes
- * @param {string} dataAttributeName - The base name of the data attribute (without 'data-' prefix)
- * @param {Object} [userFeatures={}] - Configuration object to customize parsing behavior
- * @param {boolean} [userFeatures.parseNumber=true] - Whether to convert numeric strings to numbers
- * @param {boolean} [userFeatures.parseBoolean=true] - Whether to convert boolean strings to booleans
- * @param {string[]} [userFeatures.truthyStrings=['yes', 'true']] - Strings that should be parsed as true
- * @param {string[]} [userFeatures.falsyStrings=['no', 'false']] - Strings that should be parsed as false
- * @param {boolean} [userFeatures.parseRegex=true] - Whether to parse regex patterns like /pattern/flags
+ * @param {string|HTMLElement} element                                      - The DOM element containing the data attributes
+ * @param {string}             dataAttributeName                            - The base name of the data attribute (without 'data-' prefix)
+ * @param {Object}             [userFeatures={}]                            - Configuration object to customize parsing behavior
+ * @param {boolean}            [userFeatures.parseNumber=true]              - Whether to convert numeric strings to numbers
+ * @param {boolean}            [userFeatures.parseBoolean=true]             - Whether to convert boolean strings to booleans
+ * @param {string[]}           [userFeatures.truthyStrings=['yes', 'true']] - Strings that should be parsed as true
+ * @param {string[]}           [userFeatures.falsyStrings=['no', 'false']]  - Strings that should be parsed as false
+ * @param {boolean}            [userFeatures.parseRegex=true]               - Whether to parse regex patterns like /pattern/flags
  *
- * @returns {Object} The parsed configuration object with all options merged and type-converted
+ * @return {Object} The parsed configuration object with all options merged and type-converted
  *
  * @example
  * // Basic usage with JSON in data attribute
@@ -1620,8 +1632,6 @@ function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) 
       return value;
     }
     const lowerValue = value.toLowerCase();
-    const isNumber = isNaN(Number(value)) === false;
-    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
 
     // Check for boolean values
 
@@ -1633,6 +1643,7 @@ function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) 
         return false;
       }
     }
+    const isRegExp = new RegExp('^/(.+)/([gimsuyx]*)$').test(value);
 
     // Check for regex pattern: /pattern/flags
     if (FEATURES.parseRegex && isRegExp) {
@@ -1645,6 +1656,7 @@ function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) 
         return value; // Return original string if regex is invalid
       }
     }
+    const isNumber = isNaN(Number(value)) === false;
 
     // Check for numeric values
     if (FEATURES.parseNumber) {
@@ -1658,7 +1670,7 @@ function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) 
     return getValue(value);
   };
   const getJSONData = (value, rv) => {
-    const strategies = [val => val.replaceAll('\'', '"'), val => val.replaceAll('\'', '"').replaceAll('\\', '\\\\')
+    const strategies = [val => val.replaceAll("'", '"'), val => val.replaceAll("'", '"').replaceAll('\\', '\\\\')
     //@TODO: Add more strategies here if needed
     ];
     for (const strategy of strategies) {
@@ -1774,7 +1786,7 @@ function getOptionsFromAttribute(element, dataAttributeName, userFeatures = {}) 
  * replacement approach.
  *
  * @param {string} string - The string containing characters to escape for regex use
- * @returns {string} The escaped string safe for use in regular expression patterns
+ * @return {string} The escaped string safe for use in regular expression patterns
  *
  * @example
  * // Basic escaping of common regex metacharacters
@@ -1873,7 +1885,9 @@ function escapeRegex(string) {
 function createPluginInstance(selectors, options, plugin, namespace) {
   const store = getPluginInstanceStore(namespace);
   return Array.from(getElements(selectors)).map(element => {
-    if (store.has(element)) return store.get(element);
+    if (store.has(element)) {
+      return store.get(element);
+    }
     const instance = new plugin(element, options);
     instance.element = element;
     instance.destroy = () => {
@@ -1893,14 +1907,13 @@ function getPluginInstance(selectors, namespace) {
  * Dispatches a custom event on a target DOM element with optional event details and configuration.
  * Provides a convenient wrapper around the native CustomEvent constructor and dispatchEvent method.
  *
- * @param {HTMLElement[]|HTMLElement|EventTarget} $targets - The DOM element or EventTarget to dispatch the event on
- * @param {string} eventType - The name/type of the custom event to dispatch
- * @param {Object} [eventDetails={}] - Data to include in the event's detail property
- * @param {Object} [options={}] - CustomEvent configuration options
- * @param {boolean} [options.bubbles=false] - Whether the event bubbles up through the DOM tree
- * @param {boolean} [options.cancelable=true] - Whether the event can be canceled with preventDefault()
- * @param {boolean} [options.composed=false] - Whether the event will trigger listeners outside of a shadow root
- * @returns {boolean} True if the event was not canceled, false if preventDefault() was called
+ * @param {HTMLElement[]|HTMLElement|EventTarget} $targets                  - The DOM element or EventTarget to dispatch the event on
+ * @param {string}                                eventType                 - The name/type of the custom event to dispatch
+ * @param {Object}                                [eventDetails={}]         - Data to include in the event's detail property
+ * @param {Object}                                [options={}]              - CustomEvent configuration options
+ * @param {boolean}                               [options.bubbles=false]   - Whether the event bubbles up through the DOM tree
+ * @param {boolean}                               [options.cancelable=true] - Whether the event can be canceled with preventDefault()
+ * @param {boolean}                               [options.composed=false]  - Whether the event will trigger listeners outside a shadow root
  * @example
  * // Basic custom event dispatch
  * const button = document.getElementById('my-button');
@@ -2073,12 +2086,12 @@ function triggerEvent($targets, eventType, eventDetails = {}, options = {}) {
  * Attaches swipe gesture detection to a DOM element, supporting both touch and pointer events.
  * Automatically registers event listeners and provides directional swipe detection with customizable offset.
  *
- * @param {HTMLElement} target - The DOM element to attach swipe detection to
- * @param {Function} listenerFn - Callback function that handles swipe events
- * @param {Object} [options={}] - Configuration options
- * @param {number} [options.offset=10] - Minimum pixel distance to register a directional swipe
- * @param {boolean} [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
- * @returns {Function} A cleanup function to remove all event listeners and abort the controller
+ * @param {HTMLElement} target                    - The DOM element to attach swipe detection to
+ * @param {Function}    listenerFn                - Callback function that handles swipe events
+ * @param {Object}      [options={}]              - Configuration options
+ * @param {number}      [options.offset=10]       - Minimum pixel distance to register a directional swipe
+ * @param {boolean}     [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
+ * @return {Function} A cleanup function to remove all event listeners and abort the controller
  *
  * @example
  * // Basic swipe detection on a div element
@@ -2339,7 +2352,9 @@ function swipeEvent(target, listenerFn, options = {}) {
 }
 function findObjectValue(obj, path, defaultValue, notation = ['.', '-', '_']) {
   // If path is not defined or it has false value
-  if (!path) return undefined;
+  if (!path) {
+    return undefined;
+  }
 
   // If path is already an array, use it directly
   if (Array.isArray(path)) {
@@ -2396,12 +2411,13 @@ function createEventManager(namespace, options = {
    * Adds event listeners to one or more DOM elements.
    * Creates namespaced event handlers that can be easily managed and removed later.
    *
-   * @method add
+   * @function add
    * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
-   * @param {string} eventType - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
-   * @param {Function} handler - The event handler function to execute when the event is triggered.
-   * @param {Object} [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
+   * @param {string|Element|NodeList|Array|Document} $targets          - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
+   * @param {string}                                 eventType         - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
+   * @param {Function}                               handler           - The event handler function to execute when the event is triggered.
+   * @param {Object}                                 [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
+   * @return {createEventManager} Return createEventManager.
    *
    * @example
    * // Add click handler to a single element
@@ -2433,8 +2449,9 @@ function createEventManager(namespace, options = {
     $elements.forEach($element => {
       _add($element, eventType, handler, eventOptions);
     });
+    return this;
   };
-  const _trigger = ($target, eventType, eventDetails = {}, options = {}) => {
+  const _trigger = ($target, eventType, eventDetails = {}, triggerOptions = {}) => {
     const events = _getEvents($target, eventType);
     const eventName = `${prefix}${separator}${namespace}${separator}${eventType}`;
     for (const [event, isNative, type] of events) {
@@ -2445,7 +2462,7 @@ function createEventManager(namespace, options = {
           cancelable: true
         }));
       } else {
-        triggerEvent($element, event, eventDetails, options);
+        triggerEvent($element, event, eventDetails, triggerOptions);
       }
     }
   };
@@ -2454,13 +2471,13 @@ function createEventManager(namespace, options = {
    * Triggers events on one or more DOM elements.
    * Can trigger both native events and custom events with optional data.
    *
-   * @method trigger
+   * @function trigger
    * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to trigger events on.
-   * @param {string|null} [eventType=null] - The event type to trigger. If null, triggers all events for the element.
-   * @param {Object} [eventDetails={}] - Custom data to pass with the event (for custom events).
-   * @param {Object} [options={}] - Additional options for event dispatching.
-   *
+   * @param {string|Element|NodeList|Array|Document} $targets            - Target element(s) to trigger events on.
+   * @param {string|null}                            [eventType=null]    - The event type to trigger. If null, triggers all events for the element.
+   * @param {Object}                                 [eventDetails={}]   - Custom data to pass with the event (for custom events).
+   * @param {Object}                                 [triggerOptions={}] - Additional options for event dispatching.
+   * @return {createEventManager} return createEventManager.
    * @example
    * // Trigger specific event type
    * manager.trigger('#my-button', 'click');
@@ -2480,14 +2497,15 @@ function createEventManager(namespace, options = {
    * // Trigger on multiple elements
    * manager.trigger('.modal', 'close');
    */
-  const trigger = ($targets, eventType = null, eventDetails = {}, options = {}) => {
-    const $elements = getElements($targets);
+  const trigger = ($targets, eventType = null, eventDetails = {}, triggerOptions = {}) => {
     if (!controllers.has(namespace)) {
-      return;
+      return this;
     }
+    const $elements = getElements($targets);
     $elements.forEach($element => {
-      _trigger($element, eventType, eventDetails, options);
+      _trigger($element, eventType, eventDetails, triggerOptions);
     });
+    return this;
   };
   const _getEvents = ($target, eventType) => {
     if (!controllers.get(namespace).has($target)) {
@@ -2523,7 +2541,7 @@ function createEventManager(namespace, options = {
     }
     const events = controllers.get(namespace).get($element);
     if (eventType === null) {
-      for (const [_, controller] of Object.entries(events)) {
+      for (const [, controller] of Object.entries(events)) {
         controller.abort();
       }
       controllers.get(namespace).delete($element);
@@ -2543,11 +2561,11 @@ function createEventManager(namespace, options = {
    * Removes event listeners from one or more DOM elements.
    * Uses AbortController to cleanly remove listeners without memory leaks.
    *
-   * @method remove
+   * @function remove
    * @memberof createEventManager
-   * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to remove events from.
-   * @param {string|null} [eventType=null] - The event type to remove. If null, removes all events from the element.
-   *
+   * @param {string|Element|NodeList|Array|Document} $targets         - Target element(s) to remove events from.
+   * @param {string|null}                            [eventType=null] - The event type to remove. If null, removes all events from the element.
+   * @return {createEventManager} Return createEventManager.
    * @example
    * // Remove specific event type
    * manager.remove('#my-button', 'click');
@@ -2562,19 +2580,20 @@ function createEventManager(namespace, options = {
    */
   const remove = ($targets, eventType = null) => {
     if (!controllers.has(namespace)) {
-      return;
+      return this;
     }
     const $elements = getElements($targets);
     $elements.forEach($element => {
       _remove($element, eventType);
     });
+    return this;
   };
 
   /**
    * Removes all event listeners for this namespace and cleans up the namespace entirely.
    * This is useful for cleanup when a component or module is being destroyed.
    *
-   * @method removeAll
+   * @function removeAll
    * @memberof createEventManager
    *
    * @example
@@ -2625,15 +2644,10 @@ function createEventManager(namespace, options = {
    * Gets information about events attached to specific elements.
    * Returns an array of objects containing element and event information.
    *
-   * @method get
+   * @function get
    * @memberof createEventManager
    * @param {string|Element|NodeList|Array|Document} $targets - Target element(s) to get event information for.
-   * @returns {Array<Object>} Array of objects containing element and event data.
-   * @returns {Element} returns[].$element - The DOM element.
-   * @returns {Array<Object>} returns[].$events - Array of event information objects.
-   * @returns {string} returns[].$events[].eventType - The full namespaced event type.
-   * @returns {boolean} returns[].$events[].isNative - Whether this is a native DOM event.
-   * @returns {string} returns[].$events[].nativeType - The native event type if applicable.
+   * @return {Element|string|boolean|Array<Object>} Array of objects containing element and event data.
    *
    * @example
    * // Get events for specific elements
@@ -2667,11 +2681,9 @@ function createEventManager(namespace, options = {
    * Gets information about all events in this namespace across all elements.
    * Useful for debugging or monitoring the current state of event listeners.
    *
-   * @method getAll
+   * @function getAll
    * @memberof createEventManager
-   * @returns {Array<Object>} Array of objects containing all elements and their events in this namespace.
-   * @returns {Element} returns[].$element - The DOM element.
-   * @returns {Array<Object>} returns[].$events - Array of event information objects for this element.
+   * @return {Array<Object>|Element} Array of objects containing all elements and their events in this namespace.
    *
    * @example
    * // Debug all events in namespace
@@ -2888,10 +2900,10 @@ function getStorePressPlugin(namespace) {
   window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {};
 
   // Create if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Plugin']) {
-    window.StorePress.$Plugins[name]['Plugin'] = {};
+  if (!window.StorePress.$Plugins[name].Plugin) {
+    window.StorePress.$Plugins[name].Plugin = {};
   }
-  return window.StorePress.$Plugins[name]['Plugin'];
+  return window.StorePress.$Plugins[name].Plugin;
 }
 function createStorePressPlugin({
   selector,
@@ -2918,10 +2930,10 @@ function createStorePressPlugin({
   window.StorePress.$Plugins[name] = window.StorePress.$Plugins[name] || {};
 
   // Create if it doesn't exist
-  if (!window.StorePress.$Plugins[name]['Plugin']) {
-    window.StorePress.$Plugins[name]['Plugin'] = {};
+  if (!window.StorePress.$Plugins[name].Plugin) {
+    window.StorePress.$Plugins[name].Plugin = {};
   }
-  window.StorePress.$Plugins[name]['Plugin'] = StorePressPlugin;
+  window.StorePress.$Plugins[name].Plugin = StorePressPlugin;
   return StorePressPlugin;
 }
 
@@ -2931,8 +2943,8 @@ function createStorePressPlugin({
  *  artificial delays in processing without blocking the UI thread.
  *
  * @param {number} milliseconds - The number of milliseconds to wait before resolving
- * @param {*} [data={}] - Optional data to resolve with after the delay
- * @returns {Promise<*>} A promise that resolves after the specified duration
+ * @param {*}      [data={}]    - Optional data to resolve with after the delay
+ * @return {Promise<*>} A promise that resolves after the specified duration
  *
  * @example
  * // Basic usage - wait 1 second
@@ -2985,8 +2997,8 @@ function testWaitAsync(milliseconds, data = {}) {
  * WARNING: This will freeze the UI during execution.
  *
  * @param {number} milliseconds - The number of milliseconds to block execution.
- * @param {*} [data={}] - Optional data to return after the delay.
- * @returns {*} The provided data after the synchronous delay
+ * @param {*}      [data={}]    - Optional data to return after the delay.
+ * @return {*} The provided data after the synchronous delay
  *
  * @example
  * // Basic usage - block for 1 second (⚠️ blocks everything!)
@@ -3027,7 +3039,6 @@ function testWaitAsync(milliseconds, data = {}) {
  * console.log('UI will freeze during this:');
  * waitSync(3000); // ⚠️ Browser UI will be completely unresponsive
  * console.log('UI unfrozen now');
- *
  */
 function testWaitSync(milliseconds, data = {}) {
   const start = Date.now();

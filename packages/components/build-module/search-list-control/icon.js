@@ -1,5 +1,5 @@
-import { Button, Spinner } from "@wordpress/components";
-import { closeSmall, Icon as WPIcon, search } from "@wordpress/icons";
+import { Button, Spinner } from '@wordpress/components';
+import { closeSmall, Icon as WPIcon, search } from '@wordpress/icons';
 import { jsx as _jsx } from "react/jsx-runtime";
 export function Icon(props) {
   const {
