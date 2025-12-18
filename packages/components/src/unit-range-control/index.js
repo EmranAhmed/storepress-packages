@@ -209,8 +209,6 @@ function UnitRangeControl( {
 		help,
 	} );
 
-	console.log( baseControlProps );
-
 	return (
 		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
 			<div className="storepress-component-unit-range-control">
