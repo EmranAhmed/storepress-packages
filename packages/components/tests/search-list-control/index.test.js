@@ -189,77 +189,76 @@ describe('SearchListControl', () => {
 
     })
 
-    it( 'should display item meta when itemMetaName is provided', () => {
+    it('should display item meta when itemMetaName is provided', () => {
       render(
         <SearchListControl
-          { ...defaultProps }
-          itemMetaName={ [ 'type' ] }
-        />
-      );
+          {...defaultProps}
+          itemMetaName={['type']}
+        />,
+      )
 
-      expect( screen.getAllByText( 'fruit' ) ).toHaveLength(3);
-      expect( screen.getAllByText( 'vegetable' ) ).toHaveLength(1);
-    } );
+      expect(screen.getAllByText('fruit')).toHaveLength(3)
+      expect(screen.getAllByText('vegetable')).toHaveLength(1)
+    })
 
-    it( 'should join multiple meta values with separator', () => {
+    it('should join multiple meta values with separator', () => {
       const itemsWithMultipleMeta = [
         { id: '1', name: 'Item 1', category: 'Cat A', status: 'Active' },
-      ];
+      ]
 
       render(
         <SearchListControl
-          { ...defaultProps }
-          items={ itemsWithMultipleMeta }
-          itemMetaName={ [ 'category', 'status' ] }
+          {...defaultProps}
+          items={itemsWithMultipleMeta}
+          itemMetaName={['category', 'status']}
           itemMetaNameSeparator=" | "
-        />
-      );
+        />,
+      )
 
-      expect( screen.getByText( 'Cat A | Active' ) ).toBeInTheDocument();
-    } );
+      expect(screen.getByText('Cat A | Active')).toBeInTheDocument()
+    })
 
-    it( 'should join multiple value keys with separator', () => {
+    it('should join multiple value keys with separator', () => {
       const itemsWithMultipleValues = [
         { id: '1', firstName: 'John', lastName: 'Doe' },
-      ];
+      ]
 
       render(
         <SearchListControl
-          { ...defaultProps }
-          items={ itemsWithMultipleValues }
-          itemValueName={ [ 'firstName', 'lastName' ] }
+          {...defaultProps}
+          items={itemsWithMultipleValues}
+          itemValueName={['firstName', 'lastName']}
           itemValueNameSeparator=" - "
-        />
-      );
+        />,
+      )
 
-      expect( screen.getByText( 'John - Doe' ) ).toBeInTheDocument();
-    } );
+      expect(screen.getByText('John - Doe')).toBeInTheDocument()
+    })
 
-
-    it( 'should access nested object values using dot notation', () => {
+    it('should access nested object values using dot notation', () => {
       const nestedItems = [
         { id: '1', title: { rendered: 'Post Title' } },
-      ];
+      ]
 
       render(
         <SearchListControl
-          { ...defaultProps }
-          items={ nestedItems }
-          itemValueName={ [ 'title.rendered' ] }
-        />
-      );
+          {...defaultProps}
+          items={nestedItems}
+          itemValueName={['title.rendered']}
+        />,
+      )
 
-      expect( screen.getByText( 'Post Title' ) ).toBeInTheDocument();
-    } );
+      expect(screen.getByText('Post Title')).toBeInTheDocument()
+    })
 
-    it( 'should have proper input types', () => {
-      render( <SearchListControl { ...defaultProps } /> );
+    it('should have proper input types', () => {
+      render(<SearchListControl {...defaultProps} />)
 
-      const searchInput = screen.getByRole( 'searchbox' );
-      expect( searchInput ).toHaveAttribute( 'type', 'search' );
-      expect( searchInput ).toHaveAttribute( 'autocomplete', 'off' );
-    } );
+      const searchInput = screen.getByRole('searchbox')
+      expect(searchInput).toHaveAttribute('type', 'search')
+      expect(searchInput).toHaveAttribute('autocomplete', 'off')
+    })
 
-})
+  })
 
 })

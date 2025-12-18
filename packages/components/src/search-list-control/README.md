@@ -170,12 +170,6 @@ export const Example = () => {
 
 The component accepts the following props:
 
-#### `id`: `string`
-
-Unique ID for control.
-
--   Required: no
-
 #### `label`: `string`
 
 Label for the control.

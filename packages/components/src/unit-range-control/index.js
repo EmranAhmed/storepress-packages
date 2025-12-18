@@ -16,6 +16,7 @@ import {
 	__experimentalUnitControl as UnitControl,
 	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 	__experimentalParseQuantityAndUnitFromRawValue as parseQuantityAndUnitFromRawValue,
+	useBaseControlProps,
 } from '@wordpress/components';
 import PropTypes from 'prop-types';
 
@@ -120,6 +121,7 @@ export function unitConverter(
  * @param {Function}        [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
  * @param {string}          [props.value='0px']                           Current value including unit (e.g., '100%', '16px').
  * @param {string}          [props.help='']                               Help text displayed below the control.
+ * @param {boolean}         [props.hideLabelFromVision=false]             Hide label from vision.
  * @param {string}          [props.className='']                          Additional CSS class names to apply to the control.
  * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
  * @param {availableUnit[]} [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
@@ -129,10 +131,11 @@ export function unitConverter(
 
 function UnitRangeControl( {
 	label = '',
-	onChange = () => {},
-	value = '0px',
-	help = '',
+	hideLabelFromVision = false,
 	className = '',
+	help = '',
+	value = '0px',
+	onChange = () => {},
 	allowedUnits = [ '%', 'px', 'em', 'rem' ],
 	defaultUnits = availableUnits,
 	convertUnits = unitOperations,
@@ -198,14 +201,18 @@ function UnitRangeControl( {
 		'storepress-component-unit-range-control'
 	);
 
+	const { baseControlProps } = useBaseControlProps( {
+		id,
+		label,
+		className,
+		hideLabelFromVision,
+		help,
+	} );
+
+	console.log( baseControlProps );
+
 	return (
-		<BaseControl
-			id={ id }
-			label={ label }
-			className={ className }
-			help={ help }
-			__nextHasNoMarginBottom
-		>
+		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
 			<div className="storepress-component-unit-range-control">
 				<Flex>
 					<FlexItem isBlock>
@@ -219,8 +226,9 @@ function UnitRangeControl( {
 							max={ unitSettings[ selectedUnit ]?.max ?? 100 }
 							step={ unitSettings[ selectedUnit ]?.step ?? 0.1 }
 							size="__unstable-large"
-							label={ label }
-							hideLabelFromVision
+							label=""
+							help=""
+							hideLabelFromVision={ true }
 						/>
 					</FlexItem>
 					<FlexItem isBlock>
@@ -235,8 +243,10 @@ function UnitRangeControl( {
 								}
 								withInputField={ false }
 								onChange={ handleSliderChange }
-								label={ label }
-								hideLabelFromVision
+								id={ null }
+								label=""
+								help=""
+								hideLabelFromVision={ true }
 								__nextHasNoMarginBottom
 								renderTooltipContent={ ( contentValue ) =>
 									`${ contentValue }${ selectedUnit }`
@@ -253,6 +263,9 @@ function UnitRangeControl( {
 UnitRangeControl.propTypes = {
 	label: PropTypes.string,
 	value: PropTypes.string,
+	hideLabelFromVision: PropTypes.bool,
+	help: PropTypes.string,
+	className: PropTypes.string,
 	onChange: PropTypes.func,
 	allowedUnits: PropTypes.array,
 	defaultUnits: PropTypes.array,

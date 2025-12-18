@@ -4,7 +4,7 @@
 
 import { fn } from '@storybook/test'
 
-import { useState } from '@wordpress/element';
+import { useState } from '@wordpress/element'
 
 /**
  * Internal dependencies
@@ -36,26 +36,25 @@ export const Basic = {
 
   args: {
     label: 'Height',
+    hideLabelFromVision: false,
     value: '100px',
     onChange: fn(),
     allowedUnits: ['%', 'px', 'em', 'rem', 'vw', 'vh'],
   },
 
-  render: ( args ) => {
+  render: (args) => {
 
-    const [ value, setValue ] = useState( args.value );
+    const [value, setValue] = useState(args.value)
 
     return (
       <UnitRangeControl
-        label={args.label}
-        value={ value }
-        onChange={ ( v ) => {
-          console.log('onChange');
-          setValue( v );
-        } }
-        allowedUnits={ args.allowedUnits }
+        {...args}
+        value={value}
+        onChange={(v) => {
+          setValue(v)
+        }}
       />
-    );
+    )
   },
 }
 
@@ -68,20 +67,19 @@ export const Custom = {
     allowedUnits: ['s', 'ms'],
   },
 
-  render: ( args ) => {
+  render: (args) => {
 
-    const [ value, setValue ] = useState( '10s' );
+    const [value, setValue] = useState('10s')
 
     return (
       <UnitRangeControl
-        label={args.label}
-        value={ value }
-        onChange={ ( v ) => {
-          setValue( v );
-        } }
-        allowedUnits={ args.allowedUnits }
+        {...args}
+        value={value}
+        onChange={(v) => {
+          setValue(v)
+        }}
       />
-    );
+    )
   },
 }
 

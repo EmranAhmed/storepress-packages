@@ -45,7 +45,7 @@ function SearchListControl( props ) {
 		'storepress-search-list-control'
 	);
 
-	const { baseProps } = useBaseControlProps( {
+	const { baseControlProps } = useBaseControlProps( {
 		label,
 		className,
 		hideLabelFromVision,
@@ -56,7 +56,7 @@ function SearchListControl( props ) {
 	const [ searchValue, setSearchValue ] = useState( '' );
 
 	return (
-		<BaseControl { ...baseProps } __nextHasNoMarginBottom>
+		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
 			<div className="storepress-component-search-list-control">
 				{ ! hideSearchBox && (
 					<Input
