@@ -102,7 +102,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 <div data-my-plugin>Loading...</div>
 ```
 
-----------------
+---
 
 **Example Plugin `Plugin.js`**
 ```js
@@ -1097,8 +1097,8 @@ Parses configuration from HTML data attributes with automatic type conversion an
 ```html
 <div id="slider"
      data-slider='{"autoplay": true, "speed": 500}'
-     data-slider-animation-duration="800"
-     data-slider-animation-easing="ease-out"
+     data-slider--animation--duration="800"
+     data-slider--animation--easing="ease-out"
      data-slider-loop="yes"
      data-slider-count="5">
 </div>
