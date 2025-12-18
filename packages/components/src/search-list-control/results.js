@@ -4,7 +4,6 @@ import { escapeRegex, findObjectValue } from '@storepress/utils';
 export function Results( props ) {
 	const {
 		id,
-		disableFilter,
 		isLoading,
 		searchValue,
 		items,
@@ -65,10 +64,6 @@ export function Results( props ) {
 	};
 
 	const currentItems = useMemo( () => {
-		if ( disableFilter ) {
-			return items;
-		}
-
 		if ( searchValue.length > 0 ) {
 			const re = new RegExp( escapeRegex( searchValue ), 'i' );
 
@@ -91,7 +86,7 @@ export function Results( props ) {
 		}
 
 		return items;
-	}, [ searchValue, items, disableFilter ] );
+	}, [ searchValue, items ] );
 
 	const selectedItems = useMemo( () => {
 		return items
@@ -117,9 +112,6 @@ export function Results( props ) {
 		<div className="results-wrapper">
 			<ul>
 				{ currentItems.map( ( item, index ) => {
-					const key = findObjectValue( item, itemKeyName );
-					// const value = findObjectValue(item, itemValueName);
-
 					const meta = itemMetaName
 						?.reduce( ( metas, currentMeta ) => {
 							const m = findObjectValue( item, currentMeta );
@@ -137,6 +129,8 @@ export function Results( props ) {
 						.join( itemValueNameSeparator );
 
 					const listId = `${ inputName }-${ index }`;
+
+					const key = findObjectValue( item, itemKeyName );
 
 					return (
 						<li key={ index } className="result-item">

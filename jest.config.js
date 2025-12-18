@@ -22,9 +22,11 @@ module.exports = {
 
   // Setup file to configure DOM environment before tests
   setupFilesAfterEnv: [
-    ...(defaultConfig.setupFilesAfterEnv || []),
     '<rootDir>/jest.setup.js',
   ],
+
+  // Module file extensions
+  moduleFileExtensions: [ 'js', 'jsx' ],
 
   // Monorepo test file patterns
   testMatch: [
@@ -37,11 +39,23 @@ module.exports = {
 
   // Module name mapping for package imports
   moduleNameMapper: {
-    ...defaultConfig.moduleNameMapper,
     // CSS/SCSS mocks
-    '\\.(css|scss|sass)$': '<rootDir>/tests/styleMock.js',
-    // '^@storepress/utils$': '<rootDir>/packages/utils/src/index.js',
-    '^@storepress/(.*)$': '<rootDir>/packages/$1/src/index.js',
+     '\\.(css|scss|sass)$': '<rootDir>/tests/styleMock.js',
+
+    '\\.(jpg|jpeg|png|gif|webp|svg)$': 'identity-obj-proxy',
+    //'\\.(css|scss|sass)$': 'identity-obj-proxy',
+
+    // Map @wordpress packages
+    '^@wordpress/element$': '<rootDir>/node_modules/@wordpress/element',
+    '^@wordpress/components$': '<rootDir>/node_modules/@wordpress/components',
+    '^@wordpress/compose$': '<rootDir>/node_modules/@wordpress/compose',
+    '^@wordpress/icons$': '<rootDir>/node_modules/@wordpress/icons',
+
+    // Map internal packages
+    '^@storepress/utils$': '<rootDir>/packages/utils/src/index.js',
+
+    // Map @ariakit/test
+    '^@ariakit/test$': '<rootDir>/node_modules/@ariakit/test',
   },
 
   testPathIgnorePatterns: [

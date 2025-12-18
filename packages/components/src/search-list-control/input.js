@@ -2,8 +2,16 @@ import { useCallback, useLayoutEffect, useRef } from '@wordpress/element';
 import { Icon } from './icon';
 
 export function Input( props ) {
-	const { controlProps, searchValue, setSearchValue, placeholder, onSearch } =
-		props;
+	const {
+		id,
+		isLoading,
+		searchValue,
+		placeholder,
+		clearText,
+		setSearchValue,
+		onSearch,
+		onClear,
+	} = props;
 
 	const ref = useRef();
 
@@ -23,6 +31,7 @@ export function Input( props ) {
 	return (
 		<div className="input-wrapper">
 			<input
+				id={ id }
 				ref={ ref }
 				className="input"
 				type="search"
@@ -30,10 +39,16 @@ export function Input( props ) {
 				onChange={ handleOnChange }
 				autoComplete="off"
 				value={ searchValue }
-				{ ...controlProps }
 			/>
 			<div className="icon">
-				<Icon { ...props } onFocus={ onFocus } />
+				<Icon
+					isLoading={ isLoading }
+					searchValue={ searchValue }
+					setSearchValue={ setSearchValue }
+					onClear={ onClear }
+					clearText={ clearText }
+					onFocus={ onFocus }
+				/>
 			</div>
 		</div>
 	);

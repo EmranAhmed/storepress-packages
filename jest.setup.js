@@ -264,18 +264,3 @@ expect.extend({
     }
   },
 })
-
-// Global test utilities
-global.createTestElement = (html) => {
-  const container = document.createElement('div')
-  container.innerHTML = html
-  document.body.appendChild(container)
-  return container.firstElementChild
-}
-
-global.createTestElements = (html) => {
-  const container = document.createElement('div')
-  container.innerHTML = html
-  document.body.appendChild(container)
-  return container.children
-}

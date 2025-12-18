@@ -6,9 +6,9 @@ export function Icon( props ) {
 		isLoading,
 		searchValue,
 		setSearchValue,
-		onClear,
-		clearText,
-		onFocus,
+		clearText = '',
+		onClear = () => {},
+		onFocus = () => {},
 	} = props;
 
 	if ( isLoading ) {

@@ -83,6 +83,26 @@ describe('UnitRangeControl', () => {
       expect(onChange).toHaveBeenCalled()
     })
 
+    it('calls onChange 4 times with clear and input value changes', async () => {
+      const user = userEvent.setup()
+      const onChange = jest.fn()
+
+      render(
+        <UnitRangeControl
+          {...defaultProps}
+          value="50px"
+          onChange={onChange}
+        />,
+      )
+
+      const input = screen.getByRole('spinbutton')
+      await user.clear(input)
+      await user.type(input, '100')
+      await user.tab() // Trigger blur/change
+
+      expect(onChange).toHaveBeenCalledTimes(4)
+    })
+
     it('calls onChange with correct value and unit', async () => {
       const user = userEvent.setup()
       const onChange = jest.fn()
@@ -100,10 +120,7 @@ describe('UnitRangeControl', () => {
       await user.type(input, '75')
       await user.tab()
 
-      const lastArgs = onChange.mock.lastCall
-      const lastValue = lastArgs[0] // Get the first argument (the value)
-
-      expect(lastValue).toContain('75')
+      expect(onChange).toHaveBeenCalledWith('75px', expect.any(Object))
     })
 
     it('respects min value from unit settings', async () => {
@@ -286,32 +303,32 @@ describe('UnitRangeControl', () => {
       expect(input).toHaveAttribute('max', '500')
       expect(input).toHaveAttribute('step', '5')
     })
-  });
+  })
 
   describe('edge cases', () => {
     it('handles empty value', () => {
-      render(<UnitRangeControl {...defaultProps} value="" />);
+      render(<UnitRangeControl {...defaultProps} value="" />)
 
-      expect(screen.getByRole('spinbutton')).toBeInTheDocument();
-    });
+      expect(screen.getByRole('spinbutton')).toBeInTheDocument()
+    })
 
     it('handles value with only unit', () => {
-      render(<UnitRangeControl {...defaultProps} value="px" />);
+      render(<UnitRangeControl {...defaultProps} value="px" />)
 
-      expect(screen.getByRole('spinbutton')).toBeInTheDocument();
-    });
+      expect(screen.getByRole('spinbutton')).toBeInTheDocument()
+    })
 
     it('handles decimal values', () => {
-      render(<UnitRangeControl {...defaultProps} value="10.5em" />);
+      render(<UnitRangeControl {...defaultProps} value="10.5em" />)
 
-      const input = screen.getByRole('spinbutton');
-      expect(input).toHaveValue(10.5);
-    });
+      const input = screen.getByRole('spinbutton')
+      expect(input).toHaveValue(10.5)
+    })
 
     it('handles negative values when allowed', () => {
       const customUnits = [
         { value: 'px', label: 'px', default: 0, min: -100, max: 100, step: 1 },
-      ];
+      ]
 
       render(
         <UnitRangeControl
@@ -319,37 +336,37 @@ describe('UnitRangeControl', () => {
           value="-50px"
           defaultUnits={customUnits}
           allowedUnits={['px']}
-        />
-      );
+        />,
+      )
 
-      const input = screen.getByRole('spinbutton');
-      expect(input).toHaveValue(-50);
-    });
-  });
+      const input = screen.getByRole('spinbutton')
+      expect(input).toHaveValue(-50)
+    })
+  })
 
   describe('accessibility', () => {
     it('has accessible labels', () => {
-      render(<UnitRangeControl {...defaultProps} label="Container Width" />);
+      render(<UnitRangeControl {...defaultProps} label="Container Width" />)
 
       // Label should be visible
-      expect(screen.getByText('Container Width', { selector: 'label.components-base-control__label' })).toBeInTheDocument();
-    });
+      expect(screen.getByText('Container Width', { selector: 'label.components-base-control__label' })).toBeInTheDocument()
+    })
 
     it('slider and input are focusable', async () => {
-      const user = userEvent.setup();
-      render(<UnitRangeControl {...defaultProps} />);
+      const user = userEvent.setup()
+      render(<UnitRangeControl {...defaultProps} />)
 
-      const input = screen.getByRole('spinbutton');
-      const slider = screen.getByRole('slider');
+      const input = screen.getByRole('spinbutton')
+      const slider = screen.getByRole('slider')
 
-      await user.tab();
+      await user.tab()
       // One of the controls should be focused
       expect(
         document.activeElement === input ||
-        document.activeElement === slider
-      ).toBe(true);
-    });
-  });
+        document.activeElement === slider,
+      ).toBe(true)
+    })
+  })
 
 })
 

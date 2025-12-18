@@ -192,7 +192,7 @@ $components-color-accent: var(--wp-components-color-accent, var(--wp-admin-theme
 
 }
 
-:where(.storepress-component-search-list) {
+:where(.storepress-component-search-list-control) {
 
 	@include init();
 }

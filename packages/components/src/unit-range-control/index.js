@@ -113,21 +113,26 @@ export function unitConverter(
  */
 
 /**
- * UnitRangeControl renders a linked unit control and range control.
+ * A control component for managing numeric values with selectable units.
  *
- *
- * @param {Object}          props
- * @param {string}          props.label                                   - A label for the control.
- * @param {onChange}        props.onChange                                - Called when the value changes.
- * @param {string}          props.value                                   - The current value with unit.
- * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] - Available values.
- * @param {availableUnit[]} [props.defaultUnits]                          - Default units.
- * @param {unitOperation[]} [props.convertUnits]                          - Unit value conversion logic.
+ * @param {Object}          props                                         Component props.
+ * @param {string}          [props.label='']                              Label text displayed above the control.
+ * @param {Function}        [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
+ * @param {string}          [props.value='0px']                           Current value including unit (e.g., '100%', '16px').
+ * @param {string}          [props.help='']                               Help text displayed below the control.
+ * @param {string}          [props.className='']                          Additional CSS class names to apply to the control.
+ * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
+ * @param {availableUnit[]} [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
+ * @param {unitOperation[]} [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations.
+ * @return {JSX.Element} The rendered unit range control component.
  */
+
 function UnitRangeControl( {
-	label,
-	onChange,
-	value,
+	label = '',
+	onChange = () => {},
+	value = '0px',
+	help = '',
+	className = '',
 	allowedUnits = [ '%', 'px', 'em', 'rem' ],
 	defaultUnits = availableUnits,
 	convertUnits = unitOperations,
@@ -197,53 +202,58 @@ function UnitRangeControl( {
 		<BaseControl
 			id={ id }
 			label={ label }
-			className="storepress-component-unit-range-control"
+			className={ className }
+			help={ help }
 			__nextHasNoMarginBottom
 		>
-			<Flex>
-				<FlexItem isBlock>
-					<UnitControl
-						id={ id }
-						value={ value }
-						units={ units }
-						onChange={ onChange }
-						onUnitChange={ handleUnitChange }
-						min={ unitSettings[ selectedUnit ]?.min ?? 0 }
-						max={ unitSettings[ selectedUnit ]?.max ?? 100 }
-						step={ unitSettings[ selectedUnit ]?.step ?? 0.1 }
-						size="__unstable-large"
-						label={ label }
-						hideLabelFromVision
-					/>
-				</FlexItem>
-				<FlexItem isBlock>
-					<Spacer marginX={ 2 } marginBottom={ 0 }>
-						<RangeControl
-							__next40pxDefaultSize
-							value={ customRangeValue }
+			<div className="storepress-component-unit-range-control">
+				<Flex>
+					<FlexItem isBlock>
+						<UnitControl
+							id={ id }
+							value={ value }
+							units={ units }
+							onChange={ onChange }
+							onUnitChange={ handleUnitChange }
 							min={ unitSettings[ selectedUnit ]?.min ?? 0 }
 							max={ unitSettings[ selectedUnit ]?.max ?? 100 }
 							step={ unitSettings[ selectedUnit ]?.step ?? 0.1 }
-							withInputField={ false }
-							onChange={ handleSliderChange }
+							size="__unstable-large"
 							label={ label }
 							hideLabelFromVision
-							__nextHasNoMarginBottom
-							renderTooltipContent={ ( contentValue ) =>
-								`${ contentValue }${ selectedUnit }`
-							}
 						/>
-					</Spacer>
-				</FlexItem>
-			</Flex>
+					</FlexItem>
+					<FlexItem isBlock>
+						<Spacer marginX={ 2 } marginBottom={ 0 }>
+							<RangeControl
+								__next40pxDefaultSize
+								value={ customRangeValue }
+								min={ unitSettings[ selectedUnit ]?.min ?? 0 }
+								max={ unitSettings[ selectedUnit ]?.max ?? 100 }
+								step={
+									unitSettings[ selectedUnit ]?.step ?? 0.1
+								}
+								withInputField={ false }
+								onChange={ handleSliderChange }
+								label={ label }
+								hideLabelFromVision
+								__nextHasNoMarginBottom
+								renderTooltipContent={ ( contentValue ) =>
+									`${ contentValue }${ selectedUnit }`
+								}
+							/>
+						</Spacer>
+					</FlexItem>
+				</Flex>
+			</div>
 		</BaseControl>
 	);
 }
 
 UnitRangeControl.propTypes = {
-	label: PropTypes.string.isRequired,
-	value: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
+	label: PropTypes.string,
+	value: PropTypes.string,
+	onChange: PropTypes.func,
 	allowedUnits: PropTypes.array,
 	defaultUnits: PropTypes.array,
 	convertUnits: PropTypes.array,

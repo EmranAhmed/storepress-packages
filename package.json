@@ -20,7 +20,7 @@
     "@wordpress/api-fetch": "^7.36.0"
   },
   "scripts": {
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6007",
     "storybook-docs": "storybook dev --docs",
     "build-storybook-docs": "storybook build --docs",
     "build-storybook": "storybook build",
@@ -68,6 +68,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "fs-extra": "^11.3.1",
     "glob": "^13.0.0",
+    "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^30.2.0",
     "lerna": "^9.0.3",
     "postcss": "8.4.38",

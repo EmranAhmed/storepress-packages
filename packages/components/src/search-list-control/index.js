@@ -12,42 +12,79 @@ import { useInstanceId } from '@wordpress/compose';
 import { Input } from './input';
 import { Results } from './results';
 
-function SearchListControl( {
-	id = '',
-	hideSearchBox = false,
-	itemValueNameSeparator = ' - ',
-	itemMetaNameSeparator = ', ',
-	...baseProps
-} ) {
-	const preferredId = useInstanceId(
+function SearchListControl( props ) {
+	const {
+		// base component
+		label = '',
+		className = '',
+		hideLabelFromVision = false,
+		help = '',
+		// component
+		placeholder = '',
+		clearText = '',
+		isLoading = false,
+		hideSearchBox = false,
+		isMultiSelect = false,
+		items = [],
+		itemKeyName = 'id',
+		itemValueName = [ 'name' ],
+		itemMetaName = [],
+		itemFilterName = [ 'name' ],
+		selected = [],
+		itemValueNameSeparator = ' - ',
+		itemMetaNameSeparator = ', ',
+		noItemsFoundText = '',
+		// callbacks
+		onSearch = () => {},
+		onSelect = () => {},
+		onClear = () => {},
+	} = props;
+
+	const id = useInstanceId(
 		SearchListControl,
-		'storepress-search-list-control',
-		id
+		'storepress-search-list-control'
 	);
 
-	const { baseControlProps, controlProps } = useBaseControlProps( {
-		...baseProps,
-		id: preferredId,
+	const { baseProps } = useBaseControlProps( {
+		label,
+		className,
+		hideLabelFromVision,
+		id,
+		help,
 	} );
 
 	const [ searchValue, setSearchValue ] = useState( '' );
 
 	return (
-		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
-			<div className="storepress-component-search-list">
+		<BaseControl { ...baseProps } __nextHasNoMarginBottom>
+			<div className="storepress-component-search-list-control">
 				{ ! hideSearchBox && (
 					<Input
+						id={ id }
+						isLoading={ isLoading }
 						searchValue={ searchValue }
+						placeholder={ placeholder }
+						clearText={ clearText }
 						setSearchValue={ setSearchValue }
-						controlProps={ controlProps }
-						{ ...baseControlProps }
+						onClear={ onClear }
+						onSearch={ onSearch }
 					/>
 				) }
 				<Results
+					id={ id }
+					isLoading={ isLoading }
+					isMultiSelect={ isMultiSelect }
+					items={ items }
+					itemKeyName={ itemKeyName }
+					itemValueName={ itemValueName }
+					itemMetaName={ itemMetaName }
+					itemFilterName={ itemFilterName }
+					selected={ selected }
+					onSelect={ onSelect }
 					itemValueNameSeparator={ itemValueNameSeparator }
 					itemMetaNameSeparator={ itemMetaNameSeparator }
 					searchValue={ searchValue }
-					{ ...baseControlProps }
+					noItemsFoundText={ noItemsFoundText }
 				/>
 			</div>
 		</BaseControl>
@@ -55,21 +92,17 @@ function SearchListControl( {
 }
 
 SearchListControl.propTypes = {
-	id: PropTypes.string,
-
 	label: PropTypes.string,
 
-	help: PropTypes.string,
+	className: PropTypes.string,
 
 	hideLabelFromVision: PropTypes.bool,
 
-	className: PropTypes.string,
+	help: PropTypes.string,
 
 	items: PropTypes.array.isRequired,
 
 	selected: PropTypes.array,
-
-	disableFilter: PropTypes.bool,
 
 	itemKeyName: PropTypes.string,
 
@@ -86,6 +119,8 @@ SearchListControl.propTypes = {
 	placeholder: PropTypes.string,
 
 	noItemsFoundText: PropTypes.string,
+
+	clearText: PropTypes.string,
 
 	isLoading: PropTypes.bool,
 

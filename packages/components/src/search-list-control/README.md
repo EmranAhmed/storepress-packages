@@ -279,6 +279,10 @@ Input placeholder text
 
 Control have no item to show message text.
 
+#### `clearText`: `string`
+
+Search box clear button text.
+
 -   Required: no
 
 #### `onSearch`: `( searchString: string ) => void`

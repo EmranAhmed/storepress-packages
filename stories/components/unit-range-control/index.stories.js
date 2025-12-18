@@ -23,6 +23,10 @@ export default {
     value: { control: false },
   },
 
+  args: {
+    onChange: fn(),
+  },
+
   parameters: {
     controls: { expanded: true },
   },
@@ -46,6 +50,7 @@ export const Basic = {
         label={args.label}
         value={ value }
         onChange={ ( v ) => {
+          console.log('onChange');
           setValue( v );
         } }
         allowedUnits={ args.allowedUnits }
