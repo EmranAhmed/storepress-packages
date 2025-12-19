@@ -146,7 +146,6 @@ function toSnakeCase(string) {
   return string
   // Find uppercase letters and insert underscore before them, then lowercase the letter
   .replace(/([^A-Z-_\s+])([A-Z])/g, '$1-$2')
-  // .replace(/([A-Z])/g, (match, p1) => `_${p1.toLowerCase()}`)
   // Replace any hyphens, dots, or spaces with underscores
   .replace(/[-._:~\s]/g, '_')
   // Remove any leading or trailing underscores that may have been created
@@ -1264,8 +1263,8 @@ function getElement(selector = null) {
  * output format for functions that need to operate on multiple elements while providing
  * flexibility in input types.
  *
- * @param {string|HTMLElement|HTMLElement[]|NodeList|Array|Document[]} [selectors=[]] - The element selector(s) or element(s)
- * @return {HTMLElement[]|NodeList|Array|Document[]} Collection of HTMLElements, empty array if no matches
+ * @param {string|HTMLElement|HTMLElement[]|NodeList|Array|Document} [selectors=[]] - The element selector(s) or element(s)
+ * @return {HTMLElement[]|NodeList|Array|Document} Collection of HTMLElements, empty array if no matches
  *
  * @example
  * // Using CSS selector string (returns NodeList)
