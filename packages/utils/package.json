@@ -1,6 +1,6 @@
 {
   "name": "@storepress/utils",
-  "version": "0.14.0",
+  "version": "0.13.0",
   "description": "StorePress Utility Functions",
   "author": "StorePress",
   "license": "GPL-2.0-or-later",
@@ -13,7 +13,7 @@
   "homepage": "https://github.com/EmranAhmed/storepress-packages/blob/main/packages/utils/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/EmranAhmed/storepress-packages",
+    "url": "git+https://github.com/EmranAhmed/storepress-packages.git",
     "directory": "packages/utils"
   },
   "sideEffects": false,
@@ -26,8 +26,7 @@
     "prebuild": "rimraf build-style && rimraf build-module && rimraf build",
     "build:module": "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
     "build:core": "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
-    "build": "npm run build:core && npm run build:module",
-    "prepublishOnly": "npm run build"
+    "build": "npm run build:core && npm run build:module"
   },
   "publishConfig": {
     "access": "public"

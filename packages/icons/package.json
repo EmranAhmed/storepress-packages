@@ -13,7 +13,7 @@
   "homepage" : "https://github.com/EmranAhmed/storepress-packages/packages/icons/README.md",
   "repository" : {
     "type" : "git",
-    "url" : "https://github.com/EmranAhmed/storepress-packages",
+    "url" : "git+https://github.com/EmranAhmed/storepress-packages.git",
     "directory" : "packages/icons"
   },
   "sideEffects" : false,
@@ -26,8 +26,7 @@
     "prebuild" : "rimraf build-style && rimraf build-module && rimraf build",
     "build:module" : "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
     "build:core" : "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
-    "build" : "npm run build:core && npm run build:module",
-    "prepublishOnly": "npm run build"
+    "build" : "npm run build:core && npm run build:module"
   },
   "dependencies" : {
     "@wordpress/icons" : "^11.3.0",
