@@ -1,7 +1,7 @@
 import { Meta, Story, Source, Controls, Canvas } from '@storybook/blocks';
 import * as Stories from './index.stories';
 
-<Meta title="Addons/Tooltip" of={Stories}/>
+<Meta title="Addons/Tooltip" of={Stories} />
 
 ## Install
 
@@ -29,13 +29,25 @@ document.addEventListener('DOMContentLoaded', () => {
 ```
 
 
-## Example
+## Example Basic
 
 { /* <Canvas of={Stories.Basic} /> */ }
 
-<Story of={Stories.Basic} />
+<div style={{ 'position': 'relative', 'zIndex': 1 }}>
+  <Story of={Stories.Basic} />
+</div>
+
 
 <Source of={Stories.Basic} />
+
+
+## Example Image
+
+<div style={{ 'position': 'relative', 'zIndex': 1 }}>
+  <Story of={Stories.Image} />
+</div>
+
+<Source of={Stories.Image} />
 
 ## Customized Tooltip
 

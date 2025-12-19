@@ -66,6 +66,7 @@ describe('@storepress/utils - String Case Conversions', () => {
     })
 
     it('converts PascalCase to snake_case', () => {
+      expect(toSnakeCase('HTTPSConnection')).toBe('httpsconnection')
       expect(toSnakeCase('UserProfile')).toBe('user_profile')
       expect(toSnakeCase('DatabaseConnection')).toBe(
         'database_connection',

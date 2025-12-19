@@ -29,16 +29,14 @@
     "build": "npm run build:core && npm run build:module",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-  },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "@babel/runtime": "7.28.3",
     "@babel/cli": "7.28.3",
     "@babel/preset-env": "7.28.5",
     "@babel/preset-react": "7.28.5",
+    "@babel/runtime": "7.28.3",
     "@wordpress/babel-preset-default": "^8.36.0"
   },
   "peerDependencies": {

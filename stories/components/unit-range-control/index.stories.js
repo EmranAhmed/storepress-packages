@@ -3,8 +3,8 @@
  */
 
 import { fn } from '@storybook/test'
-
-import { useState } from '@wordpress/element'
+// import { useState } from '@wordpress/element'
+import { useState } from '@storybook/addons';
 
 /**
  * Internal dependencies
@@ -69,7 +69,7 @@ export const Custom = {
 
   render: (args) => {
 
-    const [value, setValue] = useState('10s')
+    const [value, setValue] = useState(args.value)
 
     return (
       <UnitRangeControl

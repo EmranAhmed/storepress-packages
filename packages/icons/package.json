@@ -13,7 +13,7 @@
   "homepage" : "https://github.com/EmranAhmed/storepress-packages/packages/icons/README.md",
   "repository" : {
     "type" : "git",
-    "url" : "git+https://github.com/EmranAhmed/storepress-packages.git",
+    "url" : "https://github.com/EmranAhmed/storepress-packages",
     "directory" : "packages/icons"
   },
   "sideEffects" : false,

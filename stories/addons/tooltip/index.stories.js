@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { useEffect } from '@storybook/addons';
-import { triggerEvent } from '@storepress/utils';
 import StorePressTooltip from '@storepress/tooltip';
 /**
  * Internal dependencies

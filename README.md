@@ -6,6 +6,12 @@
 
 - `npx lerna init --packages="packages/*" --independent`
 
+
+## Storybook
+
+- `npm run build`
+- `npm run storybook`
+
 ## Build
 
 - `npm run build`

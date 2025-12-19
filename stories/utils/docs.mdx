@@ -10,8 +10,8 @@ npm i @storepress/utils --save
 
 ## Usage
 
-```jsx
-import { getOptionsFromAttribute, createPluginInstance, getPluginInstance } from '@storepress/utils';
+```js
+import { getOptionsFromAttribute } from '@storepress/utils';
 ```
 
 ## Example Plugin `Plugin.js`
@@ -28,7 +28,7 @@ function Plugin(element, options) {
     }
 
     // Collecting settings from html attribute
-    const ATTRIBUTE = 'data-my-plugin'
+    const ATTRIBUTE = 'data-slider-settings'
 
     const handleInput = (event) => {
         window.console.log(event.target.value)
@@ -68,7 +68,6 @@ function Plugin(element, options) {
         reset
     })
 
-
     // Do what you need and return expose fn.
     const init = () => {
         this.$element = element
@@ -97,30 +96,29 @@ import { createStorePressPlugin } from '@storepress/utils'
 import { Plugin } from './Plugin.js'
 
 // Create and setup the plugin
-const MyPlugin = createStorePressPlugin({
-    selector: '[data-my-plugin]',
+const Slider = createStorePressPlugin({
+    selector: '[data-slider-settings]',
     plugin: Plugin,
-    namespace: 'my-plugin',
+    namespace: 'slider',
     options: { message: 'Default message' },
 })
 
-MyPlugin.setup()
+Slider.setup()
 
-export default MyPlugin
+export default Slider
 ```
 
 ## Using the Plugin `script.js`
 
 ```javascript
-import MyPlugin from './index.js';
+import Slider from './index.js';
 
 document.addEventListener( 'DOMContentLoaded', () => {
-    MyPlugin.init();
+    Slider.init();
 } );
 ```
 
 ## Method: 01
-- If you want to access `Slider` globally. Attach `Slider` with `Window` like:
 
 ```js
 /**
@@ -130,48 +128,55 @@ import domReady from '@wordpress/dom-ready';
 import {
   getPluginInstance,
   getStorePressPlugin,
-  triggerEvent
 } from '@storepress/utils';
 
 domReady(function () {
 
-// Method 1: Get specific plugin instance
-const plugin = getPluginInstance('.element', 'slider');
+// Method 1: Get specific plugin instances
+const pluginInstances = getPluginInstance('.element', 'slider');
 
 // Method 2: Get via plugin manager
-const plugin = getStorePressPlugin('slider').get('.element');
+const pluginInstances = getStorePressPlugin('slider').get('.element');
 
 // Method 3: Get all plugin instances
-const allSliders = getStorePressPlugin('slider').get();
+const pluginInstances = getStorePressPlugin('slider').get();
 
-// Slider.init()
-// Slider.destroy()
-
-allSliders.forEach(instance => {
+pluginInstances.forEach(instance => {
   instance.handleNext(); // Access plugin exposed functions.
 });
+
+
+const pluginManager = getStorePressPlugin('slider')
+
+// pluginManager.init()
+// pluginManager.destroy()
+// pluginManager.reload()
 })
 ```
 ## Method: 02
-- If you don't want to access `Slider` globally. Use event.
 
 ```js
 
-// Method 1: Get specific plugin instance
-const plugin = StorePress.Utils.getPluginInstance('.element', 'slider');
+// Method 1: Get plugin instances.
+const pluginInstances = StorePress.Utils.getPluginInstance('.element', 'slider');
 
-// Method 2: Get via plugin manager
-const plugin = StorePress.Utils.getStorePressPlugin('slider').get('.element');
+// Method 1: Get via plugin manager.
+const pluginInstances = StorePress.Utils.getStorePressPlugin('slider').get('.element');
 
 // Method 3: Get all plugin instances
-const allSliders = StorePress.Utils.getStorePressPlugin('slider').get();
+const pluginInstances = StorePress.Utils.getStorePressPlugin('slider').get();
 
-// Slider.init()
-// Slider.destroy()
 
-allSliders.forEach(instance => {
+pluginInstances.forEach(instance => {
   instance.handleNext(); // Access plugin exposed functions.
 });
+
+
+const pluginManager = StorePress.Utils.getStorePressPlugin('slider')
+
+// pluginManager.init()
+// pluginManager.destroy()
+// pluginManager.reload()
 ```
 
 ## Example HTML

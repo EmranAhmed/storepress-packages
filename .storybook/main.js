@@ -48,7 +48,8 @@ const config = {
         // getAbsolutePath("@storybook/addon-links"),
        // getAbsolutePath("@storybook/addon-actions"),
         getAbsolutePath("@storybook/addon-interactions"),
-        getAbsolutePath("@storybook/addon-essentials")
+        getAbsolutePath("@storybook/addon-essentials"),
+        // '@storybook/addon-webpack5-compiler-babel',
     ],
 
     framework    : {
