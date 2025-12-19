@@ -187,17 +187,18 @@ function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
  * @param {unitOperation[]} [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations. * @return {JSX.Element} The rendered unit range control component.
  */
 
-function UnitRangeControl({
-  label = '',
-  hideLabelFromVision = false,
-  className = '',
-  help = '',
-  value = '0px',
-  onChange = () => {},
-  allowedUnits = ['%', 'px', 'em', 'rem'],
-  defaultUnits = availableUnits,
-  convertUnits = unitOperations
-}) {
+function UnitRangeControl(props) {
+  const {
+    label = '',
+    hideLabelFromVision = false,
+    className = '',
+    help = '',
+    value = '0px',
+    onChange = () => {},
+    allowedUnits = ['%', 'px', 'em', 'rem'],
+    defaultUnits = availableUnits,
+    convertUnits = unitOperations
+  } = props;
   const customRangeValue = parseFloat(value);
   const defaultValues = (0, _element.useMemo)(() => {
     return defaultUnits.reduce((accumulator, unit) => {

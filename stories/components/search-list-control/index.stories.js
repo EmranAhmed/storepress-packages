@@ -22,7 +22,8 @@ export default {
     onSearch: { control: false },
     onSelect: { control: false },
     onClear: { control: false },
-  },}
+  },
+}
 
 export const Basic = {
 
@@ -73,7 +74,7 @@ export const Remote = {
   },
 
   render: (args, { loaded: { items } }) => {
-    
+
     return <SearchListControl {...args} items={items} />
   },
 }
