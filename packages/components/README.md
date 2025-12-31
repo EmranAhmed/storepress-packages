@@ -26,3 +26,4 @@ import './style.scss';
 ## Documentation:
 
 - [See `SearchListControl` docs](src/search-list-control/README.md)
+- [See `UnitRangeControl` docs](src/unit-range-control/README.md)
