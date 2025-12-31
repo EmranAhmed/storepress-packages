@@ -26,17 +26,17 @@ import { __ } from '@wordpress/i18n';
 import { PanelBody } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
 import { addQueryArgs } from '@wordpress/url';
-import { debounce } from '@wordpress/compose';
+import { useDebounce } from '@wordpress/compose';
 
 export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
   const { query: { productId = 0 } = {} } = attributes;
 
   const [ queryProductsList, setQueryProductsList ] = useState( [] );
   const [ queryProductSearch, setQueryProductSearch ] = useState( '' );
-  const [ isLoading, setIsLoading ] = useState( false );
+  const [ isLoading, setIsLoading ] = useState( true );
 
   const fetchSearchResult = useCallback( async () => {
-    setIsLoading( true );
+      
     const perPage = 20;
 
     const searchResults = await apiFetch( {
@@ -44,8 +44,6 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
         search: queryProductSearch,
         per_page: perPage,
       } ),
-    } ).finally( () => {
-      setIsLoading( false );
     } );
 
     const productResult = await apiFetch( {
@@ -53,8 +51,6 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
         include: productId,
         per_page: perPage,
       } ),
-    } ).finally( () => {
-      setIsLoading( false );
     } );
 
     const currentProduct = [ ...productResult ].at( 0 ) || {};
@@ -80,13 +76,13 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
     setQueryProductSearch( search );
   }, [] );
 
-  const debouncedOnProductSearch = debounce( onProductSearch, 800 );
+  const debouncedOnProductSearch = useDebounce( onProductSearch, 800 );
 
-  const onChangeSearchList = ( id ) => {
+  const onChangeSearchList = ( event, value, checked, isMulti ) => {
     setAttributes( {
       query: {
         ...attributes.query,
-        productId: parseInt( id.at( 0 ), 10 ),
+        productId: parseInt( value, 10 ),
       },
     } );
   };
@@ -97,6 +93,7 @@ export const ProductSearchListControl = ( { attributes, setAttributes } ) => {
 
       setQueryProductsList( products );
       setIsLoading( false );
+      
     } )();
   }, [ fetchSearchResult ] );
 
@@ -141,6 +138,18 @@ export const Example = () => {
     };
   }, []);
 
+    const handleSelect = ( value, checked, isMulti) => {
+
+        setSugessionList((values) => {
+            const prepared = values.map((v) => v.toString());
+
+            const newValues = checked ? [...prepared, value] : prepared.filter(v => v !== value)
+
+            return isMulti ? [...new Set(newValues)] : [value]
+
+        });
+    };
+
   return (
       <SearchListControl
         selected={['17', '23', '36']}
@@ -151,13 +160,11 @@ export const Example = () => {
         isLoading={loding}
         noItemsFoundText={ __('No Product Found', 'textdomain') }
         onSearch={(searchString) => {
-          // return filtered values.
+          
         }}
-        onSelect={(selectedKeys, selectedItems) => {
-
-        }}
+        onSelect={handleSelect}
         onClear={() => {
-          console.log()
+          console.log('clear')
         }}
         items={sugessionList}
       />
@@ -242,9 +249,9 @@ Is loading state or not
 -   Default: `false`
 -   Required: no 
 
-#### `disableFilter`: `boolean`
+#### `disableItemFilter`: `boolean`
 
-Disable filtering.
+Disable inLine filtering.
 
 -   Default: `false`
 -   Required: no 
@@ -285,7 +292,7 @@ A function that receives the new value on the input.
 
 -   Required: no
 
-#### `onSelect`: `( selectedKeys: array, selectedItems: array ) => void`
+#### `onSelect`: `( selectedItems: array, selectedItem: string ) => void`
 
 A function that receives the new value array on the input chosen.
 

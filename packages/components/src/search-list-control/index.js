@@ -11,6 +11,7 @@ import { useInstanceId } from '@wordpress/compose';
  */
 import { Input } from './input';
 import { Results } from './results';
+import { noop } from '../common';
 
 /**
  * A searchable list control component for selecting items from a filterable list.
@@ -35,6 +36,7 @@ import { Results } from './results';
  * @param {string}          [props.itemValueNameSeparator=' - '] Separator string between multiple value name properties.
  * @param {string}          [props.itemMetaNameSeparator=', ']   Separator string between multiple meta name properties.
  * @param {string}          [props.noItemsFoundText='']          Text displayed when no items match the search query.
+ * @param {boolean}         [props.disableItemFilter=false]      Disable inline text filtering from list.
  * @param {Function}        [props.onSearch]                     Callback fired when the search value changes. Receives the search string.
  * @param {Function}        [props.onSelect]                     Callback fired when an item is selected. Receives the selected item.
  * @param {Function}        [props.onClear]                      Callback fired when the search input is cleared.
@@ -62,10 +64,11 @@ function SearchListControl( props ) {
 		itemValueNameSeparator = ' - ',
 		itemMetaNameSeparator = ', ',
 		noItemsFoundText = '',
+		disableItemFilter = false,
 		// callbacks
-		onSearch = () => {},
-		onSelect = () => {},
-		onClear = () => {},
+		onSearch = noop,
+		onSelect = noop,
+		onClear = noop,
 	} = props;
 
 	const id = useInstanceId(
@@ -81,7 +84,23 @@ function SearchListControl( props ) {
 		help,
 	} );
 
-	const [ searchValue, setSearchValue ] = useState( '' );
+	const [ search, setSearch ] = useState( '' );
+
+	const handleSearch = ( event ) => {
+		const { value } = event.target;
+		setSearch( value );
+		onSearch( value );
+	};
+
+	const handleClear = () => {
+		setSearch( '' );
+		onClear();
+	};
+
+	const handleSelect = ( event ) => {
+		const { value, checked } = event?.target;
+		onSelect( value, checked, isMultiSelect );
+	};
 
 	return (
 		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
@@ -90,16 +109,16 @@ function SearchListControl( props ) {
 					<Input
 						id={ id }
 						isLoading={ isLoading }
-						searchValue={ searchValue }
 						placeholder={ placeholder }
 						clearText={ clearText }
-						setSearchValue={ setSearchValue }
-						onClear={ onClear }
-						onSearch={ onSearch }
+						search={ search }
+						onClear={ handleClear }
+						onSearch={ handleSearch }
 					/>
 				) }
 				<Results
 					id={ id }
+					disableItemFilter={ disableItemFilter }
 					isLoading={ isLoading }
 					isMultiSelect={ isMultiSelect }
 					items={ items }
@@ -108,10 +127,10 @@ function SearchListControl( props ) {
 					itemMetaName={ itemMetaName }
 					itemFilterName={ itemFilterName }
 					selected={ selected }
-					onSelect={ onSelect }
+					onSelect={ handleSelect }
 					itemValueNameSeparator={ itemValueNameSeparator }
 					itemMetaNameSeparator={ itemMetaNameSeparator }
-					searchValue={ searchValue }
+					search={ search }
 					noItemsFoundText={ noItemsFoundText }
 				/>
 			</div>
@@ -155,6 +174,8 @@ SearchListControl.propTypes = {
 	hideSearchBox: PropTypes.bool,
 
 	isMultiSelect: PropTypes.bool,
+
+	disableItemFilter: PropTypes.bool,
 
 	onSearch: PropTypes.func,
 

@@ -17,7 +17,8 @@
     "@storepress/icons": "file:packages/icons",
     "@storepress/tooltip": "^0.8.0",
     "@storepress/utils": "file:packages/utils",
-    "@wordpress/api-fetch": "^7.36.0"
+    "@wordpress/api-fetch": "^7.36.0",
+    "@wordpress/compose": "^7.37.0"
   },
   "scripts": {
     "storybook": "storybook dev -p 6007",
@@ -42,8 +43,8 @@
     "@storybook/addon-actions": "7.6.20",
     "@storybook/addon-essentials": "7.6.20",
     "@storybook/addon-interactions": "7.6.20",
-    "@storybook/addons": "7.6.20",
     "@storybook/addon-links": "7.6.20",
+    "@storybook/addons": "7.6.20",
     "@storybook/blocks": "7.6.20",
     "@storybook/client-api": "7.6.20",
     "@storybook/manager-api": "7.6.20",

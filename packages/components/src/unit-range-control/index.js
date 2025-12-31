@@ -20,6 +20,11 @@ import {
 } from '@wordpress/components';
 import PropTypes from 'prop-types';
 
+/**
+ * Internal dependencies
+ */
+import { noop } from '../common';
+
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/components/src/unit-control/utils.ts
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/block-editor/src/components/height-control/index.js
 
@@ -137,7 +142,7 @@ function UnitRangeControl( props ) {
 		className = '',
 		help = '',
 		value = '0px',
-		onChange = () => {},
+		onChange = noop,
 		allowedUnits = [ '%', 'px', 'em', 'rem' ],
 		defaultUnits = availableUnits,
 		convertUnits = unitOperations,
