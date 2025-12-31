@@ -10,6 +10,7 @@ var _components = require("@wordpress/components");
 var _compose = require("@wordpress/compose");
 var _input = require("./input");
 var _results = require("./results");
+var _common = require("../common");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); } /**
  * External dependencies
@@ -39,6 +40,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
  * @param {string}          [props.itemValueNameSeparator=' - '] Separator string between multiple value name properties.
  * @param {string}          [props.itemMetaNameSeparator=', ']   Separator string between multiple meta name properties.
  * @param {string}          [props.noItemsFoundText='']          Text displayed when no items match the search query.
+ * @param {boolean}         [props.disableItemFilter=false]      Disable inline text filtering from list.
  * @param {Function}        [props.onSearch]                     Callback fired when the search value changes. Receives the search string.
  * @param {Function}        [props.onSelect]                     Callback fired when an item is selected. Receives the selected item.
  * @param {Function}        [props.onClear]                      Callback fired when the search input is cleared.
@@ -66,10 +68,11 @@ function SearchListControl(props) {
     itemValueNameSeparator = ' - ',
     itemMetaNameSeparator = ', ',
     noItemsFoundText = '',
+    disableItemFilter = false,
     // callbacks
-    onSearch = () => {},
-    onSelect = () => {},
-    onClear = () => {}
+    onSearch = _common.noop,
+    onSelect = _common.noop,
+    onClear = _common.noop
   } = props;
   const id = (0, _compose.useInstanceId)(SearchListControl, 'storepress-search-list-control');
   const {
@@ -81,7 +84,25 @@ function SearchListControl(props) {
     id,
     help
   });
-  const [searchValue, setSearchValue] = (0, _element.useState)('');
+  const [search, setSearch] = (0, _element.useState)('');
+  const handleSearch = event => {
+    const {
+      value
+    } = event.target;
+    setSearch(value);
+    onSearch(value);
+  };
+  const handleClear = () => {
+    setSearch('');
+    onClear();
+  };
+  const handleSelect = event => {
+    const {
+      value,
+      checked
+    } = event?.target;
+    onSelect(value, checked, isMultiSelect);
+  };
   return /*#__PURE__*/React.createElement(_components.BaseControl, _extends({}, baseControlProps, {
     __nextHasNoMarginBottom: true
   }), /*#__PURE__*/React.createElement("div", {
@@ -89,14 +110,14 @@ function SearchListControl(props) {
   }, !hideSearchBox && /*#__PURE__*/React.createElement(_input.Input, {
     id: id,
     isLoading: isLoading,
-    searchValue: searchValue,
     placeholder: placeholder,
     clearText: clearText,
-    setSearchValue: setSearchValue,
-    onClear: onClear,
-    onSearch: onSearch
+    search: search,
+    onClear: handleClear,
+    onSearch: handleSearch
   }), /*#__PURE__*/React.createElement(_results.Results, {
     id: id,
+    disableItemFilter: disableItemFilter,
     isLoading: isLoading,
     isMultiSelect: isMultiSelect,
     items: items,
@@ -105,10 +126,10 @@ function SearchListControl(props) {
     itemMetaName: itemMetaName,
     itemFilterName: itemFilterName,
     selected: selected,
-    onSelect: onSelect,
+    onSelect: handleSelect,
     itemValueNameSeparator: itemValueNameSeparator,
     itemMetaNameSeparator: itemMetaNameSeparator,
-    searchValue: searchValue,
+    search: search,
     noItemsFoundText: noItemsFoundText
   })));
 }
@@ -131,6 +152,7 @@ SearchListControl.propTypes = {
   isLoading: _propTypes.default.bool,
   hideSearchBox: _propTypes.default.bool,
   isMultiSelect: _propTypes.default.bool,
+  disableItemFilter: _propTypes.default.bool,
   onSearch: _propTypes.default.func,
   onSelect: _propTypes.default.func,
   onClear: _propTypes.default.func

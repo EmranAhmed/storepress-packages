@@ -10,9 +10,12 @@ var _compose = require("@wordpress/compose");
 var _element = require("@wordpress/element");
 var _components = require("@wordpress/components");
 var _propTypes = _interopRequireDefault(require("prop-types"));
+var _common = require("../common");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); } /**
  * WordPress dependencies
+ */ /**
+ * Internal dependencies
  */
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/components/src/unit-control/utils.ts
 // @see: https://github.com/WordPress/gutenberg/blob/trunk/packages/block-editor/src/components/height-control/index.js
@@ -194,7 +197,7 @@ function UnitRangeControl(props) {
     className = '',
     help = '',
     value = '0px',
-    onChange = () => {},
+    onChange = _common.noop,
     allowedUnits = ['%', 'px', 'em', 'rem'],
     defaultUnits = availableUnits,
     convertUnits = unitOperations
