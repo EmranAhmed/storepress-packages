@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useCallback, useMemo } from '@wordpress/element';
+import { useMemo } from '@wordpress/element';
 import { escapeRegex, findObjectValue } from '@storepress/utils';
 
 /**
