@@ -1,6 +1,6 @@
 {
   "name": "@storepress/components",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "StorePress Components",
   "author": "StorePress",
   "license": "GPL-2.0-or-later",
@@ -33,11 +33,11 @@
   },
   "dependencies": {
     "@storepress/utils": "file:../utils",
-    "@wordpress/base-styles": "^6.12.0",
-    "@wordpress/components": "^30.9.0",
-    "@wordpress/compose": "^7.36.0",
-    "@wordpress/element": "^6.36.0",
-    "@wordpress/icons": "^11.3.0",
+    "@wordpress/base-styles": "^13.3.0",
+    "@wordpress/components": "^42.0.0",
+    "@wordpress/compose": "^8.10.0",
+    "@wordpress/element": "^9.0.0",
+    "@wordpress/icons": "^18.0.0",
     "prop-types": "^15.8.1"
   },
   "publishConfig": {
@@ -48,7 +48,7 @@
     "@babel/preset-env": "7.28.5",
     "@babel/preset-react": "7.28.5",
     "@babel/runtime": "7.28.3",
-    "@wordpress/babel-preset-default": "^8.36.0"
+    "@wordpress/babel-preset-default": "^9.0.0"
   },
   "peerDependencies": {
     "react": "^18.3.1",

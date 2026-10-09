@@ -45,9 +45,9 @@ If this property is added, a label will be generated using label property as the
 - 
 #### value
 
-If this property is added, a value is added as number.
+If this property is added, a value is added as number | string.
 
--   Type: `Number`
+-   Type: `number | string`
 -   Required: Yes
 
 

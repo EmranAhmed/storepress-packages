@@ -35,48 +35,47 @@ function getAbsolutePath(value) {
 
 /** @type { import('@storybook/react-webpack5').StorybookConfig } */
 const config = {
-    core: {
-        disableTelemetry: true,
-    },
-    staticDirs: [ './static' ],
-    stories      : [
-        "../stories/**/*.mdx",
-        "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-    ],
+	core: {
+		disableTelemetry: true,
+	},
+	staticDirs: [ './static' ],
+	stories: [
+		'../stories/**/*.mdx',
+		'../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+	],
 
-    addons       : [
-        // getAbsolutePath("@storybook/addon-links"),
-       // getAbsolutePath("@storybook/addon-actions"),
-        getAbsolutePath("@storybook/addon-interactions"),
-        getAbsolutePath("@storybook/addon-essentials"),
-        // '@storybook/addon-webpack5-compiler-babel',
-    ],
+	addons: [
+		// getAbsolutePath("@storybook/addon-links"),
+		// getAbsolutePath("@storybook/addon-actions"),
+		getAbsolutePath( '@storybook/addon-essentials' ),
+		getAbsolutePath( '@storybook/addon-interactions' ),
+		// '@storybook/addon-webpack5-compiler-babel',
+	],
 
-    framework    : {
-        name    : getAbsolutePath("@storybook/react-webpack5"),
-        options : {},
-    },
+	framework: {
+		name: getAbsolutePath( '@storybook/react-webpack5' ),
+		options: {},
+	},
 
-    features     : {
-        babelModeV7  : true,
-        emotionAlias : false,
-        storyStoreV7 : true,
-    },
-    docs         : {
-        autodocs : "tag",
-    },
-    webpackFinal : async (config) => {
+	features: {
+		babelModeV7: true,
+		emotionAlias: false,
+		storyStoreV7: true,
+	},
+	docs: {
+		autodocs: 'tag',
+	},
+	webpackFinal: async ( config ) => {
+		config.module.rules.push( {
+			test: /\.scss$/,
+			use: scssLoaders( { isLazy: false } ),
+			include: path.resolve( __dirname, '..' ),
+		} );
 
-        config.module.rules.push({
-            test    : /\.scss$/,
-            use     : scssLoaders({isLazy : false}),
-            include : path.resolve(__dirname, '..'),
-        });
+		return config;
+	},
 
-        return config;
-    },
-
-/*    typescript: {
+	/*    typescript: {
         reactDocgen: 'react-docgen-typescript'
     }*/
 };

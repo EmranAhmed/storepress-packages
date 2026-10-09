@@ -218,11 +218,12 @@ function UnitRangeControl( props ) {
 	} );
 
 	return (
-		<BaseControl { ...baseControlProps } __nextHasNoMarginBottom>
+		<BaseControl { ...baseControlProps }>
 			<div className="storepress-component-unit-range-control">
 				<Flex>
 					<FlexItem isBlock>
 						<UnitControl
+							__next40pxDefaultSize
 							id={ id }
 							value={ value }
 							units={ units }
@@ -231,7 +232,7 @@ function UnitRangeControl( props ) {
 							min={ unitSettings[ selectedUnit ]?.min ?? 0 }
 							max={ unitSettings[ selectedUnit ]?.max ?? 100 }
 							step={ unitSettings[ selectedUnit ]?.step ?? 0.1 }
-							size="__unstable-large"
+							size="default"
 							label=""
 							help=""
 							hideLabelFromVision={ true }
@@ -241,6 +242,7 @@ function UnitRangeControl( props ) {
 						<Spacer marginX={ 2 } marginBottom={ 0 }>
 							<RangeControl
 								__next40pxDefaultSize
+								__nextHasNoMarginBottom
 								value={ customRangeValue }
 								min={ unitSettings[ selectedUnit ]?.min ?? 0 }
 								max={ unitSettings[ selectedUnit ]?.max ?? 100 }
@@ -253,7 +255,6 @@ function UnitRangeControl( props ) {
 								label=""
 								help=""
 								hideLabelFromVision={ true }
-								__nextHasNoMarginBottom
 								renderTooltipContent={ ( contentValue ) =>
 									`${ contentValue }${ selectedUnit }`
 								}

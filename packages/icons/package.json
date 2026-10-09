@@ -29,8 +29,8 @@
     "build" : "npm run build:core && npm run build:module"
   },
   "dependencies" : {
-    "@wordpress/icons" : "^11.3.0",
-    "@wordpress/primitives" : "^4.36.0"
+    "@wordpress/icons" : "^18.0.0",
+    "@wordpress/primitives" : "^4.57.0"
   },
   "publishConfig" : {
     "access" : "public"
