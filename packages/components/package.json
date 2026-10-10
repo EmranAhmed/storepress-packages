@@ -44,10 +44,9 @@
     "access": "public"
   },
   "devDependencies": {
-    "@babel/cli": "7.28.3",
-    "@babel/preset-env": "7.28.5",
-    "@babel/preset-react": "7.28.5",
-    "@babel/runtime": "7.28.3",
+    "@babel/cli": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@babel/preset-react": "7.29.7",
     "@wordpress/babel-preset-default": "^9.0.0"
   },
   "peerDependencies": {

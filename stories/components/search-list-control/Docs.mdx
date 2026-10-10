@@ -1,4 +1,4 @@
-import { Meta, Story, Source, Controls, Canvas } from '@storybook/blocks';
+import { Meta, Story, Source, Controls, Canvas } from '@storybook/addon-docs/blocks';
 import * as Stories from './index.stories';
 
 <Meta title="Components/SearchListControl" of={Stories}/>
@@ -14,15 +14,25 @@ npm i @storepress/components --save
 
 ```jsx
 import { SearchListControl } from '@storepress/components';
+```
+
+### Styles
+
+Import the stylesheet from JavaScript:
+
+```jsx
 import '@storepress/components/build-style/search-list-control.scss';
 ```
 
+Or load it from your own stylesheet with `@use`:
+
 ```scss
-@import "~@storepress/components/build-style/search-list-control";
+// style.scss
+@use "~@storepress/components/build-style/search-list-control";
+```
 
-// OR
-
-@use "~@storepress/components/build-style/search-list-control" as *;
+```jsx
+import './style.scss';
 ```
 
 ## Basic

@@ -1,5 +1,5 @@
 /**
- * External dependencies
+ * WordPress dependencies
  */
 import { useRef, useCallback } from '@wordpress/element';
 
@@ -15,14 +15,14 @@ import { noop } from '../common';
  * Renders a controlled text input with an accompanying icon that reflects
  * the current state (search icon, loading spinner, or clear button).
  *
- * @param {Object}   props                   - Component props.
- * @param {string}   [props.id]              - HTML id attribute for the input element.
- * @param {boolean}  [props.isLoading=false] - Whether the search is in a loading state.
- * @param {string}   [props.search='']       - Current search input value.
- * @param {string}   [props.placeholder='']  - Placeholder text for the input.
- * @param {string}   [props.clearText='']    - Accessible label for the clear button.
- * @param {Function} [props.onSearch]        - Callback fired when the input value changes.
- * @param {Function} [props.onClear]         - Callback fired when the clear button is clicked.
+ * @param {Object}                   props                   - Component props.
+ * @param {string}                   [props.id]              - HTML id attribute for the input element.
+ * @param {boolean}                  [props.isLoading=false] - Whether the search is in a loading state.
+ * @param {string}                   [props.search='']       - Current search input value.
+ * @param {string}                   [props.placeholder='']  - Placeholder text for the input.
+ * @param {string}                   [props.clearText='']    - Accessible label for the clear button.
+ * @param {( event: Event ) => void} [props.onSearch]        - Callback fired when the input value changes.
+ * @param {( event: Event ) => void} [props.onClear]         - Callback fired when the clear button is clicked.
  * @return {JSX.Element} The search input component.
  *
  * @example

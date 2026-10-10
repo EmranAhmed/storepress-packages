@@ -14,15 +14,33 @@ _This package assumes that your code will run in an **ES2015+** environment. If 
 
 ## Usage
 
+```jsx
+import { SearchListControl } from '@storepress/components';
+```
+
+### Styles
+
+Component styles ship as SCSS in `build-style/`, one file per component. Load them in either of these ways.
+
+Import the stylesheet from JavaScript:
+
+```jsx
+import '@storepress/components/build-style/search-list-control.scss';
+```
+
+Or load it from your own stylesheet with `@use`:
+
 ```scss
 // style.scss
-@import "@storepress/components/build-style/search-list-control";
+@use "~@storepress/components/build-style/search-list-control";
 ```
 
 ```jsx
-import { SearchListControl } from '@storepress/components';
 import './style.scss';
 ```
+
+_The stylesheets are compiled by your build, so it needs a Sass setup that resolves packages from `node_modules`, such as `sass-loader` with webpack (included in `@wordpress/scripts`). Use `@use` rather than `@import`, which is deprecated in Dart Sass._
+
 ## Documentation:
 
 - [See `SearchListControl` docs](src/search-list-control/README.md)

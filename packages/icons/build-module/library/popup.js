@@ -1,5 +1,5 @@
 /**
- * External dependencies
+ * WordPress dependencies
  */
 import { SVG, Path } from '@wordpress/primitives';
 import { jsx as _jsx } from "react/jsx-runtime";

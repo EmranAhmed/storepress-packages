@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import PropTypes from 'prop-types';
+
+/**
  * WordPress dependencies
  */
 import { useInstanceId } from '@wordpress/compose';
@@ -18,7 +23,6 @@ import {
 	__experimentalParseQuantityAndUnitFromRawValue as parseQuantityAndUnitFromRawValue,
 	useBaseControlProps,
 } from '@wordpress/components';
-import PropTypes from 'prop-types';
 
 /**
  * Internal dependencies
@@ -123,16 +127,17 @@ export function unitConverter(
  * Provides both precise input via text field and quick adjustments via slider, with automatic
  * unit conversion when switching between unit types.
  *
- * @param {Object}          props                                         Component props.
- * @param {string}          [props.label='']                              Label text displayed above the control.
- * @param {boolean}         [props.hideLabelFromVision=false]             Whether to visually hide the label while keeping it accessible to screen readers.
- * @param {string}          [props.className='']                          Additional CSS class names to apply to the control.
- * @param {string}          [props.help='']                               Help text displayed below the control.
- * @param {string}          [props.value='0px']                           Current value including unit (e.g., '100%', '16px', '2em').
- * @param {Function}        [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
- * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
- * @param {availableUnit[]} [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
- * @param {unitOperation[]} [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations. * @return {JSX.Element} The rendered unit range control component.
+ * @param {Object}                    props                                         Component props.
+ * @param {string}                    [props.label='']                              Label text displayed above the control.
+ * @param {boolean}                   [props.hideLabelFromVision=false]             Whether to visually hide the label while keeping it accessible to screen readers.
+ * @param {string}                    [props.className='']                          Additional CSS class names to apply to the control.
+ * @param {string}                    [props.help='']                               Help text displayed below the control.
+ * @param {string}                    [props.value='0px']                           Current value including unit (e.g., '100%', '16px', '2em').
+ * @param {( value: string ) => void} [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
+ * @param {string[]}                  [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
+ * @param {availableUnit[]}           [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
+ * @param {unitOperation[]}           [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations.
+ * @return {JSX.Element} The rendered unit range control component.
  */
 
 function UnitRangeControl( props ) {

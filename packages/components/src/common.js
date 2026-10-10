@@ -4,7 +4,7 @@
  * Used as a stable default callback placeholder to prevent unnecessary
  * re-renders caused by new function references being created on each render.
  *
- * @param {...any} _args - Arguments (ignored).
+ * @param {...unknown} _args - Arguments (ignored).
  * @return {void}
  *
  * @type {() => void}

@@ -3,9 +3,9 @@
  */
 
 import apiFetch from '@wordpress/api-fetch'
-import { fn } from '@storybook/test'
-import { useState, useEffect } from '@storybook/addons'
-import { action } from '@storybook/addon-actions';
+import { fn } from 'storybook/test';
+import { useState, useEffect } from 'storybook/preview-api';
+import { action } from 'storybook/actions';
 
 /**
  * Internal dependencies

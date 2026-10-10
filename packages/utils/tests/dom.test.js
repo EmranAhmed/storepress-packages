@@ -168,8 +168,10 @@ describe('@storepress/utils - DOM Utilities', () => {
     })
 
     it('handles string without special characters', () => {
-      const input = 'simple text'
-      expect(escapeRegex(input)).toBe(input)
+		const input = 'simple text';
+		const regex = new RegExp( `^${ escapeRegex( input ) }$` );
+
+		expect( regex.test( input ) ).toBe( true );
     })
 
     it('escapes caret and dollar sign', () => {

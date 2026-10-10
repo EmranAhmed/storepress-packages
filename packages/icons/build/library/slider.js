@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _primitives = require("@wordpress/primitives");
 /**
- * External dependencies
+ * WordPress dependencies
  */
 var _default = exports.default = /*#__PURE__*/React.createElement(_primitives.SVG, {
   xmlns: "http://www.w3.org/2000/svg",

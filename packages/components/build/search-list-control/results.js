@@ -4,11 +4,15 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.Results = Results;
-var _element = require("@wordpress/element");
 var _utils = require("@storepress/utils");
+var _element = require("@wordpress/element");
 var _common = require("../common");
 /**
  * External dependencies
+ */
+
+/**
+ * WordPress dependencies
  */
 
 /**
@@ -22,22 +26,22 @@ var _common = require("../common");
  * client-side filtering, custom display values, and metadata. Shows a "not found"
  * message when no items match the search criteria.
  *
- * @param {Object}        props                          - Component props.
- * @param {string}        props.id                       - Base ID used for generating input names and list item IDs.
- * @param {boolean}       [props.isLoading]              - Whether the results are in a loading state. Returns empty fragment when true.
- * @param {string}        props.search                   - Current search query used for filtering items.
- * @param {Array<Object>} props.items                    - Array of item objects to display.
- * @param {string}        props.itemKeyName              - Object key path to use as the unique identifier/value for each item.
- * @param {string[]}      [props.itemFilterName]         - Array of object key paths to search against when filtering.
- * @param {boolean}       [props.isMultiSelect]          - Whether multiple items can be selected. Uses checkboxes if true, radio buttons if false.
- * @param {boolean}       [props.disableItemFilter]      - Whether to disable client-side filtering of items.
- * @param {string[]}      [props.itemValueName]          - Array of object key paths to use for the display label.
- * @param {string}        [props.itemValueNameSeparator] - Separator string when joining multiple value fields.
- * @param {string[]}      [props.itemMetaName]           - Array of object key paths to use for the metadata display.
- * @param {string}        [props.itemMetaNameSeparator]  - Separator string when joining multiple meta fields.
- * @param {Array}         [props.selected=[]]            - Array of currently selected item keys.
- * @param {Function}      [props.onSelect]               - Callback fired when an item is selected/deselected. Receives the change event.
- * @param {string}        [props.noItemsFoundText]       - Text to display when no items match the search criteria.
+ * @param {Object}                   props                          - Component props.
+ * @param {string}                   props.id                       - Base ID used for generating input names and list item IDs.
+ * @param {boolean}                  [props.isLoading]              - Whether the results are in a loading state. Returns empty fragment when true.
+ * @param {string}                   props.search                   - Current search query used for filtering items.
+ * @param {Array<Object>}            props.items                    - Array of item objects to display.
+ * @param {string}                   props.itemKeyName              - Object key path to use as the unique identifier/value for each item.
+ * @param {string[]}                 [props.itemFilterName]         - Array of object key paths to search against when filtering.
+ * @param {boolean}                  [props.isMultiSelect]          - Whether multiple items can be selected. Uses checkboxes if true, radio buttons if false.
+ * @param {boolean}                  [props.disableItemFilter]      - Whether to disable client-side filtering of items.
+ * @param {string[]}                 [props.itemValueName]          - Array of object key paths to use for the display label.
+ * @param {string}                   [props.itemValueNameSeparator] - Separator string when joining multiple value fields.
+ * @param {string[]}                 [props.itemMetaName]           - Array of object key paths to use for the metadata display.
+ * @param {string}                   [props.itemMetaNameSeparator]  - Separator string when joining multiple meta fields.
+ * @param {Array}                    [props.selected=[]]            - Array of currently selected item keys.
+ * @param {( event: Event ) => void} [props.onSelect]               - Callback fired when an item is selected/deselected. Receives the change event.
+ * @param {string}                   [props.noItemsFoundText]       - Text to display when no items match the search criteria.
  * @return {JSX.Element} The results list, empty fragment when loading, or not found message.
  *
  * @example

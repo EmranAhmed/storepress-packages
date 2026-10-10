@@ -2085,12 +2085,12 @@ function triggerEvent($targets, eventType, eventDetails = {}, options = {}) {
  * Attaches swipe gesture detection to a DOM element, supporting both touch and pointer events.
  * Automatically registers event listeners and provides directional swipe detection with customizable offset.
  *
- * @param {HTMLElement} target                    - The DOM element to attach swipe detection to
- * @param {Function}    listenerFn                - Callback function that handles swipe events
- * @param {Object}      [options={}]              - Configuration options
- * @param {number}      [options.offset=10]       - Minimum pixel distance to register a directional swipe
- * @param {boolean}     [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
- * @return {Function} A cleanup function to remove all event listeners and abort the controller
+ * @param {HTMLElement}                    target                    - The DOM element to attach swipe detection to
+ * @param {( event: CustomEvent ) => void} listenerFn                - Callback function that handles swipe events
+ * @param {Object}                         [options={}]              - Configuration options
+ * @param {number}                         [options.offset=10]       - Minimum pixel distance to register a directional swipe
+ * @param {boolean}                        [options.touchOnly=false] - If true, only listen for touch events (ignore pointer/mouse)
+ * @return {() => void} A cleanup function to remove all event listeners and abort the controller
  *
  * @example
  * // Basic swipe detection on a div element
@@ -2414,7 +2414,7 @@ function createEventManager(namespace, options = {
    * @memberof createEventManager
    * @param {string|Element|NodeList|Array|Document} $targets          - Target element(s) to add events to. Can be CSS selector, DOM element, NodeList, or array of elements.
    * @param {string}                                 eventType         - The type of event to listen for (e.g., 'click', 'mouseenter', 'keydown').
-   * @param {Function}                               handler           - The event handler function to execute when the event is triggered.
+   * @param {( event: Event ) => void}               handler           - The event handler function to execute when the event is triggered.
    * @param {Object}                                 [eventOptions={}] - Additional options to pass to addEventListener (e.g., { once: true, passive: true }).
    * @return {createEventManager} Return createEventManager.
    *
@@ -2937,13 +2937,14 @@ function createStorePressPlugin({
 }
 
 /**
- *  Creates a promise that resolves after a specified delay with optional data.
- *  Useful for adding delays in async/await code, testing timeouts, or creating
- *  artificial delays in processing without blocking the UI thread.
+ * Creates a promise that resolves after a specified delay with optional data.
+ * Useful for adding delays in async/await code, testing timeouts, or creating
+ * artificial delays in processing without blocking the UI thread.
  *
+ * @template T
  * @param {number} milliseconds - The number of milliseconds to wait before resolving
- * @param {*}      [data={}]    - Optional data to resolve with after the delay
- * @return {Promise<*>} A promise that resolves after the specified duration
+ * @param {T}      [data={}]    - Optional data to resolve with after the delay
+ * @return {Promise<T>} A promise that resolves with the provided data after the specified duration
  *
  * @example
  * // Basic usage - wait 1 second
@@ -2995,9 +2996,10 @@ function testWaitAsync(milliseconds, data = {}) {
  * This function uses a busy-wait loop that will block the current thread and consume CPU cycles.
  * WARNING: This will freeze the UI during execution.
  *
+ * @template T
  * @param {number} milliseconds - The number of milliseconds to block execution.
- * @param {*}      [data={}]    - Optional data to return after the delay.
- * @return {*} The provided data after the synchronous delay
+ * @param {T}      [data={}]    - Optional data to return after the delay.
+ * @return {T} The provided data after the synchronous delay
  *
  * @example
  * // Basic usage - block for 1 second (⚠️ blocks everything!)

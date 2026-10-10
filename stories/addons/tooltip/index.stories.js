@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect } from '@storybook/addons';
+import { useEffect } from 'storybook/preview-api';
 import StorePressTooltip from '@storepress/tooltip';
 /**
  * Internal dependencies

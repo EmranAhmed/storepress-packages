@@ -2,9 +2,9 @@
  * External dependencies
  */
 
-import { fn } from '@storybook/test'
-import { useState, useMemo, useCallback } from '@storybook/addons'
-import { action } from '@storybook/addon-actions';
+import { fn } from 'storybook/test';
+import { useState, useMemo, useCallback } from 'storybook/preview-api';
+import { action } from 'storybook/actions';
 import { debounce } from '@wordpress/compose';
 
 /**

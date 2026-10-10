@@ -3,7 +3,6 @@ module.exports = (api) => {
 
   return {
     'sourceType': 'unambiguous',
-    presets: [
-      '@wordpress/babel-preset-default'],
+    presets: ['@wordpress/babel-preset-default'],
   }
 }

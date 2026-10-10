@@ -7,11 +7,9 @@
  * Uses @wordpress/jest-preset-default with jsdom for DOM testing
  */
 
-const defaultConfig = require('@wordpress/scripts/config/jest-unit.config.js')
-
 module.exports = {
 
-  ...defaultConfig,
+  preset: '@wordpress/jest-preset-default',
 
   // Root directory
   rootDir: '.',
@@ -53,9 +51,6 @@ module.exports = {
 
     // Map internal packages
     '^@storepress/utils$': '<rootDir>/packages/utils/src/index.js',
-
-    // Map @ariakit/test
-    '^@ariakit/test$': '<rootDir>/node_modules/@ariakit/test',
   },
 
   testPathIgnorePatterns: [
@@ -74,7 +69,7 @@ module.exports = {
 
   // Transform ES modules
   transform: {
-    '^.+\\.[jt]sx?$': [
+    '^.+\\.(mjs|[jt]sx?)$': [
       'babel-jest', {
         presets: ['@wordpress/babel-preset-default'],
       }],
@@ -82,7 +77,7 @@ module.exports = {
 
   // Handle ES modules in node_modules
   transformIgnorePatterns: [
-    '/node_modules/(?!(@wordpress|@storepress|@babel/runtime)/)',
+    '/node_modules/(?!(@wordpress|@storepress|@babel/runtime|uuid)/)',
   ],
 
   // Projects for per-package configuration (optional)

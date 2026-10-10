@@ -4,8 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
-var _element = require("@wordpress/element");
 var _propTypes = _interopRequireDefault(require("prop-types"));
+var _element = require("@wordpress/element");
 var _components = require("@wordpress/components");
 var _compose = require("@wordpress/compose");
 var _input = require("./input");
@@ -15,35 +15,37 @@ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); } /**
  * External dependencies
  */ /**
+ * WordPress dependencies
+ */ /**
  * Internal dependencies
  */
 /**
  * A searchable list control component for selecting items from a filterable list.
  * Supports both single and multi-select modes with customizable item display.
  *
- * @param {Object}          props                                Component props.
- * @param {string}          [props.label='']                     Label text displayed above the control.
- * @param {string}          [props.className='']                 Additional CSS class names to apply to the control.
- * @param {boolean}         [props.hideLabelFromVision=false]    Whether to visually hide the label while keeping it accessible to screen readers.
- * @param {string}          [props.help='']                      Help text displayed below the control.
- * @param {string}          [props.placeholder='']               Placeholder text for the search input.
- * @param {string}          [props.clearText='']                 Accessible text for the clear button.
- * @param {boolean}         [props.isLoading=false]              Whether the component is in a loading state.
- * @param {boolean}         [props.hideSearchBox=false]          Whether to hide the search input box.
- * @param {boolean}         [props.isMultiSelect=false]          Whether multiple items can be selected.
- * @param {Array<Object>}   [props.items=[]]                     Array of item objects to display in the list.
- * @param {string}          [props.itemKeyName='id']             Property name to use as the unique key for each item.
- * @param {string|string[]} [props.itemValueName=['name']]       Property name(s) to display as the item's primary value.
- * @param {string|string[]} [props.itemMetaName=[]]              Property name(s) to display as secondary metadata.
- * @param {string|string[]} [props.itemFilterName=['name']]      Property name(s) to use when filtering items during search.
- * @param {Array}           [props.selected=[]]                  Array of selected item keys or objects.
- * @param {string}          [props.itemValueNameSeparator=' - '] Separator string between multiple value name properties.
- * @param {string}          [props.itemMetaNameSeparator=', ']   Separator string between multiple meta name properties.
- * @param {string}          [props.noItemsFoundText='']          Text displayed when no items match the search query.
- * @param {boolean}         [props.disableItemFilter=false]      Disable inline text filtering from list.
- * @param {Function}        [props.onSearch]                     Callback fired when the search value changes. Receives the search string.
- * @param {Function}        [props.onSelect]                     Callback fired when an item is selected. Receives the selected item.
- * @param {Function}        [props.onClear]                      Callback fired when the search input is cleared.
+ * @param {Object}                                                              props                                Component props.
+ * @param {string}                                                              [props.label='']                     Label text displayed above the control.
+ * @param {string}                                                              [props.className='']                 Additional CSS class names to apply to the control.
+ * @param {boolean}                                                             [props.hideLabelFromVision=false]    Whether to visually hide the label while keeping it accessible to screen readers.
+ * @param {string}                                                              [props.help='']                      Help text displayed below the control.
+ * @param {string}                                                              [props.placeholder='']               Placeholder text for the search input.
+ * @param {string}                                                              [props.clearText='']                 Accessible text for the clear button.
+ * @param {boolean}                                                             [props.isLoading=false]              Whether the component is in a loading state.
+ * @param {boolean}                                                             [props.hideSearchBox=false]          Whether to hide the search input box.
+ * @param {boolean}                                                             [props.isMultiSelect=false]          Whether multiple items can be selected.
+ * @param {Array<Object>}                                                       [props.items=[]]                     Array of item objects to display in the list.
+ * @param {string}                                                              [props.itemKeyName='id']             Property name to use as the unique key for each item.
+ * @param {string|string[]}                                                     [props.itemValueName=['name']]       Property name(s) to display as the item's primary value.
+ * @param {string|string[]}                                                     [props.itemMetaName=[]]              Property name(s) to display as secondary metadata.
+ * @param {string|string[]}                                                     [props.itemFilterName=['name']]      Property name(s) to use when filtering items during search.
+ * @param {Array}                                                               [props.selected=[]]                  Array of selected item keys or objects.
+ * @param {string}                                                              [props.itemValueNameSeparator=' - '] Separator string between multiple value name properties.
+ * @param {string}                                                              [props.itemMetaNameSeparator=', ']   Separator string between multiple meta name properties.
+ * @param {string}                                                              [props.noItemsFoundText='']          Text displayed when no items match the search query.
+ * @param {boolean}                                                             [props.disableItemFilter=false]      Disable inline text filtering from list.
+ * @param {( search: string ) => void}                                          [props.onSearch]                     Callback fired when the search value changes. Receives the search string.
+ * @param {( value: string, checked: boolean, isMultiSelect: boolean ) => void} [props.onSelect]                     Callback fired when an item is selected. Receives the selected item.
+ * @param {() => void}                                                          [props.onClear]                      Callback fired when the search input is cleared.
  * @return {JSX.Element} The rendered search list control component.
  */
 function SearchListControl(props) {

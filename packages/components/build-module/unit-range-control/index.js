@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import PropTypes from 'prop-types';
+
+/**
  * WordPress dependencies
  */
 import { useInstanceId } from '@wordpress/compose';
@@ -12,7 +17,6 @@ __experimentalUseCustomUnits as useCustomUnits,
 __experimentalUnitControl as UnitControl,
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 __experimentalParseQuantityAndUnitFromRawValue as parseQuantityAndUnitFromRawValue, useBaseControlProps } from '@wordpress/components';
-import PropTypes from 'prop-types';
 
 /**
  * Internal dependencies
@@ -181,20 +185,20 @@ export function unitConverter(newUnit, oldUnit, currentValue, operationLogics) {
  * Provides both precise input via text field and quick adjustments via slider, with automatic
  * unit conversion when switching between unit types.
  *
- * @param {Object}          props                                         Component props.
- * @param {string}          [props.label='']                              Label text displayed above the control.
- * @param {boolean}         [props.hideLabelFromVision=false]             Whether to visually hide the label while keeping it accessible to screen readers.
- * @param {string}          [props.className='']                          Additional CSS class names to apply to the control.
- * @param {string}          [props.help='']                               Help text displayed below the control.
- * @param {string}          [props.value='0px']                           Current value including unit (e.g., '100%', '16px', '2em').
- * @param {Function}        [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
- * @param {string[]}        [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
- * @param {availableUnit[]} [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
- * @param {unitOperation[]} [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations. * @return {JSX.Element} The rendered unit range control component.
+ * @param {Object}                    props                                         Component props.
+ * @param {string}                    [props.label='']                              Label text displayed above the control.
+ * @param {boolean}                   [props.hideLabelFromVision=false]             Whether to visually hide the label while keeping it accessible to screen readers.
+ * @param {string}                    [props.className='']                          Additional CSS class names to apply to the control.
+ * @param {string}                    [props.help='']                               Help text displayed below the control.
+ * @param {string}                    [props.value='0px']                           Current value including unit (e.g., '100%', '16px', '2em').
+ * @param {( value: string ) => void} [props.onChange]                              Callback fired when the value changes. Receives the new value as a string (e.g., '10px').
+ * @param {string[]}                  [props.allowedUnits=['%', 'px', 'em', 'rem']] Array of unit strings the user can select from. Defaults to ['%', 'px', 'em', 'rem'].
+ * @param {availableUnit[]}           [props.defaultUnits]                          Unit definitions mapping unit strings to their configuration. Defaults to availableUnits.
+ * @param {unitOperation[]}           [props.convertUnits]                          Unit conversion operations for transforming values between units. Defaults to unitOperations.
+ * @return {JSX.Element} The rendered unit range control component.
  */
 
 function UnitRangeControl(props) {
-  var _unitSettings$selecte, _unitSettings$selecte2, _unitSettings$selecte3, _unitSettings$selecte4, _unitSettings$selecte5, _unitSettings$selecte6;
   const {
     label = '',
     hideLabelFromVision = false,
@@ -254,22 +258,22 @@ function UnitRangeControl(props) {
   });
   return /*#__PURE__*/_jsx(BaseControl, {
     ...baseControlProps,
-    __nextHasNoMarginBottom: true,
     children: /*#__PURE__*/_jsx("div", {
       className: "storepress-component-unit-range-control",
       children: /*#__PURE__*/_jsxs(Flex, {
         children: [/*#__PURE__*/_jsx(FlexItem, {
           isBlock: true,
           children: /*#__PURE__*/_jsx(UnitControl, {
+            __next40pxDefaultSize: true,
             id: id,
             value: value,
             units: units,
             onChange: onChange,
             onUnitChange: handleUnitChange,
-            min: (_unitSettings$selecte = unitSettings[selectedUnit]?.min) !== null && _unitSettings$selecte !== void 0 ? _unitSettings$selecte : 0,
-            max: (_unitSettings$selecte2 = unitSettings[selectedUnit]?.max) !== null && _unitSettings$selecte2 !== void 0 ? _unitSettings$selecte2 : 100,
-            step: (_unitSettings$selecte3 = unitSettings[selectedUnit]?.step) !== null && _unitSettings$selecte3 !== void 0 ? _unitSettings$selecte3 : 0.1,
-            size: "__unstable-large",
+            min: unitSettings[selectedUnit]?.min ?? 0,
+            max: unitSettings[selectedUnit]?.max ?? 100,
+            step: unitSettings[selectedUnit]?.step ?? 0.1,
+            size: "default",
             label: "",
             help: "",
             hideLabelFromVision: true
@@ -281,17 +285,17 @@ function UnitRangeControl(props) {
             marginBottom: 0,
             children: /*#__PURE__*/_jsx(RangeControl, {
               __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: customRangeValue,
-              min: (_unitSettings$selecte4 = unitSettings[selectedUnit]?.min) !== null && _unitSettings$selecte4 !== void 0 ? _unitSettings$selecte4 : 0,
-              max: (_unitSettings$selecte5 = unitSettings[selectedUnit]?.max) !== null && _unitSettings$selecte5 !== void 0 ? _unitSettings$selecte5 : 100,
-              step: (_unitSettings$selecte6 = unitSettings[selectedUnit]?.step) !== null && _unitSettings$selecte6 !== void 0 ? _unitSettings$selecte6 : 0.1,
+              min: unitSettings[selectedUnit]?.min ?? 0,
+              max: unitSettings[selectedUnit]?.max ?? 100,
+              step: unitSettings[selectedUnit]?.step ?? 0.1,
               withInputField: false,
               onChange: handleSliderChange,
               id: null,
               label: "",
               help: "",
               hideLabelFromVision: true,
-              __nextHasNoMarginBottom: true,
               renderTooltipContent: contentValue => `${contentValue}${selectedUnit}`
             })
           })

@@ -14,6 +14,27 @@ npm install @storepress/components --save
 
 _This package assumes that your code will run in an **ES2015+** environment. If you're using an environment that has limited or no support for such language features and APIs, you should include [the polyfill shipped in `@wordpress/babel-preset-default`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/babel-preset-default#polyfill) in your code._
 
+### Styles
+
+Import the stylesheet from JavaScript:
+
+```jsx
+import '@storepress/components/build-style/search-list-control.scss';
+```
+
+Or load it from your own stylesheet with `@use`:
+
+```scss
+// style.scss
+@use "~@storepress/components/build-style/search-list-control";
+```
+
+```jsx
+import './style.scss';
+```
+
+_Use `@use` rather than `@import`, which is deprecated in Dart Sass._
+
 ### Usage
 
 ```jsx

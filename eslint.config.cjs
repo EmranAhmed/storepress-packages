@@ -1,17 +1,11 @@
 /**
  * External dependencies
  */
-const woocommerce = require( '@woocommerce/eslint-plugin' );
+const globals = require( 'globals' );
 /**
  * WordPress dependencies
  */
 const wordpress = require( '@wordpress/eslint-plugin' );
-
-/**
- * Internal dependencies
- */
-const { getWebPackAlias } = require( './tools/webpack-helpers' );
-const aliases = Object.keys( getWebPackAlias() );
 
 // All @wordpress/* packages that get externalized to wp.* globals at build time.
 // These don't need to be in package.json — WordPress provides them at runtime.
@@ -102,18 +96,35 @@ const restrictedImports = [
 
 module.exports = [
 	{
-		ignores: [ 'tools/', 'build/', 'vendor/', 'node_modules/' ],
+		ignores: [
+			'bin/',
+			'**/build/',
+			'**/build-module/',
+			'**/build-style/',
+			'**/node_modules/',
+			'stories/',
+			'**/tests/',
+			'.storybook/',
+			'.github/',
+			'.cache/',
+			'.coverage/',
+			'jest.*',
+		],
 	},
 	...wordpress.configs.recommended,
 	{
 		languageOptions: {
 			globals: {
-				...woocommerce.configs.recommended.globals,
+				...globals.browser,
+				...globals.node,
+				jQuery: 'readonly',
+				wp: 'writable',
 				StorePress: 'writable',
+				JSX: 'readonly',
 			},
 		},
 		settings: {
-			'import/core-modules': [ ...wordPressPackages, ...aliases ],
+			'import/core-modules': wordPressPackages,
 			'import/resolver': {
 				node: {
 					extensions: [ '.js', '.jsx', '.ts', '.tsx' ],
@@ -123,6 +134,7 @@ module.exports = [
 		rules: {
 			'@wordpress/dependency-group': 'warn',
 			'no-unused-vars': 'warn',
+			'no-console': 'off',
 			'@wordpress/no-unsafe-wp-apis': 'warn',
 			'no-restricted-imports': [
 				'error',
@@ -133,7 +145,7 @@ module.exports = [
 			'@wordpress/i18n-text-domain': [
 				'error',
 				{
-					allowedTextDomain: [ 'storepress-hotspot-blocks' ],
+					allowedTextDomain: [ 'default' ],
 				},
 			],
 		},
