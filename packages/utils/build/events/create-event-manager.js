@@ -749,16 +749,21 @@ function createEventManager(namespace, options = {}) {
   };
 
   /**
-   * Removes every listener on every element in this namespace.
+   * Removes every listener on every element in this namespace, or on the
+   * given elements only.
    *
-   * Aborts all controllers, then deletes the namespace from the store. The
-   * manager stays usable: `add` and `set` recreate the namespace. Safe to
-   * call repeatedly. Managers with the same prefix and namespace share the
-   * store, so their listeners are removed too. Listeners added with plain
-   * `addEventListener` are not affected.
+   * Without `$targets`, aborts all controllers, then deletes the namespace
+   * from the store. With `$targets`, removes every event on those elements
+   * and keeps the namespace and the other elements (same as
+   * `remove( $targets )`). The manager stays usable: `add` and `set`
+   * recreate the namespace. Safe to call repeatedly. Managers with the same
+   * prefix and namespace share the store, so their listeners are removed
+   * too. Listeners added with plain `addEventListener` are not affected.
    *
    * @function removeAll
    * @memberof createEventManager
+   *
+   * @param {string|Element|NodeList|Array|Document|null} [$targets=null] - CSS selector, element, NodeList, array of elements, or `document`. `null` removes every element in the namespace.
    *
    * @return {Object} The event manager, for chaining.
    *
@@ -776,9 +781,19 @@ function createEventManager(namespace, options = {}) {
    *     .add( '.slider-next', 'click', goNext )
    *     .add( document, 'keydown', onKeyDown );
    * }
+   *
+   * @example
+   * // Only the closed drawer's listeners; other elements keep theirs
+   * events.removeAll( '.mini-cart-drawer' );
    */
-  const removeAll = () => {
+  const removeAll = ($targets = null) => {
     if (!controllers.has(namespace)) {
+      return manager;
+    }
+    if ($targets !== null) {
+      (0, _getElements.getElements)($targets).forEach($element => {
+        _remove($element, null);
+      });
       return manager;
     }
     const events = controllers.get(namespace);
@@ -879,15 +894,20 @@ function createEventManager(namespace, options = {}) {
   };
 
   /**
-   * Gets every element and its registered events in this namespace.
+   * Gets every element and its registered events in this namespace, or
+   * only the given elements that have events in it.
    *
-   * Meant for debugging, not hot paths, since it walks every element.
-   * Garbage-collected elements are skipped. An element with
+   * Without `$targets`, meant for debugging, not hot paths, since it walks
+   * every element. Garbage-collected elements are skipped. An element with
    * `isConnected === false` that stays listed is not collected yet or is
-   * still referenced somewhere else.
+   * still referenced somewhere else. With `$targets`, only the resolved
+   * elements that are tracked in this namespace are returned; unlike `get`,
+   * elements without events are left out.
    *
    * @function getAll
    * @memberof createEventManager
+   *
+   * @param {string|Element|NodeList|Array|Document|null} [$targets=null] - CSS selector, element, NodeList, array of elements, or `document`. `null` returns every element in the namespace.
    *
    * @return {Array<{$element: Element, $events: Array<{eventType: string, isNative: boolean, nativeType: string, size: number}>}>} One entry per element in the namespace.
    *
@@ -905,13 +925,28 @@ function createEventManager(namespace, options = {}) {
    *   .getAll()
    *   .filter( ( { $element } ) => ! $element.isConnected )
    *   .forEach( ( { $element } ) => events.remove( $element ) );
+   *
+   * @example
+   * // Only the product cards that have listeners
+   * events.getAll( '.product' );
    */
-  const getAll = () => {
+  const getAll = ($targets = null) => {
     if (!controllers.has(namespace)) {
       return [];
     }
     const events = controllers.get(namespace);
     const available = [];
+    if ($targets !== null) {
+      (0, _getElements.getElements)($targets).forEach($element => {
+        if (events.has($element)) {
+          available.push({
+            $element,
+            $events: _get($element)
+          });
+        }
+      });
+      return available;
+    }
     for (const [$element] of [...events]) {
       available.push({
         $element,
