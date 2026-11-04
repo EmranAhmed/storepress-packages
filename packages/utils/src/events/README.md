@@ -170,9 +170,9 @@ const events = createEventManager( namespace, options = {} );
 | `set( $targets, eventType, handler, eventOptions )` | Removes every handler of that event in this namespace, then adds this one. |
 | `trigger( $targets, eventType, eventDetails, triggerOptions )` | Dispatches registered events. Custom events get `eventDetails` in `event.detail`. |
 | `remove( $targets, eventType, handler )` | Removes one handler, one event, or every event on the element. |
-| `removeAll()` | Removes every listener in the namespace. |
+| `removeAll( $targets )` | Removes every listener in the namespace, or every listener on `$targets` only when given. |
 | `get( $targets )` | Lists registered events, with handler counts, for the given elements. |
-| `getAll()` | Lists every tracked element and its events in the namespace. |
+| `getAll( $targets )` | Lists every tracked element and its events in the namespace, or only the tracked elements among `$targets` when given. |
 
 Event names: if the element has an `on{type}` property (`onclick`, `onkeydown`, `onchange`), the event is **native** and attached by its real name. Anything else is **custom** and attached as `{prefix}{separator}{namespace}{separator}{type}`, e.g. `storepress:quick-view:open`.
 

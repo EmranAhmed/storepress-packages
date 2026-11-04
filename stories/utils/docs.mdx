@@ -205,3 +205,273 @@ document.dispatchEvent(
 	} )
 );
 ```
+
+## Plugin with an event manager
+
+The plugin above uses one `AbortController` per instance, which is enough for most plugins. When a plugin needs namespaced custom events, listener inspection or automatic removal, build it on `createEventManager` instead.
+
+### When to use which
+
+<table>
+	<thead>
+		<tr>
+			<th>Need</th>
+			<th><code>AbortController</code></th>
+			<th><code>createEventManager</code></th>
+			<th>Real-life example</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Remove all of one instance's listeners</td>
+			<td><code>controller.abort()</code>, simplest</td>
+			<td>An <code>added</code> list and <code>events.remove()</code></td>
+			<td>Any plugin's <code>reset()</code></td>
+		</tr>
+		<tr>
+			<td>Custom events other scripts can listen to</td>
+			<td>Write the full name by hand</td>
+			<td>Named <code>{ 'storepress:{namespace}:{type}' }</code></td>
+			<td>A slider announces <code>slide-change</code> so a thumbnail strip or analytics script can follow it</td>
+		</tr>
+		<tr>
+			<td>See what is attached while debugging</td>
+			<td>Not possible</td>
+			<td><code>events.getAll()</code> in the console</td>
+			<td>Finding why a quick view button fires twice after AJAX</td>
+		</tr>
+		<tr>
+			<td>Listeners removed when the element leaves the page</td>
+			<td>No (only garbage collected)</td>
+			<td>Yes, on by default (<code>autoRemove</code>)</td>
+			<td>Mini-cart markup replaced by WooCommerce cart fragments</td>
+		</tr>
+		<tr>
+			<td>Swap one handler or remove one event type</td>
+			<td>Manual bookkeeping</td>
+			<td><code>events.set()</code> / <code>events.remove( target, type )</code></td>
+			<td>A modal adds <code>keydown</code> and overlay <code>click</code> on open and removes them on close</td>
+		</tr>
+		<tr>
+			<td>Few listeners, no custom events</td>
+			<td>Best choice</td>
+			<td>More than you need</td>
+			<td>Tooltip, read-more toggle, quantity stepper</td>
+		</tr>
+	</tbody>
+</table>
+
+### Rules
+
+1. **Create one event manager per plugin, outside the plugin function.** All instances share it.
+2. **Never call `events.removeAll()` in `reset()`.** Managers with the same namespace share one store, so `removeAll()` removes every instance's listeners. Remove only what this instance added, with `events.remove( target, type, handler )`.
+3. **Don't reuse the plugin manager's namespace.** This page's manager uses `slider`, so the plugin's events use `slider-ui`. Sharing `slider` would let a `removeAll()` delete the manager's `init`, `destroy` and `reload` listeners.
+4. **Announce events with `triggerEvent()`.** `events.trigger()` only reaches handlers this event manager added to that element, so outside listeners never see it.
+5. **Avoid custom names that match native events.** `change`, `select` and `input` are attached as native events. Use `slide-change`, not `change`.
+
+### Event manager plugin `plugin.js`
+
+```js
+'use strict';
+/**
+ * External dependencies
+ */
+import {
+	createEventManager,
+	deepMerge,
+	getOptionsFromAttribute,
+	triggerEvent,
+} from '@storepress/utils';
+
+const DEFAULTS = {
+	loop: true,
+};
+
+const ATTRIBUTE = 'slider-settings'; // data-slider-settings
+
+// Must differ from the plugin manager's namespace ('slider').
+const EVENT_NAMESPACE = 'slider-ui';
+
+// One event manager for all instances. Each instance removes only its own handlers.
+const events = createEventManager( EVENT_NAMESPACE );
+
+function Plugin( element, options ) {
+	const settings = deepMerge(
+		DEFAULTS,
+		options,
+		getOptionsFromAttribute( element, ATTRIBUTE )
+	);
+
+	const $slides = element.querySelectorAll( '.slide' );
+	const $prev = element.querySelector( '.prev' );
+	const $next = element.querySelector( '.next' );
+
+	let index = 0;
+
+	// Track what this instance adds, so reset() removes only that.
+	const added = [];
+
+	const on = ( target, type, handler, eventOptions ) => {
+		events.add( target, type, handler, eventOptions );
+		added.push( [ target, type, handler ] );
+	};
+
+	const removeEvents = () => {
+		added.splice( 0 ).forEach( ( [ target, type, handler ] ) =>
+			events.remove( target, type, handler )
+		);
+	};
+
+	const goTo = ( newIndex ) => {
+		const last = $slides.length - 1;
+		const wrapped = newIndex > last ? 0 : newIndex < 0 ? last : newIndex;
+		index = settings.loop ? wrapped : Math.min( Math.max( newIndex, 0 ), last );
+
+		// Tell other scripts. Listen with:
+		// element.addEventListener( 'storepress:slider-ui:slide-change', ... )
+		triggerEvent(
+			element,
+			`storepress:${ EVENT_NAMESPACE }:slide-change`,
+			{ index },
+			{ bubbles: true }
+		);
+	};
+
+	const next = () => goTo( index + 1 );
+	const prev = () => goTo( index - 1 );
+
+	/**
+	 * Called by the plugin manager on destroy, so the name must stay `reset`.
+	 */
+	const reset = () => {
+		removeEvents();
+	};
+
+	const handleKeydown = ( event ) => {
+		// The markup was replaced without destroy(): clean up and stop.
+		if ( ! element.isConnected ) {
+			reset();
+			return;
+		}
+		if ( ! element.contains( document.activeElement ) ) {
+			return;
+		}
+		if ( event.key === 'ArrowRight' ) {
+			next();
+		}
+		if ( event.key === 'ArrowLeft' ) {
+			prev();
+		}
+	};
+
+	const addEvents = () => {
+		on( $next, 'click', next );
+		on( $prev, 'click', prev );
+		// Shared target: safe, because reset() removes this exact handler.
+		on( document, 'keydown', handleKeydown );
+	};
+
+	addEvents();
+
+	// Do not use `element` or `destroy` as keys: the manager sets them.
+	return { reset, next, prev, goTo, settings };
+}
+
+export { Plugin };
+```
+
+The manager (`index.js`) and start script (`script.js`) stay the same.
+
+### Example HTML
+
+```html
+<div class="slider-wrapper" data-slider-settings="{'loop': false}">
+	<div class="slide">1</div>
+	<div class="slide">2</div>
+	<div class="slide">3</div>
+	<button class="prev" type="button">Previous</button>
+	<button class="next" type="button">Next</button>
+</div>
+```
+
+### Listening from other scripts
+
+```js
+'use strict';
+document.addEventListener( 'storepress:slider-ui:slide-change', ( event ) => {
+	// event.target is the slider element.
+	highlightThumbnail( event.target, event.detail.index );
+} );
+```
+
+## Updating markup with AJAX
+
+Instances belong to elements. When AJAX changes the markup, tell the plugin manager what happened. The same steps work for both plugin versions.
+
+### Markup is replaced (filters, pagination, quick view)
+
+Destroy the instances inside the markup you are about to replace, replace it, then init the new markup. Destroying first runs each instance's `reset()`, so listeners on `document` and `window` are removed too.
+
+```js
+'use strict';
+/**
+ * Internal dependencies
+ */
+import Slider from './index';
+
+const RESULTS = '.products';
+const SLIDERS = `${ RESULTS } [data-slider-settings]`;
+
+async function loadProducts( url ) {
+	const response = await fetch( url );
+	const $page = new DOMParser().parseFromString( await response.text(), 'text/html' );
+
+	// 1. Reset and forget the instances in the old markup.
+	Slider.destroy( SLIDERS );
+
+	// 2. Replace the markup.
+	document.querySelector( RESULTS ).replaceWith( $page.querySelector( RESULTS ) );
+
+	// 3. Create instances for the new markup.
+	Slider.init( SLIDERS );
+}
+
+document.querySelector( '.product-filters' ).addEventListener( 'change', ( event ) => {
+	const url = new URL( window.location.href );
+	url.searchParams.set( event.target.name, event.target.value );
+	loadProducts( url );
+} );
+```
+
+Destroy after the response arrives, not before the request, so the old sliders keep working while the page loads.
+
+### Markup is added (load more, infinite scroll)
+
+Only call `init()`. Elements that already have an instance are skipped, so existing sliders keep their state.
+
+```js
+'use strict';
+document.querySelector( '.load-more' ).addEventListener( 'click', async ( event ) => {
+	const response = await fetch( event.currentTarget.dataset.nextPage );
+	document.querySelector( '.products' ).insertAdjacentHTML( 'beforeend', await response.text() );
+
+	Slider.init();
+} );
+```
+
+### Markup is replaced by code you don't control (WooCommerce fragments)
+
+WooCommerce replaces cart fragments and the cart table without warning, so you can't call `destroy()` first. Call `init()` afterwards for the new markup:
+
+```js
+'use strict';
+jQuery( document.body ).on( 'wc_fragments_refreshed wc_fragments_loaded updated_wc_div', () => {
+	Slider.init();
+} );
+```
+
+The old instances are cleaned up without `reset()`:
+
+- **Listeners on the removed elements:** the event manager removes them automatically (`autoRemove`). With the `AbortController` version, they are garbage collected with the elements.
+- **The instance itself:** the instance store is a `WeakMap`, so it is released with its element.
+- **Listeners on `document` or `window`:** these are not removed automatically. Check `element.isConnected` in those handlers and call `reset()` when it is `false`, as `handleKeydown` does above.

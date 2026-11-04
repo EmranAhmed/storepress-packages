@@ -173,6 +173,28 @@ describe('createEventManager', () => {
       const allEvents = manager.getAll()
       expect(allEvents.length).toBe(0)
     })
+
+    it('removes all events only from the given target', () => {
+      const element2 = document.createElement('div')
+      document.body.appendChild(element2)
+
+      const handler1 = jest.fn()
+      const handler2 = jest.fn()
+      const handler3 = jest.fn()
+
+      manager.add(element, 'click', handler1)
+      manager.add(element, 'mouseenter', handler2)
+      manager.add(element2, 'click', handler3)
+      manager.removeAll(element)
+
+      element.click()
+      element2.click()
+
+      expect(handler1).not.toHaveBeenCalled()
+      expect(handler3).toHaveBeenCalledTimes(1)
+      expect(manager.get(element)[0].$events).toEqual([])
+      expect(manager.getAll().map(({ $element }) => $element)).toEqual([element2])
+    })
   })
 
   describe('get()', () => {
@@ -217,6 +239,27 @@ describe('createEventManager', () => {
       const allEvents = emptyManager.getAll()
 
       expect(allEvents).toEqual([])
+    })
+
+    it('returns only tracked elements matching the given target', () => {
+      document.body.innerHTML = `
+        <div class="item"></div>
+        <div class="item"></div>
+        <div class="other"></div>
+      `
+      const [item1, item2] = document.querySelectorAll('.item')
+      const other = document.querySelector('.other')
+
+      manager.add(item1, 'click', jest.fn())
+      manager.add(other, 'click', jest.fn())
+
+      const result = manager.getAll('.item')
+
+      expect(result.length).toBe(1)
+      expect(result[0].$element).toBe(item1)
+      expect(result[0].$events.length).toBe(1)
+      expect(manager.getAll(item2)).toEqual([])
+      expect(manager.getAll().length).toBe(2)
     })
   })
 

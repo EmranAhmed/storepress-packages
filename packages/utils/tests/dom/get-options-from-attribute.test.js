@@ -177,4 +177,27 @@ describe('getOptionsFromAttribute', () => {
     expect(options.nested.b).toBe(2)
     expect(options.new).toBe('added')
   })
+
+  it('overrides base JSON values with individual attributes', () => {
+    document.body.innerHTML = `
+				<div id="test"
+					data-config='{"existing": true, "nested": {"a": 1, "c": 3}}'
+					data-config--nested--b="2"
+					data-config--nested--c="5"
+					data-config--new="added">
+				</div>
+			`
+    const element = document.getElementById('test')
+    const options = getOptionsFromAttribute(element, 'config')
+
+    expect(options).toEqual({
+      existing: true,
+      nested: {
+        a: 1, // Kept from JSON.
+        b: 2, // Added by an attribute.
+        c: 5, // Overridden: the attribute wins over JSON's 3.
+      },
+      new: 'added',
+    })
+  })
 })

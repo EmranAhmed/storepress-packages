@@ -175,6 +175,7 @@ Importing this file runs `setup()`, which adds listeners on `document` and regis
  * Internal dependencies
  */
 import StorePressSlider from './index';
+import domReady from '@wordpress/dom-ready';
 
 domReady(function () {
     StorePressSlider.init()
@@ -217,6 +218,470 @@ instance.settings.x; // 'Hero', unless #hero sets x in a data-storepress-slider 
 
 StorePressSlider.destroy(); // Remove all instances.
 ```
+
+## Plugin with an event manager
+
+The template above uses one `AbortController` per instance, which is enough for most plugins. When a plugin needs namespaced custom events, listener inspection or automatic removal, build it on [`createEventManager`](src/events/README.md#createeventmanager) instead.
+
+### When to use which
+
+| Need | `AbortController` | `createEventManager` | Real-life example |
+| --- | --- | --- | --- |
+| Remove all of one instance's listeners | `controller.abort()`, simplest | `events.removeAll( element )`, plus `events.remove()` for shared targets such as `document` | Any plugin's `reset()` |
+| Custom events other scripts can listen to | Write the full name by hand | Named `storepress:{namespace}:{type}` | A slider announces `slide-change` so a thumbnail strip or analytics script can follow it |
+| See what is attached while debugging | Not possible | `events.getAll()` or `events.getAll( element )` in the console | Finding why a quick view button fires twice after AJAX |
+| Listeners removed when the element leaves the page | No (only garbage collected) | Yes, on by default (`autoRemove`) | Mini-cart markup replaced by WooCommerce cart fragments |
+| Swap one handler or remove one event type | Manual bookkeeping | `events.set()` / `events.remove( target, type )` | A modal adds `keydown` and overlay `click` on open and removes them on close |
+| Few listeners, no custom events | Best choice | More than you need | Tooltip, read-more toggle, quantity stepper |
+
+### Rules
+
+1. **Create one event manager per plugin, outside the plugin function.** All instances share it. Export it so tests and the console can inspect it.
+2. **In `reset()`, pass the element: `events.removeAll( element )`.** Without a target, `removeAll()` removes every instance's listeners, because managers with the same namespace share one store. `removeAll( element )` removes only the listeners on that element.
+3. **Remove shared targets by handler.** `document` and `window` are shared by every instance, so never call `removeAll( document )`. Use `events.remove( document, 'keydown', handleKeydown )`, which removes only this instance's handler.
+4. **Delegate events from the element.** `removeAll( element )` does not touch listeners on child elements. Add one listener to the element and use `event.target.closest( '.next' )`, so a single call removes them all and buttons added later still work.
+5. **Don't reuse the plugin manager's namespace.** `createStorePressPlugin( { namespace: 'slider' } )` keeps its `init`, `destroy` and `reload` listeners under `storepress` / `slider`. Calling `createEventManager( 'slider' )` in the plugin puts both in the same store, and a `removeAll()` stops `init()` from working. Use a separate name such as `'slider-ui'`.
+6. **Announce events with `triggerEvent()`.** `events.trigger()` only reaches handlers this event manager added to that element, so outside listeners never see it.
+7. **Avoid custom names that match native events.** A type with an `on…` property on the element (`change`, `select`, `input`) is attached as the native event. Use `slide-change`, not `change`.
+
+### Template
+
+```js
+'use strict';
+/**
+ * External dependencies
+ */
+import {
+	createEventManager,
+	deepMerge,
+	getOptionsFromAttribute,
+	triggerEvent,
+} from '@storepress/utils';
+
+// Default settings for every instance.
+const DEFAULTS = {
+	loop: true,
+	start: 0,
+};
+
+// Values the user must not override from options or attributes.
+const PRIVATE = {};
+
+const ATTRIBUTE = 'storepress-slider'; // data-storepress-slider
+
+// Must differ from the plugin manager's namespace ('storepress-slider').
+const EVENT_NAMESPACE = 'slider-ui';
+
+// Class the plugin adds, so reset() can remove it.
+const ACTIVE_CLASS = 'is-active';
+
+// One event manager for all instances. Exported for tests and debugging.
+export const events = createEventManager( EVENT_NAMESPACE );
+
+function Plugin( element, options ) {
+	// Later sources win: DEFAULTS < manager options < data-* attributes < PRIVATE.
+	const settings = deepMerge(
+		DEFAULTS,
+		options,
+		getOptionsFromAttribute( element, ATTRIBUTE ),
+		PRIVATE
+	);
+
+	let index = 0;
+
+	// Query when needed, so slides added later are included.
+	const getSlides = () => element.querySelectorAll( '.slide' );
+
+	const removeClasses = () => {
+		getSlides().forEach( ( $slide ) =>
+			$slide.classList.remove( ACTIVE_CLASS )
+		);
+	};
+
+	const render = () => {
+		removeClasses();
+		getSlides()[ index ]?.classList.add( ACTIVE_CLASS );
+	};
+
+	const goTo = ( newIndex ) => {
+		const last = getSlides().length - 1;
+		if ( settings.loop ) {
+			index = newIndex > last ? 0 : newIndex < 0 ? last : newIndex;
+		} else {
+			index = Math.min( Math.max( newIndex, 0 ), last );
+		}
+		render();
+
+		// Tell other scripts. Listen with:
+		// document.addEventListener( 'storepress:slider-ui:slide-change', ... )
+		triggerEvent(
+			element,
+			`storepress:${ EVENT_NAMESPACE }:slide-change`,
+			{ index },
+			{ bubbles: true }
+		);
+	};
+
+	const next = () => goTo( index + 1 );
+	const prev = () => goTo( index - 1 );
+	const getIndex = () => index;
+
+	// One delegated listener on the slider handles every button inside it.
+	const handleClick = ( event ) => {
+		const $button = event.target.closest( '.prev, .next' );
+		if ( ! $button || ! element.contains( $button ) ) {
+			return;
+		}
+		if ( $button.matches( '.next' ) ) {
+			next();
+		} else {
+			prev();
+		}
+	};
+
+	// Lets other scripts move the slider:
+	// triggerEvent( slider, 'storepress:slider-ui:go-to', { index: 2 } )
+	const handleGoTo = ( { detail } ) => goTo( detail.index );
+
+	const handleKeydown = ( event ) => {
+		// The markup was replaced without destroy(): clean up and stop.
+		if ( ! element.isConnected ) {
+			reset();
+			return;
+		}
+		if ( ! element.contains( document.activeElement ) ) {
+			return;
+		}
+		if ( event.key === 'ArrowRight' ) {
+			next();
+		}
+		if ( event.key === 'ArrowLeft' ) {
+			prev();
+		}
+	};
+
+	const addEvents = () => {
+		events.add( element, 'click', handleClick );
+		events.add( element, 'go-to', handleGoTo ); // 'storepress:slider-ui:go-to'
+		events.add( document, 'keydown', handleKeydown );
+	};
+
+	const removeEvents = () => {
+		// Every listener on this slider element.
+		events.removeAll( element );
+		// Shared target: remove only this instance's handler.
+		events.remove( document, 'keydown', handleKeydown );
+	};
+
+	/**
+	 * Resets the plugin: clears applied classes and removes listeners.
+	 * Called by the plugin manager on destroy, so the name must stay `reset`.
+	 */
+	const reset = () => {
+		removeClasses();
+		removeEvents();
+	};
+
+	addEvents();
+	index = settings.start;
+	render();
+
+	// Do not use `element` or `destroy` as keys: the manager sets them.
+	return { reset, next, prev, goTo, getIndex, settings };
+}
+
+export { Plugin };
+```
+
+The manager (`index.js`) and start script (`script.js`) are the same as for the `AbortController` template.
+
+Other scripts can follow and move the slider without importing it:
+
+```js
+document.addEventListener( 'storepress:slider-ui:slide-change', ( event ) => {
+	// event.target is the slider element.
+	highlightThumbnail( event.target, event.detail.index );
+} );
+
+triggerEvent( document.querySelector( '#hero' ), 'storepress:slider-ui:go-to', { index: 2 } );
+```
+
+While debugging, list what one slider has attached:
+
+```js
+events.getAll( '#hero' );
+// [ { $element: div#hero, $events: [
+//   { eventType: 'storepress:slider-ui:click', isNative: true, nativeType: 'click', size: 1 },
+//   { eventType: 'storepress:slider-ui:go-to', isNative: false, nativeType: '', size: 1 },
+// ] } ]
+```
+
+## Updating markup with AJAX
+
+Instances belong to elements. When AJAX changes the markup, tell the plugin manager what happened. The same steps work for both plugin templates.
+
+### Markup is replaced (filters, pagination, quick view)
+
+Destroy the instances inside the markup you are about to replace, replace it, then init the new markup. Destroying first runs each instance's `reset()`, so listeners on `document` and `window` are removed too.
+
+```js
+/**
+ * Internal dependencies
+ */
+import StorePressSlider from './index';
+
+const RESULTS = '.products';
+const SLIDERS = `${ RESULTS } [data-storepress-slider]`;
+
+async function loadProducts( url ) {
+	const response = await fetch( url );
+	const $page = new DOMParser().parseFromString( await response.text(), 'text/html' );
+
+	// 1. Reset and forget the instances in the old markup.
+	StorePressSlider.destroy( SLIDERS );
+
+	// 2. Replace the markup.
+	document.querySelector( RESULTS ).replaceWith( $page.querySelector( RESULTS ) );
+
+	// 3. Create instances for the new markup.
+	StorePressSlider.init( SLIDERS );
+}
+
+document.querySelector( '.product-filters' ).addEventListener( 'change', ( event ) => {
+	const url = new URL( window.location.href );
+	url.searchParams.set( event.target.name, event.target.value );
+	loadProducts( url );
+} );
+```
+
+Destroy after the response arrives, not before the request, so the old sliders keep working while the page loads.
+
+### Markup is added (load more, infinite scroll)
+
+Only call `init()`. Elements that already have an instance are skipped, so existing sliders keep their state.
+
+```js
+document.querySelector( '.load-more' ).addEventListener( 'click', async ( event ) => {
+	const response = await fetch( event.currentTarget.dataset.nextPage );
+	document.querySelector( '.products' ).insertAdjacentHTML( 'beforeend', await response.text() );
+
+	StorePressSlider.init();
+} );
+```
+
+### Markup is replaced by code you don't control (WooCommerce fragments)
+
+WooCommerce replaces cart fragments and the cart table without warning, so you can't call `destroy()` first. Call `init()` afterwards for the new markup:
+
+```js
+jQuery( document.body ).on( 'wc_fragments_refreshed wc_fragments_loaded updated_wc_div', () => {
+	StorePressSlider.init();
+} );
+```
+
+The old instances are cleaned up without `reset()`:
+
+- **Listeners on the removed elements:** the event manager removes them automatically (`autoRemove`). With the `AbortController` template, they are garbage collected with the elements.
+- **The instance itself:** the instance store is a `WeakMap`, so it is released with its element.
+- **Listeners on `document` or `window`:** these are not removed automatically. Check `element.isConnected` in those handlers and call `reset()` when it is `false`, as `handleKeydown` does in the template above.
+
+## Testing a plugin
+
+Test a plugin through its manager, the way a page uses it: write the markup, call `init()`, act like a user, and check the DOM, the instance and the listeners. Tests run in Jest with jsdom.
+
+### Setup
+
+```sh
+npm install --save-dev jest jest-environment-jsdom babel-jest @wordpress/babel-preset-default
+```
+
+```js
+// jest.config.js
+module.exports = {
+	testEnvironment: 'jsdom',
+	transform: {
+		'^.+\\.js$': [ 'babel-jest', { presets: [ '@wordpress/babel-preset-default' ] } ],
+	},
+};
+```
+
+Add `"test": "jest"` to the `scripts` in `package.json`, then put tests next to the source:
+
+```
+my-slider/
+├── src/
+│   ├── plugin.js        # The plugin (template above).
+│   ├── index.js         # The plugin manager.
+│   └── script.js        # The start script.
+└── tests/
+    └── plugin.test.js
+```
+
+### Test
+
+This test covers the [event manager template](#template): setup, settings, user actions, custom events and cleanup.
+
+```js
+/**
+ * External dependencies
+ */
+import { triggerEvent } from '@storepress/utils';
+
+/**
+ * Internal dependencies
+ */
+import StorePressSlider from '../src/index';
+import { events } from '../src/plugin';
+
+const SLIDER = ( id, attribute = '' ) => `
+	<div id="${ id }" data-storepress-slider${ attribute }>
+		<div class="slide">1</div>
+		<div class="slide">2</div>
+		<div class="slide">3</div>
+		<button class="prev">Prev</button>
+		<button class="next">Next</button>
+	</div>
+`;
+
+// Wait for MutationObserver callbacks (autoRemove).
+const flushObservers = () => new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
+
+describe( 'StorePressSlider', () => {
+	let $hero;
+	let $second;
+
+	const getInstance = ( selector ) => StorePressSlider.get( selector )[ 0 ];
+	const activeSlide = ( $slider ) =>
+		[ ...$slider.querySelectorAll( '.slide' ) ].findIndex( ( $slide ) =>
+			$slide.classList.contains( 'is-active' )
+		);
+	const pressKey = ( $target, key ) =>
+		$target.dispatchEvent( new KeyboardEvent( 'keydown', { key, bubbles: true } ) );
+
+	beforeEach( () => {
+		document.body.innerHTML =
+			SLIDER( 'hero' ) + SLIDER( 'second', `='{"loop": false}'` );
+		$hero = document.getElementById( 'hero' );
+		$second = document.getElementById( 'second' );
+		StorePressSlider.init();
+	} );
+
+	afterEach( () => {
+		// Remove instances and their listeners, including those on document.
+		StorePressSlider.destroy();
+	} );
+
+	describe( 'setup', () => {
+		it( 'creates one instance per element', () => {
+			expect( StorePressSlider.get() ).toHaveLength( 2 );
+			expect( getInstance( '#hero' ).element ).toBe( $hero );
+		} );
+
+		it( 'does not stack listeners when init() runs again', () => {
+			StorePressSlider.init();
+
+			const [ { $events } ] = events.getAll( $hero );
+			expect( $events.every( ( { size } ) => size === 1 ) ).toBe( true );
+		} );
+
+		it( 'reads settings from data-* attributes', () => {
+			expect( getInstance( '#hero' ).settings.loop ).toBe( true );
+			expect( getInstance( '#second' ).settings.loop ).toBe( false );
+		} );
+
+		it( 'rebuilds an instance with new settings on reload()', () => {
+			StorePressSlider.reload( '#hero', { start: 2 } );
+
+			expect( getInstance( '#hero' ).getIndex() ).toBe( 2 );
+			expect( activeSlide( $hero ) ).toBe( 2 );
+		} );
+	} );
+
+	describe( 'behavior', () => {
+		it( 'moves to the next slide on click', () => {
+			$hero.querySelector( '.next' ).click();
+
+			expect( getInstance( '#hero' ).getIndex() ).toBe( 1 );
+			expect( activeSlide( $hero ) ).toBe( 1 );
+		} );
+
+		it( 'loops only when loop is on', () => {
+			$hero.querySelector( '.prev' ).click();
+			$second.querySelector( '.prev' ).click();
+
+			expect( getInstance( '#hero' ).getIndex() ).toBe( 2 );
+			expect( getInstance( '#second' ).getIndex() ).toBe( 0 );
+		} );
+
+		it( 'handles arrow keys only in the focused slider', () => {
+			const $next = $hero.querySelector( '.next' );
+			$next.focus();
+			pressKey( $next, 'ArrowRight' );
+
+			expect( getInstance( '#hero' ).getIndex() ).toBe( 1 );
+			expect( getInstance( '#second' ).getIndex() ).toBe( 0 );
+		} );
+	} );
+
+	describe( 'events', () => {
+		it( 'announces slide-change to other scripts', () => {
+			const listener = jest.fn();
+			document.addEventListener( 'storepress:slider-ui:slide-change', listener );
+
+			getInstance( '#hero' ).next();
+
+			expect( listener ).toHaveBeenCalledTimes( 1 );
+			const [ event ] = listener.mock.calls[ 0 ];
+			expect( event.target ).toBe( $hero );
+			expect( event.detail ).toEqual( { index: 1 } );
+
+			document.removeEventListener( 'storepress:slider-ui:slide-change', listener );
+		} );
+
+		it( 'moves when another script triggers go-to', () => {
+			triggerEvent( $hero, 'storepress:slider-ui:go-to', { index: 2 } );
+
+			expect( getInstance( '#hero' ).getIndex() ).toBe( 2 );
+		} );
+	} );
+
+	describe( 'cleanup', () => {
+		it( 'removes classes and its own listeners on destroy()', () => {
+			StorePressSlider.destroy( '#hero' );
+
+			expect( activeSlide( $hero ) ).toBe( -1 );
+			expect( events.getAll( $hero ) ).toEqual( [] );
+
+			// The other instance still has its listeners.
+			expect( events.getAll( $second ) ).toHaveLength( 1 );
+			const [ { $events } ] = events.get( document );
+			expect( $events[ 0 ].size ).toBe( 1 ); // Only #second's keydown is left.
+		} );
+
+		it( 'cleans up when the markup is removed without destroy()', async () => {
+			$hero.remove();
+			await flushObservers();
+
+			// autoRemove dropped the listeners on the removed element.
+			expect( events.getAll( $hero ) ).toEqual( [] );
+
+			// The document keydown handler removes itself on the next key press.
+			pressKey( document, 'ArrowRight' );
+			const [ { $events } ] = events.get( document );
+			expect( $events[ 0 ].size ).toBe( 1 );
+		} );
+	} );
+} );
+```
+
+### Tips
+
+- **Destroy in `afterEach`.** The event manager and the `document` listeners outlive a test, because modules are loaded once per file. `StorePressSlider.destroy()` runs each `reset()`, so the next test starts clean.
+- **Check cleanup with `events.getAll( element )`.** It returns `[]` once every listener on the element is removed, and `events.get( document )` shows how many `document` handlers are left (`size`).
+- **Test the shared targets.** Destroy one instance and check the others still work. That catches a `reset()` that calls `removeAll()` without a target.
+- **Wait for `autoRemove`.** Removed elements lose their listeners in a `MutationObserver` callback, so `await` a timeout before asserting.
+- **Dispatch events like the browser does.** Use `element.click()` for clicks and `new KeyboardEvent( 'keydown', { key, bubbles: true } )` for keys, so they reach listeners on `document`. Focus the element first when the handler checks `document.activeElement`.
+- **Listen with plain `addEventListener`** to check custom events, as another script would, and remove the listener at the end of the test.
 
 ## Accessing plugins and instances
 
@@ -345,12 +810,16 @@ events
 events.trigger( '.mini-cart', 'updated', { items } );
 
 events.remove( document, 'keydown' ); // One event type.
+events.removeAll( '.mini-cart' );     // Everything on one element.
 events.removeAll();                   // Everything in the namespace.
+
+events.getAll( '.mini-cart' );        // What one element has attached.
+events.getAll();                      // Every element in the namespace.
 ```
 
-Methods: `add`, `set` (replace handlers for an event), `trigger`, `remove`, `removeAll`, `get` and `getAll` (inspect what is attached). Listeners on an element are removed automatically when the element is removed from the page; pass `{ autoRemove: false }` to turn that off.
+Methods: `add`, `set` (replace handlers for an event), `trigger`, `remove`, `removeAll` (all, or every listener on given elements), `get` and `getAll` (inspect what is attached). Listeners on an element are removed automatically when the element is removed from the page; pass `{ autoRemove: false }` to turn that off.
 
-Inside a plugin function, a single `AbortController` (as in the [plugin template](#1-the-plugin-pluginjs)) is usually enough. Use the event manager when you need custom events, want to inspect listeners, or share listeners between modules.
+Inside a plugin function, a single `AbortController` (as in the [plugin template](#1-the-plugin-pluginjs)) is usually enough. To build a plugin on the event manager, see [Plugin with an event manager](#plugin-with-an-event-manager).
 
 ### Dispatch a custom event
 
@@ -390,12 +859,13 @@ toConstantCase( 'database-url' );  // 'DATABASE_URL'
 
 ## Best practices
 
-- **Clean up everything you add.** Every listener, class and CSS property a plugin adds should be removed in `reset()`. Use one `AbortController` per instance, or `events.removeAll()` with an event manager.
+- **Clean up everything you add.** Every listener, class and CSS property a plugin adds should be removed in `reset()`. Use one `AbortController` per instance, or `events.removeAll( element )` with an event manager.
 - **Use descriptive namespaces.** `'product-quick-view'`, not `'modal'`. The namespace names the global registry entry and the custom events, so it must be unique across plugins on the page.
 - **Listen only while needed.** Add `keydown` or overlay `click` listeners when a modal opens and remove them when it closes, instead of checking an `isOpen` flag on every event.
 - **Use passive listeners for scroll and touch.** `{ passive: true }` matters for `scroll`, `wheel`, `touchstart` and `touchmove`; it has no effect on other events.
 - **Delegate when there are many children.** One `click` listener on a list with `event.target.closest( '.item' )` beats one listener per item, and keeps working for items added later.
-- **Debug from the console.** `events.getAll()` lists every element and event in a namespace, and `window.StorePress.$Plugins` lists every registered plugin.
+- **Test setup and cleanup.** Init, act, destroy, then check that `events.getAll( element )` is empty. See [Testing a plugin](#testing-a-plugin).
+- **Debug from the console.** `events.getAll()` lists every element and event in a namespace (`events.getAll( element )` for one element), and `window.StorePress.$Plugins` lists every registered plugin.
 
 ## Development
 

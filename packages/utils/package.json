@@ -16,7 +16,7 @@
     "url": "git+https://github.com/EmranAhmed/storepress-packages.git",
     "directory": "packages/utils"
   },
-  "sideEffects": false,
+  "sideEffects": true,
   "main": "build/index.js",
   "module": "build-module/index.js",
   "bugs": {
