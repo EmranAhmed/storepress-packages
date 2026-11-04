@@ -9,3 +9,4 @@ __*
 .coverage
 _gb
 MIGRATION-GUIDE.md
+*debug.log
