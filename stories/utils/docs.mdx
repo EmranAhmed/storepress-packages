@@ -2,199 +2,206 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 <Meta title="Utils/Plugin Example" />
 
+# Plugin example
+
+A StorePress plugin has three parts: the plugin function (`plugin.js`), the plugin manager (`index.js`) and the start script (`script.js`).
+<br />See the [package README](https://github.com/EmranAhmed/storepress-packages/blob/main/packages/utils/README.md#building-a-plugin) for the full rules.
+
 ## Install
 
 ```shell
 npm i @storepress/utils --save
 ```
 
-## Usage
+## 1. The plugin `plugin.js`
+
+A plain function that sets up one element and returns its public API. Don't use `this`: keep state in local variables.
 
 ```js
-import { getOptionsFromAttribute } from '@storepress/utils';
-```
-
-## Example Plugin `Plugin.js`
-```js
+'use strict';
 /**
  * External dependencies
  */
-import { getOptionsFromAttribute } from '@storepress/utils'
+import { deepMerge, getOptionsFromAttribute } from '@storepress/utils';
 
-function Plugin(element, options) {
-    // Default Settings
-    const DEFAULTS = {
-        size: 20,
-    }
+// Default settings for every instance.
+const DEFAULTS = {
+	size: 20,
+};
 
-    // Collecting settings from html attribute
-    const ATTRIBUTE = 'data-slider-settings'
+// Values the user must not override from options or attributes.
+const PRIVATE = {};
 
-    const handleInput = (event) => {
-        window.console.log(event.target.value)
-    }
+const ATTRIBUTE = 'slider-settings'; // data-slider-settings
 
-    const addEvents = () => {
-        this.$element.querySelectorAll('input').forEach(($el) => {
-            $el.addEventListener('input', handleInput)
-        })
-    }
+const CSS_CLASSES = [ 'example-input-class' ];
 
-    const addClass = () => {
-       this.$element.querySelectorAll('input').forEach(($el) => {
-            $el.classList.add('example-input-class')
-        })
-    }
+function Plugin( element, options ) {
+	// Later sources win: DEFAULTS < manager options < data-* attributes < PRIVATE.
+	const settings = deepMerge(
+		DEFAULTS,
+		options,
+		getOptionsFromAttribute( element, ATTRIBUTE ),
+		PRIVATE
+	);
 
-    const removeClass = () => {
-      this.$element.querySelectorAll('input').forEach(($el) => {
-            $el.classList.remove('example-input-class')
-      })
-    }
+	// One signal removes every listener this instance adds.
+	const controller = new AbortController();
 
-    const removeEvents = () => {
-        this.$element.querySelectorAll('input').forEach(($el) => {
-            $el.removeEventListener('input', handleInput)
-        })
-    }
+	const $inputs = element.querySelectorAll( 'input' );
 
-    const reset = () => {
-        removeEvents()
-        removeClass()
-    }
+	const handleInput = ( event ) => {
+		window.console.log( event.target.value, settings.size );
+	};
 
-    // Expose to public.
-    const expose = () => ({
-        reset
-    })
+	const addClasses = () => {
+		$inputs.forEach( ( $input ) => $input.classList.add( ...CSS_CLASSES ) );
+	};
 
-    // Do what you need and return expose fn.
-    const init = () => {
-        this.$element = element
-        this.settings = {
-              ...DEFAULTS,
-              ...options,
-              ...getOptionsFromAttribute( this.$element, ATTRIBUTE)
-            };
+	const removeClasses = () => {
+		$inputs.forEach( ( $input ) => $input.classList.remove( ...CSS_CLASSES ) );
+	};
 
-        addClass()
+	const addEvents = () => {
+		const { signal } = controller;
+		$inputs.forEach( ( $input ) => {
+			$input.addEventListener( 'input', handleInput, { signal } );
+		} );
+	};
 
-        addEvents()
+	const removeEvents = () => {
+		controller.abort();
+	};
 
-        return expose()
-    }
+	const handleNext = () => {
+		// Public method other scripts can call.
+	};
 
-    return init()
+	/**
+	 * Called by the plugin manager on destroy, so the name must stay `reset`.
+	 */
+	const reset = () => {
+		removeEvents();
+		removeClasses();
+	};
+
+	addClasses();
+	addEvents();
+
+	// Do not use `element` or `destroy` as keys: the manager sets them.
+	return { reset, handleNext, settings };
 }
 
-export { Plugin }
-```
-## Make Plugin Instance `index.js`
-```js
-
-import { createStorePressPlugin } from '@storepress/utils'
-import { Plugin } from './Plugin.js'
-
-// Create and setup the plugin
-const Slider = createStorePressPlugin({
-    selector: '[data-slider-settings]',
-    plugin: Plugin,
-    namespace: 'slider',
-    options: { message: 'Default message' },
-})
-
-Slider.setup()
-
-export default Slider
+export { Plugin };
 ```
 
-## Using the Plugin `script.js`
-
-```javascript
-import Slider from './index.js';
-
-document.addEventListener( 'DOMContentLoaded', () => {
-    Slider.init();
-} );
-```
-
-## Method: 01
+## 2. The plugin manager `index.js`
 
 ```js
+'use strict';
 /**
  * External dependencies
  */
-import domReady from '@wordpress/dom-ready';
-import {
-  getPluginInstance,
-  getStorePressPlugin,
-} from '@storepress/utils';
+import { createStorePressPlugin } from '@storepress/utils';
 
-domReady(function () {
+/**
+ * Internal dependencies
+ */
+import { Plugin } from './plugin';
 
-// Method 1: Get specific plugin instances
-const pluginInstances = getPluginInstance('.element', 'slider');
+const Slider = createStorePressPlugin( {
+	selector: '[data-slider-settings]',
+	plugin: Plugin,
+	namespace: 'slider',
+	options: { size: 50 }, // Site-wide overrides; plugin defaults live in DEFAULTS.
+} );
 
-// Method 2: Get via plugin manager
-const pluginInstances = getStorePressPlugin('slider').get('.element');
+// Adds the init, destroy and reload event listeners.
+Slider.setup();
 
-// Method 3: Get all plugin instances
-const pluginInstances = getStorePressPlugin('slider').get();
-
-pluginInstances.forEach(instance => {
-  instance.handleNext(); // Access plugin exposed functions.
-});
-
-
-const pluginManager = getStorePressPlugin('slider')
-
-// pluginManager.init()
-// pluginManager.destroy()
-// pluginManager.reload()
-})
+export default Slider;
 ```
-## Method: 02
+
+## 3. The start script `script.js`
 
 ```js
+'use strict';
+/**
+ * Internal dependencies
+ */
+import Slider from './index';
 
-// Method 1: Get plugin instances.
-const pluginInstances = StorePress.Utils.getPluginInstance('.element', 'slider');
-
-// Method 1: Get via plugin manager.
-const pluginInstances = StorePress.Utils.getStorePressPlugin('slider').get('.element');
-
-// Method 3: Get all plugin instances
-const pluginInstances = StorePress.Utils.getStorePressPlugin('slider').get();
-
-
-pluginInstances.forEach(instance => {
-  instance.handleNext(); // Access plugin exposed functions.
-});
-
-
-const pluginManager = StorePress.Utils.getStorePressPlugin('slider')
-
-// pluginManager.init()
-// pluginManager.destroy()
-// pluginManager.reload()
+domReady(function () {
+    Slider.init()
+})
 ```
 
 ## Example HTML
 
+Settings can come from a JSON attribute (relaxed single-quote notation works too), from one attribute per option, or both.
+
 ```html
 <div id="container">
-    <div class="slider-wrapper inp" data-slider-settings="{'size': 40}">
-        <a>1</a>
-        <form>
-            <input type="text" placeholder="Location X">
-        </form>
-    </div>
+	<div class="slider-wrapper" data-slider-settings="{'size': 40}">
+		<a>1</a>
+		<form>
+			<input type="text" placeholder="Location X" />
+		</form>
+	</div>
 
-    <div class="slider-wrapper inp" data-slider-settings--size="30">
-        <a>2</a>
-        <form>
-            <input type="text" placeholder="Location Y">
-        </form>
-    </div>
+	<div class="slider-wrapper" data-slider-settings data-slider-settings--size="30">
+		<a>2</a>
+		<form>
+			<input type="text" placeholder="Location Y" />
+		</form>
+	</div>
 </div>
+```
+
+## Controlling the plugin from other scripts
+
+### With imports
+
+```js
+'use strict';
+/**
+ * External dependencies
+ */
+import { getPluginInstance, getStorePressPlugin } from '@storepress/utils';
+
+// Instances for specific elements.
+const instances = getPluginInstance( '.slider-wrapper', 'slider' );
+
+// The manager registered by createStorePressPlugin().
+const Slider = getStorePressPlugin( 'slider' );
+
+// All instances for the manager's selector.
+Slider.get().forEach( ( instance ) => {
+	instance.handleNext(); // Call what the plugin returned.
+} );
+
+Slider.init(); // Create instances for new elements; existing ones are skipped.
+Slider.reload( '#hero', { size: 10 } ); // Rebuild with new settings.
+Slider.destroy(); // Call reset() on every instance.
+```
+
+### Without a bundler
+
+The manager is stored on `window.StorePress.$Plugins`. The key is the namespace in UpperCamelCase, so `slider` becomes `Slider` and `storepress-slider` becomes `StorepressSlider`.
+
+```js
+'use strict';
+const Slider = window.StorePress?.$Plugins?.Slider?.Plugin;
+
+Slider?.get().forEach( ( instance ) => instance.handleNext() );
+```
+
+Any script can also start, stop or reload the plugin by dispatching the manager's events on `document`, without importing anything:
+
+```js
+document.dispatchEvent(
+	new CustomEvent( 'storepress:slider:init', {
+		detail: { element: '.slider-wrapper', settings: { size: 30 } },
+	} )
+);
 ```

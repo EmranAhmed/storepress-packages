@@ -1,24 +1,21 @@
 # @storepress/utils
 
-A powerful JavaScript utility library for building modular, reusable plugins with a consistent API pattern. Designed for creating DOM-based plugins with automatic instance management, event handling, lifecycle control. and configuration parsing.
+JavaScript utilities for building DOM-based StorePress plugins for WordPress and WooCommerce. Write a plugin as a plain function; the plugin manager creates one instance per element, reads settings from `data-*` attributes, and handles `init`, `destroy` and `reload`. The package also includes helpers for DOM selection, events, objects and strings that work on their own.
 
 [![npm version](https://img.shields.io/npm/v/@storepress/utils.svg)](https://www.npmjs.com/package/@storepress/utils)
-[![License: GPL-3.0+](https://img.shields.io/badge/License-GPL--3.0+-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 ## Features
 
-- **Plugin Base Class** — Abstract class for building consistent, reusable plugins
-- **Automatic Instance Management** — Track and retrieve plugin instances globally
-- **Data Attribute Configuration** — Parse settings from HTML data attributes (JSON or individual attributes)
-- **Event System** — Built-in custom event dispatching with `triggerEvent`
-- **DOM Utilities** — Helper functions for common DOM operations
-- **Global Plugin Registry** — Access plugins and instances from anywhere via `StorePress.Utils`
-- **Lifecycle Hooks** — `init`, `destroy`, `setup`, `clear` methods for complete control
-- **WordPress Compatible** — Works seamlessly with WordPress and WooCommerce projects
+- **Plugin pattern:** write plugins as plain functions that return a public API. The manager tracks one instance per element.
+- **Lifecycle control:** `setup`, `init`, `destroy`, `reload` and `clear`, for all elements or a selector.
+- **Settings from markup:** read options from a JSON `data-*` attribute or one attribute per option, with numbers, booleans and regexes converted.
+- **Event manager:** namespaced listeners you can list, trigger and remove together. They're removed automatically when the element leaves the page.
+- **Global registry:** managers and instances are kept on `window.StorePress`, so other scripts and the browser console can find them.
+- **Small helpers:** `deepMerge`, `findObjectValue`, `getElements`, swipe detection, case conversion and more. Each function is in its own file.
+- **WordPress compatible:** follows WordPress coding standards and builds with `@wordpress/babel-preset-default`.
 
 ## Installation
-
-Install the module:
 
 ```bash
 npm install @storepress/utils --save
@@ -26,1299 +23,419 @@ npm install @storepress/utils --save
 
 _This package assumes that your code will run in an **ES2015+** environment. If you're using an environment that has limited or no support for such language features and APIs, you should include [the polyfill shipped in `@wordpress/babel-preset-default`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/babel-preset-default#polyfill) in your code._
 
+Import everything from the package root:
 
-## Core Concepts
-
-The library provides utilities for:
-
-- **Case conversion** - Transform strings between naming conventions
-- **DOM selection** - Flexible element selection with consistent output
-- **Configuration parsing** - Extract options from data attributes with type conversion
-- **Event management** - Namespaced event handling with automatic cleanup
-- **Plugin creation** - Full lifecycle management for DOM-based plugins
-
-## Usages
-
-**Creating a Plugin (`Plugin.js`):**
-
-```javascript
-
-// Plugin.js
-
-
-
-// Define your plugin logic
-function Plugin(element, options) {
-  
-    const reset = () => {
-        element.textContent = ''
-    }
-    
-    // Expose to public.
-    const expose = () => ({
-        reset,
-        handleNext
-    })
-    
-    const init = () => {
-        element.textContent = options.message || 'Hello!'
-        return expose()
-    }
-    
-    return init()
-}
-
-
-// index.js
-
-import { createStorePressPlugin } from '@storepress/utils'
-
-// Create and setup the plugin
-const MyPluginManager = createStorePressPlugin({
-    selector: '[data-my-plugin]',
-    plugin: MyPlugin,
-    namespace: 'my-plugin',
-    options: { message: 'Default message' },
-})
-
-MyPluginManager.setup()
-
-export default MyPluginManager
-```
-
-**Using the Plugin (`script.js`):**
-
-```javascript
-import MyPluginManager from './my-plugin';
-
-document.addEventListener( 'DOMContentLoaded', () => {
-    MyPluginManager.init();
-} );
-```
-
-**HTML:**
-
-```html
-<div data-my-plugin>Loading...</div>
-```
-
----
-
-**Example Plugin `Plugin.js`**
 ```js
+import { createStorePressPlugin, deepMerge, getOptionsFromAttribute } from '@storepress/utils';
+```
+
+## Building a plugin
+
+A StorePress plugin has three parts:
+
+1. **The plugin** (`plugin.js`): a function that sets up one element and returns its public API.
+2. **The plugin manager** (`index.js`): created with `createStorePressPlugin`. It finds the elements, creates one instance per element, and handles `init`, `destroy` and `reload`.
+3. **The start script** (`script.js`): calls `init()` when the page is ready.
+
+### 1. The plugin (`plugin.js`)
+
+This is the recommended structure. Copy it as the starting point for a new plugin.
+
+```js
+'use strict';
 /**
  * External dependencies
  */
-import { getOptionsFromAttribute } from '@storepress/utils';
+import { deepMerge, getOptionsFromAttribute } from '@storepress/utils';
 
-function Plugin(element, options) {
-  // Default Settings
-  const DEFAULTS = {
-    item: 3,
-    size: 20,
-  }
+// Default settings for every instance.
+const DEFAULTS = {
+	x: 'XXX',
+};
 
-  // Collecting settings from html attribute
-  const ATTRIBUTE = 'slider-settings' // data-slider-settings
+// Values the user must not override from options or attributes.
+const PRIVATE = {};
 
-  const handleInput = (event) => {
-    window.console.log(event.target.value)
-  }
+const ATTRIBUTE = 'storepress-slider'; // data-storepress-slider
 
-  const addEvents = () => {
-    this.$element.querySelectorAll('input').forEach(($el) => {
-      $el.addEventListener('input', handleInput, { passive: true, signal: this.controller.signal })
-    })
-  }
+// Classes and CSS custom properties the plugin adds, so reset() can remove them.
+const CSS_CLASSES = [ 'storepress-slider-top', 'storepress-slider-bottom' ];
 
-  const addClass = () => {
-    this.$element.querySelectorAll('input').forEach(($el) => {
-      $el.classList.add('example-input-class')
-    })
-  }
+const CSS_PROPERTIES = [ '--_slider-position' ];
 
-  const removeClass = () => {
-    this.$element.querySelectorAll('input').forEach(($el) => {
-      $el.classList.remove('example-input-class')
-    })
-  }
+function Plugin( element, options ) {
+	// Later sources win: DEFAULTS < manager options < data-* attributes < PRIVATE.
+	const settings = deepMerge(
+		DEFAULTS,
+		options,
+		getOptionsFromAttribute( element, ATTRIBUTE ),
+		PRIVATE
+	);
 
-  const removeEvents = () => {
-    this.controller.abort()
-  }
+	// One signal removes every listener this instance adds.
+	const controller = new AbortController();
 
-  const reset = () => {
-    removeEvents()
-    removeClass()
-  }
-  
-  const handleNext = () =>{
-    
-  }
+	const removeStyles = () => {
+		CSS_PROPERTIES.forEach( ( property ) =>
+			element.style.removeProperty( property )
+		);
+	};
 
-  // Expose to public.
-  const expose = () => ({
-    reset,
-    handleNext
-  })
+	const removeClasses = () => {
+		element.classList.remove( ...CSS_CLASSES );
+	};
 
-  // Do what you need and return expose fn.
-  const init = () => {
-    this.$element = element
-    this.settings = {
-      ...DEFAULTS,
-      ...options,
-      ...getOptionsFromAttribute( this.$element, ATTRIBUTE) // Remember that all number like string and yes|no|true|false string will be converted.
-    };
+	const removeEvents = () => {
+		controller.abort();
+	};
 
-    this.controller = new AbortController()
+	const calculatePosition = () => {
+		removeStyles();
+		removeClasses();
 
-    addClass()
+		// Read layout values when they are needed, not once at setup.
+		const isRTL = getComputedStyle( element ).direction === 'rtl';
+		// Calculate position.
+	};
 
-    addEvents()
+	const addEvents = () => {
+		const { signal } = controller;
+		element.addEventListener( 'pointerenter', calculatePosition, { signal } );
+		element.addEventListener( 'focusin', calculatePosition, { signal } );
+	};
 
-    return expose()
-  }
+	/**
+	 * Resets the plugin: clears applied styles and classes and removes listeners.
+	 * Called by the plugin manager on destroy, so the name must stay `reset`.
+	 */
+	const reset = () => {
+		removeStyles();
+		removeClasses();
+		removeEvents();
+	};
 
-  return init()
+	addEvents();
+
+	// Do not use `element` or `destroy` as keys: the manager sets them.
+	return { reset, settings };
 }
 
 export { Plugin };
 ```
-**Create Plugin System `slider.js` or `index.js`**
+
+#### Plugin rules
+
+- **Write a plain function and don't use `this`.** The manager calls `new Plugin( element, options )`, and the object you return becomes the instance. Anything set on `this` lands on a discarded object, and a plain call throws in strict mode. Keep state in local variables instead.
+- **Return an object with `reset`.** The manager calls `reset` when the instance is destroyed. It tears the instance down for good: remove every class, style and listener the plugin added. `reload()` creates a new instance afterwards.
+- **Don't return `element` or `destroy`.** The manager adds both keys to the returned object, and yours would be overwritten.
+- **Return only the public API.** For example `{ reset, settings, next, prev }`. Everything else stays private in the closure.
+- **Merge settings with `deepMerge`.** Spreading (`{ ...a, ...b }`) replaces nested objects such as those built by `data-storepress-slider--offset--top`. `deepMerge` merges them and returns a new object, so instances never share or change `DEFAULTS`.
+- **Use one `AbortController` per instance.** Pass its `signal` to every `addEventListener` call, and call `controller.abort()` in `reset`.
+- **Put constants at module level.** `DEFAULTS`, `ATTRIBUTE` and the class/property lists are the same for every element, so define them once outside the function.
+- **List what you add.** Keep added classes and CSS properties in `CSS_CLASSES` and `CSS_PROPERTIES`, so `reset` always removes everything.
+- **Support keyboard users.** Pair pointer events with focus events (`pointerenter` with `focusin`).
+
+### 2. The plugin manager (`index.js`)
+
 ```js
+'use strict';
 /**
  * External dependencies
  */
-import { createStorePressPlugin } from '@storepress/utils'
-import { Plugin } from 'Plugin'
+import { createStorePressPlugin } from '@storepress/utils';
 
-const StorePressSlider = createStorePressPlugin({
-  selector: '[data-slider-settings]',
-  options: { size: 50},
-  plugin: Plugin,
-  namespace: 'slider',
-})
+/**
+ * Internal dependencies
+ */
+import { Plugin } from './plugin';
 
-// Setup the event listeners
-StorePressSlider.setup()
+const StorePressSlider = createStorePressPlugin( {
+	selector: '[data-storepress-slider]',
+	plugin: Plugin,
+	namespace: 'storepress-slider',
+	options: {}, // Site-wide overrides; plugin defaults live in DEFAULTS.
+} );
 
-export default StorePressSlider
+// Adds the init, destroy and reload event listeners.
+StorePressSlider.setup();
+
+// Optional hooks: `this` is the manager.
+// createStorePressPlugin( { ..., callback: { onSetup() {}, onClear() {} } } );
+
+export default StorePressSlider;
 ```
 
-**Usages example `scripts.js`**
+Importing this file runs `setup()`, which adds listeners on `document` and registers the manager on `window.StorePress`. Don't mark a plugin package with `"sideEffects": false`, or bundlers may drop the import.
+
+### 3. The start script (`script.js`)
 
 ```js
-
-import { StorePressSlider } from 'slider'
+'use strict';
+/**
+ * Internal dependencies
+ */
+import StorePressSlider from './index';
 
 domReady(function () {
-  StorePressSlider.init() // Setup element events to interact by user.
-
-  StorePressSlider.destroy() // Destroy attached events from default elements.
-  StorePressSlider.reload() // Destroy events and reattach for default elements.
-
-  StorePressSlider.clear() // Completely remove plugin system events and element events.
-  StorePressSlider.setup() // Setup plugin system events to init, destroy and reload.
-  // NOTE: Must use StorePressSlider.init() after every StorePressSlider.setup()
+    StorePressSlider.init()
 })
 ```
 
-**Example markup**
+### Markup
+
+Settings can come from a JSON attribute, from one attribute per option (`--` separates names), or both. Individual attributes override the JSON.
 
 ```html
-<div id="container">
-    <div class="slider-wrapper inp" data-slider-settings="{'size': 40}">
-        <a>1</a>
-        <form>
-            <input type="text" placeholder="Location X">
-        </form>
-    </div>
+<div data-storepress-slider='{"x": "YYY"}'>...</div>
 
-    <div class="slider-wrapper inp" data-slider-settings--size="30">
-        <a>2</a>
-        <form>
-            <input type="text" placeholder="Location Y">
-        </form>
-    </div>
-</div>
+<div data-storepress-slider data-storepress-slider--x="ZZZ">...</div>
 ```
 
+### Manager methods
 
-## API Reference
+| Method | What it does |
+| --- | --- |
+| `setup()` | Adds the manager's `init`, `destroy` and `reload` event listeners. Call it once, then call `init()`. |
+| `init( selector?, settings? )` | Creates an instance for each matching element. Elements that already have an instance are skipped. |
+| `destroy( selector? )` | Calls each instance's `reset` and removes it. |
+| `reload( selector?, settings? )` | `destroy()` followed by `init()`. |
+| `clear( selector? )` | Destroys all instances and removes the manager's own listeners. Call `setup()` and `init()` to start again. |
+| `get( selector? )` | Returns an array of instances for the matching elements that have one. |
+| `controller` | The manager's `AbortController`. Pass `controller.signal` to your own document-level listeners so `clear()` removes them. |
 
-### Event Manager Documentation
+`selector` defaults to the manager's `selector`. `settings` passed to `init()` or `reload()` replace the manager's `options` for those elements (they are not merged). The plugin's `DEFAULTS` still apply underneath, and `data-*` attributes still win over them.
 
-`createEventManager` provides a structured way to manage DOM event listeners with:
+```js
+StorePressSlider.init(); // All [data-storepress-slider] elements.
 
-- **Namespacing** - Isolate events by component/feature
-- **Automatic Cleanup** - Remove all listeners with a single call using `AbortController`
-- **Event Tracking** - Know exactly which events are attached to which elements
-- **Custom Events** - Trigger both native and custom events seamlessly
-- **Memory Safety** - Prevent memory leaks from orphaned event listeners
+// init() skips elements that already have an instance, so use reload()
+// to rebuild one with new settings.
+StorePressSlider.reload( '#hero', { x: 'Hero' } );
 
----
+const [ instance ] = StorePressSlider.get( '#hero' );
+instance.settings.x; // 'Hero', unless #hero sets x in a data-storepress-slider attribute
 
-#### The Problem It Solves
-
-##### Problem 1: Memory Leaks from Orphaned Listeners
-
-**Without Event Manager:**
-
-```javascript
-class Slider {
-    constructor(element) {
-        this.element = element;
-        this.handleClick = this.handleClick.bind(this);
-        this.handleResize = this.handleResize.bind(this);
-        
-        // Adding listeners
-        this.element.addEventListener('click', this.handleClick);
-        window.addEventListener('resize', this.handleResize);
-    }
-    
-    handleClick() { /* ... */ }
-    handleResize() { /* ... */ }
-    
-    destroy() {
-        // Must manually track and remove each listener
-        // Easy to forget one, causing memory leaks
-        this.element.removeEventListener('click', this.handleClick);
-        window.removeEventListener('resize', this.handleResize);
-        // What if we added more listeners? Easy to miss them!
-    }
-}
+StorePressSlider.destroy(); // Remove all instances.
 ```
 
-**With Event Manager:**
+## Accessing plugins and instances
 
-```javascript
-class Slider {
-    constructor(element) {
-        this.element = element;
-        this.events = createEventManager('slider');
-        
-        // Adding listeners - automatically tracked
-        this.events.add(this.element, 'click', () => this.handleClick());
-        this.events.add(window, 'resize', () => this.handleResize());
-    }
-    
-    handleClick() { /* ... */ }
-    handleResize() { /* ... */ }
-    
-    destroy() {
-        // Single call removes ALL listeners - no memory leaks
-        this.events.removeAll();
-    }
-}
+Other scripts can reach a plugin's manager and its instances by namespace, without importing the plugin's files.
+
+```js
+import { getPluginInstance, getStorePressPlugin } from '@storepress/utils';
+
+// Instances for specific elements.
+const [ slider ] = getPluginInstance( '#hero', 'storepress-slider' );
+
+// The manager registered by createStorePressPlugin().
+const StorePressSlider = getStorePressPlugin( 'storepress-slider' );
+
+StorePressSlider.get(); // All instances for the manager's selector.
+StorePressSlider.reload( '#hero' );
+
+// Call what the plugin returned.
+StorePressSlider.get().forEach( ( instance ) => instance.reset() );
 ```
 
-##### Problem 2: Tracking Which Events Are Attached
+Without a bundler, use the global registry. The key is the namespace converted with `toUpperCamelCase`, so `'storepress-slider'` becomes `StorepressSlider` (lowercase `p`):
 
-**Without Event Manager:**
-
-```javascript
-// No way to know what's attached to an element
-element.addEventListener('click', handler1);
-element.addEventListener('click', handler2);
-element.addEventListener('mouseenter', handler3);
-
-// How many listeners? Which types? No built-in way to check!
+```js
+const StorePressSlider = window.StorePress.$Plugins.StorepressSlider.Plugin;
 ```
 
-**With Event Manager:**
-
-```javascript
-const events = createEventManager('my-component');
-
-events.add(element, 'click', handler1);
-events.add(element, 'click', handler2);
-events.add(element, 'mouseenter', handler3);
-
-// Get all events for an element
-const info = events.get(element);
-console.log(info);
-// [{
-//     $element: element,
-//     $events: [
-//         { eventType: 'storepress:my_component:click', isNative: true, nativeType: 'click' },
-//         { eventType: 'storepress:my_component:mouseenter', isNative: true, nativeType: 'mouseenter' }
-//     ]
-// }]
-
-// Get all events in namespace
-const allEvents = events.getAll();
-```
-
-##### Problem 3: Component Isolation
-
-**Without Event Manager:**
-
-```javascript
-// Component A
-document.addEventListener('click', handleClickA);
-
-// Component B
-document.addEventListener('click', handleClickB);
-
-// Removing Component A's listener might accidentally affect Component B
-// if handlers get mixed up or references are lost
-```
-
-**With Event Manager:**
-
-```javascript
-// Component A - isolated namespace
-const eventsA = createEventManager('component-a');
-eventsA.add(document, 'click', handleClickA);
-
-// Component B - isolated namespace
-const eventsB = createEventManager('component-b');
-eventsB.add(document, 'click', handleClickB);
-
-// Removing Component A's events doesn't affect Component B
-eventsA.removeAll(); // Only removes component-a events
-```
-
-##### Problem 4: Triggering Events Consistently
-
-**Without Event Manager:**
-
-```javascript
-// Native event
-element.dispatchEvent(new Event('click', { bubbles: true }));
-
-// Custom event with data
-element.dispatchEvent(new CustomEvent('slideChange', {
-    bubbles: true,
-    cancelable: true,
-    detail: { index: 3 }
-}));
-
-// Different syntax for different event types - inconsistent!
-```
-
-**With Event Manager:**
-
-```javascript
-const events = createEventManager('slider');
-
-// Both native and custom events use the same API
-events.trigger(element, 'click');
-events.trigger(element, 'slideChange', { index: 3 });
-```
-
-#### API Reference
-
-##### `createEventManager(namespace, options)`
-
-Creates a new event manager instance.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `namespace` | `string` | Required | Unique identifier for this event group |
-| `options.prefix` | `string` | `'storepress'` | Prefix for event names |
-| `options.separator` | `string` | `':'` | Separator between namespace parts |
-
-**Returns:** `EventManager` object with methods: `add`, `remove`, `removeAll`, `trigger`, `get`, `getAll`
-
-```javascript
-// Default options
-const events = createEventManager('slider');
-// Event names: storepress:slider:click
-
-// Custom prefix
-const events = createEventManager('slider', { prefix: 'myapp' });
-// Event names: myapp:slider:click
-
-// Custom separator
-const events = createEventManager('slider', { prefix: 'app', separator: '.' });
-// Event names: app.slider.click
-
-// No prefix (global events)
-const events = createEventManager('slider', { prefix: '' });
-// Event names: $global:slider:click
-```
-
----
-
-##### `events.add(targets, eventType, handler, options)`
-
-Attaches event listeners to elements.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `targets` | `string \| Element \| NodeList \| Array` | Target element(s) - CSS selector or element reference |
-| `eventType` | `string` | Event type (e.g., 'click', 'mouseenter', 'customEvent') |
-| `handler` | `Function` | Event handler function |
-| `options` | `Object` | Standard addEventListener options (`passive`, `once`, `capture`) |
-
-```javascript
-// CSS selector
-events.add('#button', 'click', handleClick);
-
-// Element reference
-events.add(buttonElement, 'click', handleClick);
-
-// Multiple elements
-events.add('.buttons', 'click', handleClick);
-
-// With options
-events.add('#button', 'click', handleClick, { passive: true, once: true });
-
-// Document-level events
-events.add(document, 'keydown', handleKeydown);
-
-// Window events
-events.add(window, 'resize', handleResize);
-```
-
----
-
-##### `events.remove(targets, eventType)`
-
-Removes event listeners from elements.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `targets` | `string \| Element \| NodeList \| Array` | Target element(s) |
-| `eventType` | `string \| null` | Event type to remove, or `null` to remove all events from element |
-
-```javascript
-// Remove specific event type
-events.remove('#button', 'click');
-
-// Remove all events from element
-events.remove('#button', null);
-
-// Remove from multiple elements
-events.remove('.buttons', 'click');
-```
-
----
-
-##### `events.removeAll()`
-
-Removes all event listeners in this namespace from all elements.
-
-```javascript
-events.removeAll();
-```
-
----
-
-##### `events.trigger(targets, eventType, details, options)`
-
-Dispatches events on elements.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `targets` | `string \| Element \| NodeList \| Array` | Required | Target element(s) |
-| `eventType` | `string \| null` | `null` | Event type to trigger, or `null` for all events |
-| `details` | `Object` | `{}` | Data to include in event.detail |
-| `options` | `Object` | `{}` | CustomEvent options (`bubbles`, `cancelable`, `composed`) |
-
-```javascript
-// Trigger native event
-events.trigger('#button', 'click');
-
-// Trigger custom event with data
-events.trigger('#slider', 'slideChange', { 
-    currentIndex: 3,
-    previousIndex: 2 
-});
-
-// Trigger with bubbling
-events.trigger('#button', 'customEvent', { data: 'test' }, { bubbles: true });
-
-// Trigger all events on element
-events.trigger('#button', null);
-```
-
----
-
-##### `events.get(targets)`
-
-Gets information about events attached to specific elements.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `targets` | `string \| Element \| NodeList \| Array` | Target element(s) |
-
-**Returns:** `Array<{ $element: Element, $events: Array<EventInfo> }>`
-
-```javascript
-const info = events.get('#button');
-// [{
-//     $element: <button>,
-//     $events: [
-//         { eventType: 'storepress:my_component:click', isNative: true, nativeType: 'click' },
-//         { eventType: 'storepress:my_component:focus', isNative: true, nativeType: 'focus' }
-//     ]
-// }]
-```
-
----
-
-##### `events.getAll()`
-
-Gets information about all events in this namespace.
-
-**Returns:** `Array<{ $element: Element, $events: Array<EventInfo> }>`
-
-```javascript
-const allEvents = events.getAll();
-// [
-//     { $element: <button>, $events: [...] },
-//     { $element: <div>, $events: [...] },
-//     ...
-// ]
-```
-
----
-
-#### Basic Usage
-
-##### Simple Component Example
-
-```javascript
-import { createEventManager } from '@storepress/utils';
-
-function createCounter(element) {
-    const events = createEventManager('counter');
-    let count = 0;
-    
-    const $display = element.querySelector('.count');
-    const $increment = element.querySelector('.increment');
-    const $decrement = element.querySelector('.decrement');
-    
-    const updateDisplay = () => {
-        $display.textContent = count;
-        events.trigger(element, 'countChange', { count });
-    };
-    
-    const increment = () => {
-        count++;
-        updateDisplay();
-    };
-    
-    const decrement = () => {
-        count--;
-        updateDisplay();
-    };
-    
-    // Setup events
-    events.add($increment, 'click', increment);
-    events.add($decrement, 'click', decrement);
-    
-    // Cleanup function
-    const destroy = () => {
-        events.removeAll();
-    };
-    
-    return { increment, decrement, destroy };
-}
-
-// Usage
-const counter = createCounter(document.querySelector('.counter'));
-
-// Listen for custom events
-document.querySelector('.counter').addEventListener('storepress:counter:countChange', (e) => {
-    console.log('Count changed:', e.detail.count);
-});
-
-// Cleanup when done
-counter.destroy();
-```
-
----
-
-#### Use Cases
-
-##### Use Case 1: Modal Dialog
-
-A modal component with keyboard handling, overlay clicks, and focus management.
-
-```javascript
-import { createEventManager, getElement } from '@storepress/utils';
-
-function createModal(selector) {
-    const element = getElement(selector);
-    const events = createEventManager('modal');
-    
-    let isOpen = false;
-    let previouslyFocused = null;
-    
-    const $overlay = element.querySelector('.modal-overlay');
-    const $dialog = element.querySelector('.modal-dialog');
-    const $closeBtn = element.querySelector('.modal-close');
-    const $triggers = document.querySelectorAll(`[data-modal-trigger="${element.id}"]`);
-    
-    const open = () => {
-        if (isOpen) return;
-        
-        previouslyFocused = document.activeElement;
-        isOpen = true;
-        element.hidden = false;
-        element.classList.add('is-open');
-        
-        // Focus first focusable element
-        const focusable = $dialog.querySelector('button, input, [tabindex="0"]');
-        focusable?.focus();
-        
-        // Add active-state events
-        events.add(document, 'keydown', handleKeydown);
-        events.add($overlay, 'click', close);
-        
-        events.trigger(element, 'open', { modal: element });
-    };
-    
-    const close = () => {
-        if (!isOpen) return;
-        
-        isOpen = false;
-        element.classList.remove('is-open');
-        
-        setTimeout(() => {
-            element.hidden = true;
-            previouslyFocused?.focus();
-        }, 300);
-        
-        // Remove active-state events
-        events.remove(document, 'keydown');
-        events.remove($overlay, 'click');
-        
-        events.trigger(element, 'close', { modal: element });
-    };
-    
-    const handleKeydown = (e) => {
-        if (e.key === 'Escape') {
-            close();
-        }
-        
-        // Focus trap
-        if (e.key === 'Tab') {
-            const focusables = $dialog.querySelectorAll(
-                'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            const first = focusables[0];
-            const last = focusables[focusables.length - 1];
-            
-            if (e.shiftKey && document.activeElement === first) {
-                e.preventDefault();
-                last.focus();
-            } else if (!e.shiftKey && document.activeElement === last) {
-                e.preventDefault();
-                first.focus();
-            }
-        }
-    };
-    
-    // Setup permanent events
-    events.add($closeBtn, 'click', close);
-    $triggers.forEach($trigger => {
-        events.add($trigger, 'click', open);
-    });
-    
-    const destroy = () => {
-        close();
-        events.removeAll();
-    };
-    
-    return { open, close, destroy, isOpen: () => isOpen };
-}
-
-// Usage
-const modal = createModal('#my-modal');
-
-// Listen for modal events
-document.querySelector('#my-modal').addEventListener('storepress:modal:open', () => {
-    console.log('Modal opened');
-});
-
-document.querySelector('#my-modal').addEventListener('storepress:modal:close', () => {
-    console.log('Modal closed');
-});
-```
-
-
-## Best Practices
-
-### 1. Always Clean Up
-
-```javascript
-// ✅ Good - cleanup on destroy
-function createComponent(element) {
-    const events = createEventManager('component');
-    
-    events.add(element, 'click', handleClick);
-    
-    return {
-        destroy() {
-            events.removeAll(); // Clean up all events
-        }
-    };
-}
-
-// ❌ Bad - no cleanup
-function createComponent(element) {
-    const events = createEventManager('component');
-    
-    events.add(element, 'click', handleClick);
-    
-    return {}; // Memory leak!
-}
-```
-
-### 2. Use Descriptive Namespaces
-
-```javascript
-// ✅ Good - descriptive namespace
-const modalEvents = createEventManager('product-modal');
-const sliderEvents = createEventManager('hero-slider');
-
-// ❌ Bad - generic namespace
-const events1 = createEventManager('events');
-const events2 = createEventManager('stuff');
-```
-
-### 3. Conditional Event Attachment
-
-```javascript
-// ✅ Good - add/remove events based on state
-const open = () => {
-    isOpen = true;
-    events.add(document, 'keydown', handleEscape);
-    events.add($overlay, 'click', close);
-};
-
-const close = () => {
-    isOpen = false;
-    events.remove(document, 'keydown');
-    events.remove($overlay, 'click');
-};
-
-// ❌ Bad - always listening even when not needed
-events.add(document, 'keydown', (e) => {
-    if (isOpen && e.key === 'Escape') {
-        close();
-    }
-});
-```
-
-### 4. Use Passive Listeners for Scroll/Touch
-
-```javascript
-// ✅ Good - passive for performance
-events.add(window, 'scroll', handleScroll, { passive: true });
-events.add(element, 'touchstart', handleTouch, { passive: true });
-
-// ❌ Bad - blocking scroll events
-events.add(window, 'scroll', handleScroll);
-```
-
-### 5. Separate Concerns with Multiple Managers
-
-```javascript
-// ✅ Good - separate managers for different concerns
-function createComponent(element) {
-    const uiEvents = createEventManager('component-ui');
-    const dataEvents = createEventManager('component-data');
-    
-    // UI interactions
-    uiEvents.add(element, 'click', handleClick);
-    uiEvents.add(element, 'mouseenter', handleHover);
-    
-    // Data events
-    dataEvents.add(element, 'dataLoaded', handleDataLoaded);
-    dataEvents.add(element, 'dataError', handleDataError);
-    
-    return {
-        destroy() {
-            uiEvents.removeAll();
-            dataEvents.removeAll();
-        }
-    };
-}
-```
-
----
-
-#### Common Patterns
-
-##### Pattern 1: Event Delegation
-
-```javascript
-const events = createEventManager('list');
-
-// Instead of attaching to each item
-events.add(listContainer, 'click', (e) => {
-    const $item = e.target.closest('.list-item');
-    if ($item) {
-        handleItemClick($item);
-    }
-    
-    const $deleteBtn = e.target.closest('.delete-btn');
-    if ($deleteBtn) {
-        handleDelete($deleteBtn.closest('.list-item'));
-    }
-});
-```
-
-##### Pattern 2: One-Time Events
-
-```javascript
-const events = createEventManager('animation');
-
-// Remove after first trigger
-events.add(element, 'transitionend', (e) => {
-    handleTransitionEnd(e);
-    events.remove(element, 'transitionend');
-}, { once: true });
-```
-
-##### Pattern 3: Debounced Events
-
-```javascript
-const events = createEventManager('search');
-
-let debounceTimer;
-
-events.add(input, 'input', (e) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        performSearch(e.target.value);
-    }, 300);
-});
-```
-
-##### Pattern 4: Event Chaining
-
-```javascript
-const events = createEventManager('wizard');
-
-// Step completion triggers next step
-events.add(step1, 'complete', () => {
-    events.trigger(step2, 'activate');
-});
-
-events.add(step2, 'complete', () => {
-    events.trigger(step3, 'activate');
-});
-
-events.add(step3, 'complete', () => {
-    events.trigger(wizard, 'finished');
-});
-```
-
----
-
-#### Debugging
-
-###### List All Events
-
-```javascript
-const events = createEventManager('my-component');
-
-// Setup some events
-events.add('#btn1', 'click', handler1);
-events.add('#btn2', 'click', handler2);
-events.add(document, 'keydown', handler3);
-
-// Debug: see all events
-console.table(events.getAll().flatMap(({ $element, $events }) => 
-    $events.map(e => ({
-        element: $element.tagName + ($element.id ? `#${$element.id}` : ''),
-        eventType: e.eventType,
-        isNative: e.isNative,
-        nativeType: e.nativeType
-    }))
-));
-```
-
-##### Check Specific Element
-
-```javascript
-const info = events.get('#my-button');
-console.log('Events on button:', info[0]?.$events || 'None');
-```
-
-##### Global Event Store Access
-
-```javascript
-// Access the global event store (for debugging only)
-console.log(window.StorePress.$Events);
-```
-
-## Summary
-
-`createEventManager` solves common event handling problems:
-
-| Problem | Solution |
-|---------|----------|
-| Memory leaks | `removeAll()` cleans everything |
-| Lost references | Events tracked automatically |
-| No visibility | `get()` and `getAll()` for inspection |
-| Inconsistent API | Same API for native and custom events |
-| Component isolation | Namespaced event groups |
-| Cleanup complexity | Single call removes all listeners |
-
-Use it whenever you need reliable, trackable, cleanable event management in your DOM-based components.
-
----
-
-### Case Conversion Functions
-
-#### `toKebabCase(string)`
-
-Converts strings to kebab-case format.
-
-```javascript
-import { toKebabCase } from '@storepress/utils';
-
-toKebabCase('firstName');        // 'first-name'
-toKebabCase('UserProfile');      // 'user-profile'
-toKebabCase('api_endpoint');     // 'api-endpoint'
-toKebabCase('hello world');      // 'hello-world'
-```
-
-#### `toSnakeCase(string)`
-
-Converts strings to snake_case format.
-
-```javascript
-import { toSnakeCase } from '@storepress/utils';
-
-toSnakeCase('firstName');        // 'first_name'
-toSnakeCase('UserProfile');      // 'user_profile'
-toSnakeCase('api-endpoint');     // 'api_endpoint'
-```
-
-#### `toConstantCase(string)`
-
-Converts strings to CONSTANT_CASE format.
-
-```javascript
-import { toConstantCase } from '@storepress/utils';
-
-toConstantCase('apiKey');        // 'API_KEY'
-toConstantCase('maxRetries');    // 'MAX_RETRIES'
-toConstantCase('database-url');  // 'DATABASE_URL'
-```
-
-#### `toCamelCase(string)`
-
-Converts strings to camelCase format.
-
-```javascript
-import { toCamelCase } from '@storepress/utils';
-
-toCamelCase('user-profile');     // 'userProfile'
-toCamelCase('api_endpoint');     // 'apiEndpoint'
-toCamelCase('hello world');      // 'helloWorld'
-```
-
-#### `toUpperCamelCase(string)`
-
-Converts strings to PascalCase format.
-
-```javascript
-import { toUpperCamelCase } from '@storepress/utils';
-
-toUpperCamelCase('user-profile');    // 'UserProfile'
-toUpperCamelCase('api_endpoint');    // 'ApiEndpoint'
-toUpperCamelCase('hello world');     // 'HelloWorld'
-```
-
----
-
-### DOM Selection
-
-#### `getElement(selector)`
-
-Returns a single HTMLElement or null.
-
-```javascript
-import { getElement } from '@storepress/utils';
-
-// CSS selector
-const button = getElement('#submit-btn');
-
-// Existing element (passed through)
-const element = document.querySelector('.card');
-const same = getElement(element); // Returns same reference
-
-// Null handling
-getElement(null);      // null
-getElement();          // null
-```
-
-#### `getElements(selectors)`
-
-Returns a collection of HTMLElements.
-
-```javascript
-import { getElements } from '@storepress/utils';
-
-// CSS selector - returns NodeList
-const buttons = getElements('.btn');
-
-// Single element - wrapped in array
-const element = document.querySelector('.card');
-const wrapped = getElements(element); // [element]
-
-// Array passed through
-const elements = [el1, el2, el3];
-const same = getElements(elements); // Same reference
-
-// Empty handling
-getElements([]);       // []
-getElements();         // []
-```
-
----
-
-### Configuration from Data Attributes
-
-#### `getOptionsFromAttribute(element, attributeName, features)`
-
-Parses configuration from HTML data attributes with automatic type conversion and nested structure support.
+`getStorePressPlugin()` returns `{}` when no plugin is registered under that namespace, so check before calling methods. See the [store README](src/store/README.md) for the full `window.StorePress` layout.
+
+## API overview
+
+Each function lives in its own file under `src/`, grouped by topic. Every directory has a README with parameters, return values, notes and real-life examples.
+
+| Directory | Description |
+| --- | --- |
+| [`dom/`](src/dom/README.md) | Resolve selectors and elements, and read plugin options from `data-*` attributes. |
+| [`events/`](src/events/README.md) | Dispatch custom events, detect swipes, and manage listeners with grouped removal and cleanup. |
+| [`object/`](src/object/README.md) | Check, merge and read nested objects, plus a `Map`-like store that doesn't keep elements alive. |
+| [`plugin/`](src/plugin/README.md) | The plugin manager: run a plugin on elements through `init`, `destroy` and `reload`. |
+| [`store/`](src/store/README.md) | Access the shared stores on `window.StorePress` that plugins and event managers use. |
+| [`string/`](src/string/README.md) | Convert between naming cases and escape text for use in a regex. |
+| [`testing/`](src/testing/README.md) | Simulate slow work in tests and Storybook stories. |
+
+| Function | Description |
+| --- | --- |
+| [`getElement`](src/dom/README.md#getelement) | Resolves a selector or element to one `HTMLElement`, `document`, or `null`. |
+| [`getElements`](src/dom/README.md#getelements) | Normalizes any target input into a new, static array of DOM targets. |
+| [`getOptionsFromAttribute`](src/dom/README.md#getoptionsfromattribute) | Reads plugin options from an element's `data-*` attributes. |
+| [`triggerEvent`](src/events/README.md#triggerevent) | Dispatches a `CustomEvent` with data on one or more targets. |
+| [`swipeEvent`](src/events/README.md#swipeevent) | Detects swipe gestures on an element and reports distance and direction. |
+| [`createEventManager`](src/events/README.md#createeventmanager) | Creates a namespaced listener manager with grouped removal and automatic cleanup. |
+| [`isPlainObject`](src/object/README.md#isplainobject) | Checks whether a value is a plain key/value object. |
+| [`deepMerge`](src/object/README.md#deepmerge) | Deeply merges plain objects into a new object; later sources win. |
+| [`findObjectValue`](src/object/README.md#findobjectvalue) | Reads a nested value by a path string or an array of keys. |
+| [`createWeakElementMap`](src/object/README.md#createweakelementmap) | A `Map`-like store keyed by elements that does not keep them alive. |
+| [`createStorePressPlugin`](src/plugin/README.md#createstorepressplugin) | Creates a plugin manager and registers it on `window.StorePress`. |
+| [`createPlugin`](src/plugin/README.md#createplugin) | Same as `createStorePressPlugin`, without the global registration. |
+| [`createPluginInstance`](src/plugin/README.md#createplugininstance) | Creates one instance per element, or returns the existing one. |
+| [`getPluginInstance`](src/plugin/README.md#getplugininstance) | Returns existing instances for elements, without creating any. |
+| [`getPluginInstanceStore`](src/store/README.md#getplugininstancestore) | Returns the WeakMap of element → plugin instance for a namespace. |
+| [`getStorePressPlugin`](src/store/README.md#getstorepressplugin) | Returns the plugin manager registered for a namespace, or `{}`. |
+| [`getEventStore`](src/store/README.md#geteventstore) | Returns the Map that event managers use for one event prefix. |
+| [`toCamelCase`](src/string/README.md#tocamelcase) | Converts a separated or capitalized string to `camelCase`. |
+| [`toUpperCamelCase`](src/string/README.md#touppercamelcase) | Converts a string to `UpperCamelCase`, with a `StorePress` special case. |
+| [`toKebabCase`](src/string/README.md#tokebabcase) | Converts a string to `kebab-case`. |
+| [`toSnakeCase`](src/string/README.md#tosnakecase) | Converts a string to `snake_case`. |
+| [`toConstantCase`](src/string/README.md#toconstantcase) | Converts a string to `CONSTANT_CASE`, collapsing repeated separators. |
+| [`escapeRegex`](src/string/README.md#escaperegex) | Escapes regex special characters so text matches literally. |
+| [`testWaitAsync`](src/testing/README.md#testwaitasync) | Returns a promise that resolves with `data` after a delay, without blocking. |
+| [`testWaitSync`](src/testing/README.md#testwaitsync) | Blocks the main thread for a delay, then returns `data`. |
+
+## Common tasks
+
+Short examples of the helpers you'll use most. Follow the links for every option.
+
+### Read settings from `data-*` attributes
+
+[`getOptionsFromAttribute`](src/dom/README.md#getoptionsfromattribute) reads a JSON attribute and individual attributes (`--` creates nested options). Numbers, booleans (`true`/`false`, `yes`/`no`) and regexes are converted.
 
 ```html
 <div id="slider"
-     data-slider='{"autoplay": true, "speed": 500}'
-     data-slider--animation--duration="800"
-     data-slider--animation--easing="ease-out"
-     data-slider-loop="yes"
-     data-slider-count="5">
-</div>
+	data-slider='{"autoplay": true, "speed": 500}'
+	data-slider--animation--duration="800"
+	data-slider--loop="yes"></div>
 ```
 
-```javascript
-import { getOptionsFromAttribute } from '@storepress/utils';
-
-const element = document.getElementById('slider');
-const options = getOptionsFromAttribute(element, 'slider');
-
-console.log(options);
-// {
-//   autoplay: true,
-//   speed: 500,
-//   animation: {
-//     duration: 800,        // Parsed as number
-//     easing: 'ease-out'
-//   },
-//   loop: true,             // 'yes' parsed as boolean
-//   count: 5                // Parsed as number
-// }
+```js
+getOptionsFromAttribute( '#slider', 'slider' );
+// { autoplay: true, speed: 500, animation: { duration: 800 }, loop: true }
 ```
 
-**Type Conversion Features:**
+### Merge settings
 
-| Input | Output | Feature |
-|-------|--------|---------|
-| `"true"`, `"yes"` | `true` | `parseBoolean` |
-| `"false"`, `"no"` | `false` | `parseBoolean` |
-| `"42"`, `"3.14"` | `42`, `3.14` | `parseNumber` |
-| `"/pattern/gi"` | `/pattern/gi` | `parseRegex` |
+[`deepMerge`](src/object/README.md#deepmerge) returns a new object. Nested objects are merged, arrays are replaced, and `undefined` values are skipped.
 
-**Custom Features:**
-
-```javascript
-const options = getOptionsFromAttribute(element, 'config', {
-    parseNumber: false,      // Keep numbers as strings
-    parseBoolean: true,
-    truthyStrings: ['yes', 'true', 'on', '1'],
-    falsyStrings: ['no', 'false', 'off', '0'],
-    parseRegex: true
-});
+```js
+deepMerge( { theme: { color: 'blue', size: 'm' }, tags: [ 'a' ] }, { theme: { color: 'red' }, tags: [ 'b' ] } );
+// { theme: { color: 'red', size: 'm' }, tags: [ 'b' ] }
 ```
 
----
+### Read a nested value
 
-### Deep Merge
+[`findObjectValue`](src/object/README.md#findobjectvalue) accepts `.`, `-` or `_` as separators, bracket indexes, or an array of keys.
 
-#### `deepMerge(...sources)`
+```js
+const cart = { totals: { total_price: '1999' }, items: [ { name: 'Hoodie' } ] };
 
-Recursively merges objects. Arrays are replaced, not concatenated.
-
-```javascript
-import { deepMerge } from '@storepress/utils';
-
-const defaults = {
-    theme: { color: 'blue', size: 'medium' },
-    features: ['search']
-};
-
-const custom = {
-    theme: { color: 'red' },
-    features: ['filter']
-};
-
-const merged = deepMerge(defaults, custom);
-// {
-//   theme: { color: 'red', size: 'medium' },
-//   features: ['filter']  // Array replaced, not merged
-// }
+findObjectValue( cart, 'items[0].name' );                // 'Hoodie'
+findObjectValue( cart, 'totals.total_price', '0', '.' ); // '1999' ("." only, because the key has "_")
+findObjectValue( cart, 'totals.tax', 0 );                // 0 (default)
 ```
 
----
+### Manage listeners
 
-#### `triggerEvent(targets, eventType, details, options)`
+[`createEventManager`](src/events/README.md#createeventmanager) groups listeners under a namespace. Native events (`click`, `keydown`) keep their names; custom events are named `storepress:{namespace}:{type}`.
 
-Dispatches custom events on elements.
+```js
+const events = createEventManager( 'mini-cart' );
 
-```javascript
-import { triggerEvent } from '@storepress/utils';
+events
+	.add( '.mini-cart-toggle', 'click', toggle )
+	.add( document, 'keydown', closeOnEscape )
+	.add( '.mini-cart', 'updated', ( { detail } ) => render( detail.items ) );
 
-// Basic dispatch
-triggerEvent(button, 'customClick', { userId: 123 });
+// Dispatches "storepress:mini-cart:updated" with the data in event.detail.
+events.trigger( '.mini-cart', 'updated', { items } );
 
-// With options
-triggerEvent(form, 'beforeSubmit', { data: formData }, {
-    bubbles: true,
-    cancelable: true
-});
-
-// Listen for custom event
-button.addEventListener('customClick', (e) => {
-    console.log(e.detail.userId); // 123
-});
+events.remove( document, 'keydown' ); // One event type.
+events.removeAll();                   // Everything in the namespace.
 ```
 
----
+Methods: `add`, `set` (replace handlers for an event), `trigger`, `remove`, `removeAll`, `get` and `getAll` (inspect what is attached). Listeners on an element are removed automatically when the element is removed from the page; pass `{ autoRemove: false }` to turn that off.
 
-### Swipe Detection
+Inside a plugin function, a single `AbortController` (as in the [plugin template](#1-the-plugin-pluginjs)) is usually enough. Use the event manager when you need custom events, want to inspect listeners, or share listeners between modules.
 
-#### `swipeEvent(target, callback, options)`
+### Dispatch a custom event
 
-Attaches swipe gesture detection supporting both touch and pointer events.
+[`triggerEvent`](src/events/README.md#triggerevent) dispatches a `CustomEvent`. It doesn't bubble unless you pass `{ bubbles: true }`.
 
-```javascript
-import { swipeEvent } from '@storepress/utils';
+```js
+triggerEvent( document.body, 'storepress:cart:updated', { quantity: 3 } );
 
-const cleanup = swipeEvent(carousel, (event) => {
-    const { x, y, left, right, top, bottom, moving, done } = event.detail;
-
-    if (moving) {
-        // Live tracking during swipe
-        carousel.style.transform = `translateX(${x}px)`;
-    }
-
-    if (done) {
-        if (left) nextSlide();
-        if (right) prevSlide();
-        carousel.style.transform = '';
-    }
-}, {
-    offset: 10,        // Minimum pixels for direction detection
-    touchOnly: false   // Set true to ignore mouse/pointer events
-});
-
-// Cleanup when done
-cleanup();
+document.body.addEventListener( 'storepress:cart:updated', ( event ) => {
+	updateCount( event.detail.quantity );
+} );
 ```
 
----
+### Detect swipes
 
-### Object Path Access
+[`swipeEvent`](src/events/README.md#swipeevent) handles touch, mouse and pen, and returns a cleanup function.
 
-#### `findObjectValue(obj, path, defaultValue, notation)`
+```js
+const stop = swipeEvent( gallery, ( { detail } ) => {
+	if ( detail.done ) {
+		detail.left ? next() : previous();
+	}
+}, { offset: 40, touchOnly: true } );
 
-Safely access nested object properties using dot/dash/underscore notation.
-
-```javascript
-import { findObjectValue } from '@storepress/utils';
-
-const config = {
-    database: {
-        connection: {
-            host: 'localhost',
-            port: 5432
-        }
-    }
-};
-
-findObjectValue(config, 'database.connection.host');           // 'localhost'
-findObjectValue(config, 'database-connection-port', 3000);     // 5432
-findObjectValue(config, 'database.missing', 'default');        // 'default'
-
-// Custom notation
-findObjectValue(config, 'database/connection/host', null, ['/']);
+stop(); // In the plugin's reset().
 ```
 
----
+### Convert case
 
-### Regex Escaping
-
-#### `escapeRegex(string)`
-
-Escapes special regex characters for safe pattern creation.
-
-```javascript
-import { escapeRegex } from '@storepress/utils';
-
-const userInput = 'Price: $50.99 (sale!)';
-const escaped = escapeRegex(userInput);
-// 'Price: \\$50\\.99 \\(sale!\\)'
-
-const regex = new RegExp(escaped, 'gi');
-console.log(regex.test('Price: $50.99 (sale!)')); // true
+```js
+toCamelCase( 'user-profile' );     // 'userProfile'
+toUpperCamelCase( 'my-slider' );   // 'MySlider'
+toKebabCase( 'firstName' );        // 'first-name'
+toSnakeCase( 'UserProfile' );      // 'user_profile'
+toConstantCase( 'database-url' );  // 'DATABASE_URL'
 ```
 
----
+## Best practices
 
-### Getting Slider Instance
+- **Clean up everything you add.** Every listener, class and CSS property a plugin adds should be removed in `reset()`. Use one `AbortController` per instance, or `events.removeAll()` with an event manager.
+- **Use descriptive namespaces.** `'product-quick-view'`, not `'modal'`. The namespace names the global registry entry and the custom events, so it must be unique across plugins on the page.
+- **Listen only while needed.** Add `keydown` or overlay `click` listeners when a modal opens and remove them when it closes, instead of checking an `isOpen` flag on every event.
+- **Use passive listeners for scroll and touch.** `{ passive: true }` matters for `scroll`, `wheel`, `touchstart` and `touchmove`; it has no effect on other events.
+- **Delegate when there are many children.** One `click` listener on a list with `event.target.closest( '.item' )` beats one listener per item, and keeps working for items added later.
+- **Debug from the console.** `events.getAll()` lists every element and event in a namespace, and `window.StorePress.$Plugins` lists every registered plugin.
 
-```javascript
+## Development
 
-import {
-  getPluginInstance,
-  getStorePressPlugin,
-  triggerEvent
-} from '@storepress/utils';
+Source files, tests and docs follow the same layout: one function per file, grouped by topic.
 
-// Method 1: Get specific plugin instance
-const plugin = getPluginInstance('.element', 'slider');
-
-// Method 2: Get via plugin manager
-const plugin = getStorePressPlugin('slider').get('.element');
-
-// Method 3: Get all plugin instances
-const allSliders = getStorePressPlugin('slider').get();
-
-
-// OR
-
-// Method 1: Get specific plugin instance
-const plugin = StorePress.Utils.getPluginInstance('.element', 'slider');
-
-// Method 2: Get via plugin manager
-const plugin = StorePress.Utils.getStorePressPlugin('slider').get('.element');
-
-// Method 3: Get all plugin instances
-const allSliders = StorePress.Utils.getStorePressPlugin('slider').get();
-
-
-allSliders.forEach(instance => {
-  instance.handleNext(); // Access plugin exposed functions.
-});
 ```
+packages/utils/
+├── src/
+│   ├── index.js                      # Re-exports every public function.
+│   ├── README.md                     # Source overview and conventions.
+│   └── dom/
+│       ├── get-element.js            # Exports getElement.
+│       └── README.md                 # Docs for every function in dom/.
+└── tests/
+    └── dom/
+        └── get-element.test.js       # Tests for getElement.
+```
+
+When you add a function:
+
+1. Create `src/<topic>/<function-name>.js`. The file name is the function name in kebab case.
+2. Re-export it from `src/index.js` under its topic.
+3. Document it in JSDoc and in `src/<topic>/README.md`, and add it to the tables in `src/README.md` and this file.
+4. Add `tests/<topic>/<function-name>.test.js`. Import the function from its own file: `import { getElement } from '../../src/dom/get-element.js';`
+
+Run the tests and the linter from the repository root:
+
+```sh
+npm test                                        # All tests.
+npx wp-scripts test-unit-jest --config jest.config.cjs packages/utils/tests/dom   # One directory.
+npm run test:coverage
+npx eslint packages/utils/src
+```
+
+See [`src/README.md`](src/README.md) for the full conventions.
 
 ## Links
 
 - [NPM Package](https://www.npmjs.com/package/@storepress/utils)
 - [GitHub Repository](https://github.com/EmranAhmed/storepress-packages)
-- [StorePress Slider](https://github.com/EmranAhmed/storepress-slider) (Example implementation)
-- [StorePress Tooltip](https://github.com/EmranAhmed/storepress-tooltip) (Example implementation)
+- [StorePress Slider](https://github.com/EmranAhmed/storepress-slider) (example implementation)
+- [StorePress Tooltip](https://github.com/EmranAhmed/storepress-tooltip) (example implementation)
 - [Storybook Documentation](https://emranahmed.github.io/storepress-packages/)

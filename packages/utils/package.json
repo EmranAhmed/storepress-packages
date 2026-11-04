@@ -1,6 +1,6 @@
 {
   "name": "@storepress/utils",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "StorePress Utility Functions",
   "author": "StorePress",
   "license": "GPL-2.0-or-later",
@@ -35,7 +35,7 @@
     "@babel/cli": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/preset-react": "7.29.7",
-    "@wordpress/babel-preset-default": "^9.0.0"
+    "@wordpress/babel-preset-default": "^10.1"
   },
   "peerDependencies": {
     "react": "^18.3.1",
