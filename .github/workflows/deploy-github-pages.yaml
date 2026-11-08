@@ -36,9 +36,9 @@ jobs:
           node-version: '24.x'
 
       - id: build-publish
-        uses: bitovi/github-actions-storybook-to-github-pages@v1.0.3
+        uses: bitovi/github-actions-storybook-to-github-pages@v1.0.4
         with:
           path: storybook-static # change to your build folder
           install_command: npm ci
-          build_command: npm run build-storybook
+          build_command: npm run build && npm run build-storybook
           checkout: false # default: true
