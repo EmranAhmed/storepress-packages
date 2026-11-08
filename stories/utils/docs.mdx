@@ -130,6 +130,7 @@ export default Slider;
  * Internal dependencies
  */
 import Slider from './index';
+import domReady from '@wordpress/dom-ready';
 
 domReady(function () {
     Slider.init()
@@ -263,11 +264,13 @@ The plugin above uses one `AbortController` per instance, which is enough for mo
 
 ### Rules
 
-1. **Create one event manager per plugin, outside the plugin function.** All instances share it.
-2. **Never call `events.removeAll()` in `reset()`.** Managers with the same namespace share one store, so `removeAll()` removes every instance's listeners. Remove only what this instance added, with `events.remove( target, type, handler )`.
-3. **Don't reuse the plugin manager's namespace.** This page's manager uses `slider`, so the plugin's events use `slider-ui`. Sharing `slider` would let a `removeAll()` delete the manager's `init`, `destroy` and `reload` listeners.
-4. **Announce events with `triggerEvent()`.** `events.trigger()` only reaches handlers this event manager added to that element, so outside listeners never see it.
-5. **Avoid custom names that match native events.** `change`, `select` and `input` are attached as native events. Use `slide-change`, not `change`.
+1. **Create one event manager per plugin, outside the plugin function.** All instances share it. Export it so tests and the console can inspect it.
+2. **In `reset()`, pass the element: `events.removeAll( element )`.** Without a target, `removeAll()` removes every instance's listeners, because managers with the same namespace share one store. `removeAll( element )` removes only the listeners on that element.
+3. **Remove shared targets by handler.** `document` is shared by every instance, so never call `removeAll( document )`. Use `events.remove( document, 'keydown', handleKeydown )`, which removes only this instance's handler.
+4. **Delegate events from the element.** `removeAll( element )` does not touch listeners on child elements. Add one listener to the element and use `event.target.closest( '.next' )`, so a single call removes them all and buttons added later still work.
+5. **Don't reuse the plugin manager's namespace.** This page's manager uses `slider`, so the plugin's events use `slider-ui`. Sharing `slider` puts both in the same store, and a `removeAll()` stops `init()` from working.
+6. **Announce events with `triggerEvent()`.** `events.trigger()` dispatches only events this event manager registered on that element. An event the plugin only announces, and never listens for itself, is not registered, so `trigger()` sends nothing. Build the name with `events.getEventName( 'slide-change' )`.
+7. **Avoid custom names that match native events.** A type with an `on…` property on the element (`change`, `select`, `input`) is attached as the native event. Use `slide-change`, not `change`.
 
 ### Event manager plugin `plugin.js`
 
@@ -283,55 +286,71 @@ import {
 	triggerEvent,
 } from '@storepress/utils';
 
+// Default settings for every instance.
 const DEFAULTS = {
 	loop: true,
+	start: 0,
 };
+
+// Values the user must not override from options or attributes.
+const PRIVATE = {};
 
 const ATTRIBUTE = 'slider-settings'; // data-slider-settings
 
 // Must differ from the plugin manager's namespace ('slider').
 const EVENT_NAMESPACE = 'slider-ui';
 
-// One event manager for all instances. Each instance removes only its own handlers.
-const events = createEventManager( EVENT_NAMESPACE );
+// Class the plugin adds, so reset() can remove it.
+const ACTIVE_CLASS = 'is-active';
+
+// One event manager for all instances. Exported for tests and debugging.
+export const events = createEventManager( EVENT_NAMESPACE );
 
 function Plugin( element, options ) {
+	// Later sources win: DEFAULTS < manager options < data-* attributes < PRIVATE.
 	const settings = deepMerge(
 		DEFAULTS,
 		options,
-		getOptionsFromAttribute( element, ATTRIBUTE )
+		getOptionsFromAttribute( element, ATTRIBUTE ),
+		PRIVATE
 	);
-
-	const $slides = element.querySelectorAll( '.slide' );
-	const $prev = element.querySelector( '.prev' );
-	const $next = element.querySelector( '.next' );
 
 	let index = 0;
 
-	// Track what this instance adds, so reset() removes only that.
-	const added = [];
+	// Query when needed, so slides added later are included.
+	const getSlides = () => element.querySelectorAll( '.slide' );
 
-	const on = ( target, type, handler, eventOptions ) => {
-		events.add( target, type, handler, eventOptions );
-		added.push( [ target, type, handler ] );
-	};
-
-	const removeEvents = () => {
-		added.splice( 0 ).forEach( ( [ target, type, handler ] ) =>
-			events.remove( target, type, handler )
+	const removeClasses = () => {
+		getSlides().forEach( ( $slide ) =>
+			$slide.classList.remove( ACTIVE_CLASS )
 		);
 	};
 
+	const render = () => {
+		removeClasses();
+		getSlides()[ index ]?.classList.add( ACTIVE_CLASS );
+	};
+
 	const goTo = ( newIndex ) => {
-		const last = $slides.length - 1;
-		const wrapped = newIndex > last ? 0 : newIndex < 0 ? last : newIndex;
-		index = settings.loop ? wrapped : Math.min( Math.max( newIndex, 0 ), last );
+		const last = getSlides().length - 1;
+		if ( settings.loop ) {
+			index = newIndex > last ? 0 : newIndex < 0 ? last : newIndex;
+		} else {
+			index = Math.min( Math.max( newIndex, 0 ), last );
+		}
+		render();
 
 		// Tell other scripts. Listen with:
-		// element.addEventListener( 'storepress:slider-ui:slide-change', ... )
+		// document.addEventListener( 'storepress:slider-ui:slide-change', ... )
+		//
+		// Not events.trigger(): it uses triggerEvent() internally, but only
+		// for events this event manager registered on `element`. Nothing here
+		// adds 'slide-change', so it would dispatch nothing. triggerEvent()
+		// always dispatches, and `bubbles: true` lets listeners on document
+		// hear it.
 		triggerEvent(
 			element,
-			`storepress:${ EVENT_NAMESPACE }:slide-change`,
+			events.getEventName( 'slide-change' ), // 'storepress:slider-ui:slide-change'
 			{ index },
 			{ bubbles: true }
 		);
@@ -339,13 +358,24 @@ function Plugin( element, options ) {
 
 	const next = () => goTo( index + 1 );
 	const prev = () => goTo( index - 1 );
+	const getIndex = () => index;
 
-	/**
-	 * Called by the plugin manager on destroy, so the name must stay `reset`.
-	 */
-	const reset = () => {
-		removeEvents();
+	// One delegated listener on the slider handles every button inside it.
+	const handleClick = ( event ) => {
+		const $button = event.target.closest( '.prev, .next' );
+		if ( ! $button || ! element.contains( $button ) ) {
+			return;
+		}
+		if ( $button.matches( '.next' ) ) {
+			next();
+		} else {
+			prev();
+		}
 	};
+
+	// Lets other scripts move the slider:
+	// triggerEvent( slider, 'storepress:slider-ui:go-to', { index: 2 } )
+	const handleGoTo = ( { detail } ) => goTo( detail.index );
 
 	const handleKeydown = ( event ) => {
 		// The markup was replaced without destroy(): clean up and stop.
@@ -365,16 +395,33 @@ function Plugin( element, options ) {
 	};
 
 	const addEvents = () => {
-		on( $next, 'click', next );
-		on( $prev, 'click', prev );
-		// Shared target: safe, because reset() removes this exact handler.
-		on( document, 'keydown', handleKeydown );
+		events.add( element, 'click', handleClick );
+		events.add( element, 'go-to', handleGoTo ); // 'storepress:slider-ui:go-to'
+		events.add( document, 'keydown', handleKeydown );
+	};
+
+	const removeEvents = () => {
+		// Every listener on this slider element.
+		events.removeAll( element );
+		// Shared target: remove only this instance's handler.
+		events.remove( document, 'keydown', handleKeydown );
+	};
+
+	/**
+	 * Resets the plugin: clears applied classes and removes listeners.
+	 * Called by the plugin manager on destroy, so the name must stay `reset`.
+	 */
+	const reset = () => {
+		removeClasses();
+		removeEvents();
 	};
 
 	addEvents();
+	index = settings.start;
+	render();
 
 	// Do not use `element` or `destroy` as keys: the manager sets them.
-	return { reset, next, prev, goTo, settings };
+	return { reset, next, prev, goTo, getIndex, settings };
 }
 
 export { Plugin };
@@ -385,7 +432,7 @@ The manager (`index.js`) and start script (`script.js`) stay the same.
 ### Example HTML
 
 ```html
-<div class="slider-wrapper" data-slider-settings="{'loop': false}">
+<div class="slider-wrapper" data-slider-settings="{'loop': false, 'start': 1}">
 	<div class="slide">1</div>
 	<div class="slide">2</div>
 	<div class="slide">3</div>
@@ -394,14 +441,33 @@ The manager (`index.js`) and start script (`script.js`) stay the same.
 </div>
 ```
 
-### Listening from other scripts
+### Talking to other scripts
+
+Other scripts can follow and move the slider without importing it:
 
 ```js
 'use strict';
+/**
+ * External dependencies
+ */
+import { triggerEvent } from '@storepress/utils';
+
 document.addEventListener( 'storepress:slider-ui:slide-change', ( event ) => {
 	// event.target is the slider element.
 	highlightThumbnail( event.target, event.detail.index );
 } );
+
+triggerEvent( document.querySelector( '.slider-wrapper' ), 'storepress:slider-ui:go-to', { index: 2 } );
+```
+
+While debugging, list what one slider has attached:
+
+```js
+events.getAll( '.slider-wrapper' );
+// [ { $element: div.slider-wrapper, $events: [
+//   { eventType: 'storepress:slider-ui:click', isNative: true, nativeType: 'click', size: 1 },
+//   { eventType: 'storepress:slider-ui:go-to', isNative: false, nativeType: '', size: 1 },
+// ] } ]
 ```
 
 ## Updating markup with AJAX

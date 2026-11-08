@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [ "src/*" ],
+			"@storepress/utils": [ "packages/utils/src" ]
+		},
+		"jsx": "react"
+	},
+	"exclude": [ "node_modules", "build", "vendor" ]
+}

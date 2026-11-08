@@ -29,10 +29,11 @@
     "prebuild": "rimraf build-style && rimraf build-module && rimraf build",
     "build:module": "babel src --out-dir build-module --presets=@wordpress/babel-preset-default",
     "build:core": "babel src --out-dir build --presets=@babel/preset-env,@babel/preset-react",
-    "build": "npm run build:core && npm run build:module"
+    "build": "npm run build:core && npm run build:module",
+    "prepublishOnly": "node ../../bin/check-local-deps.cjs"
   },
   "dependencies": {
-    "@storepress/utils": "^0.14.0",
+    "@storepress/utils": "file:../utils",
     "@wordpress/base-styles": "^15.0",
     "@wordpress/components": "^44.0",
     "@wordpress/compose": "^9.1",
@@ -52,6 +53,5 @@
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
-  },
-  "gitHead": "d4db6b23a250d4e524befc120ae68f8632515d37"
+  }
 }

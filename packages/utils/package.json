@@ -1,6 +1,6 @@
 {
   "name": "@storepress/utils",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "StorePress Utility Functions",
   "author": "StorePress",
   "license": "GPL-2.0-or-later",
@@ -40,6 +40,5 @@
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
-  },
-  "gitHead": "d4db6b23a250d4e524befc120ae68f8632515d37"
+  }
 }

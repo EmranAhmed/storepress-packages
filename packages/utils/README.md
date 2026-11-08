@@ -241,7 +241,7 @@ The template above uses one `AbortController` per instance, which is enough for 
 3. **Remove shared targets by handler.** `document` and `window` are shared by every instance, so never call `removeAll( document )`. Use `events.remove( document, 'keydown', handleKeydown )`, which removes only this instance's handler.
 4. **Delegate events from the element.** `removeAll( element )` does not touch listeners on child elements. Add one listener to the element and use `event.target.closest( '.next' )`, so a single call removes them all and buttons added later still work.
 5. **Don't reuse the plugin manager's namespace.** `createStorePressPlugin( { namespace: 'slider' } )` keeps its `init`, `destroy` and `reload` listeners under `storepress` / `slider`. Calling `createEventManager( 'slider' )` in the plugin puts both in the same store, and a `removeAll()` stops `init()` from working. Use a separate name such as `'slider-ui'`.
-6. **Announce events with `triggerEvent()`.** `events.trigger()` only reaches handlers this event manager added to that element, so outside listeners never see it.
+6. **Announce events with `triggerEvent()`.** `events.trigger()` dispatches only events this event manager registered on that element. An event the plugin only announces, and never listens for itself, is not registered, so `trigger()` sends nothing.
 7. **Avoid custom names that match native events.** A type with an `on…` property on the element (`change`, `select`, `input`) is attached as the native event. Use `slide-change`, not `change`.
 
 ### Template
@@ -314,9 +314,15 @@ function Plugin( element, options ) {
 
 		// Tell other scripts. Listen with:
 		// document.addEventListener( 'storepress:slider-ui:slide-change', ... )
+		//
+		// Not events.trigger(): it uses triggerEvent() internally, but only
+		// for events this event manager registered on `element`. Nothing here
+		// adds 'slide-change', so it would dispatch nothing. triggerEvent()
+		// always dispatches, and `bubbles: true` lets listeners on document
+		// hear it.
 		triggerEvent(
 			element,
-			`storepress:${ EVENT_NAMESPACE }:slide-change`,
+			events.getEventName( 'slide-change' ), // 'storepress:slider-ui:slide-change'
 			{ index },
 			{ bubbles: true }
 		);
@@ -817,7 +823,7 @@ events.getAll( '.mini-cart' );        // What one element has attached.
 events.getAll();                      // Every element in the namespace.
 ```
 
-Methods: `add`, `set` (replace handlers for an event), `trigger`, `remove`, `removeAll` (all, or every listener on given elements), `get` and `getAll` (inspect what is attached). Listeners on an element are removed automatically when the element is removed from the page; pass `{ autoRemove: false }` to turn that off.
+Methods: `add`, `set` (replace handlers for an event), `trigger`, `remove`, `removeAll` (all, or every listener on given elements), `get` and `getAll` (inspect what is attached), and `getEventName` (`events.getEventName( 'updated' )` returns `'storepress:mini-cart:updated'`). Listeners on an element are removed automatically when the element is removed from the page; pass `{ autoRemove: false }` to turn that off.
 
 Inside a plugin function, a single `AbortController` (as in the [plugin template](#1-the-plugin-pluginjs)) is usually enough. To build a plugin on the event manager, see [Plugin with an event manager](#plugin-with-an-event-manager).
 

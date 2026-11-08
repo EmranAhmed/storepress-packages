@@ -89,7 +89,8 @@ export function getPluginInstanceStore( namespace ) {
 	// Ensure nested structure exists
 	window.StorePress = window.StorePress || {};
 	window.StorePress.$Plugins = window.StorePress.$Plugins || {};
-	window.StorePress.$Plugins[ name ] = window.StorePress.$Plugins[ name ] || {};
+	window.StorePress.$Plugins[ name ] =
+		window.StorePress.$Plugins[ name ] || {};
 
 	// Create WeakMap if it doesn't exist
 	if ( ! window.StorePress.$Plugins[ name ].Instance ) {

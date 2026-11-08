@@ -263,6 +263,35 @@ describe('createEventManager', () => {
     })
   })
 
+  describe('getEventName()', () => {
+    it('returns prefix, separator and namespace without an event type', () => {
+      expect(manager.getEventName()).toBe('storepress:test-namespace')
+    })
+
+    it('returns the full custom event name with an event type', () => {
+      expect(manager.getEventName('open')).toBe('storepress:test-namespace:open')
+    })
+
+    it('uses custom prefix and separator', () => {
+      const customManager = createEventManager('custom-ns', {
+        prefix: 'myapp',
+        separator: '/',
+      })
+
+      expect(customManager.getEventName()).toBe('myapp/custom-ns')
+      expect(customManager.getEventName('open')).toBe('myapp/custom-ns/open')
+    })
+
+    it('matches the name custom listeners are attached to', () => {
+      const handler = jest.fn()
+      manager.add(element, 'open', handler)
+
+      element.dispatchEvent(new CustomEvent(manager.getEventName('open')))
+
+      expect(handler).toHaveBeenCalledTimes(1)
+    })
+  })
+
   describe('custom prefix and separator', () => {
     it('handles custom prefix option', () => {
       const customManager = createEventManager('custom-ns', {

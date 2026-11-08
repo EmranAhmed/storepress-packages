@@ -10,3 +10,5 @@ __*
 _gb
 MIGRATION-GUIDE.md
 *debug.log
+packages/**/build-module
+packages/**/build

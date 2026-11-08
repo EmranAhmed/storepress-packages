@@ -205,9 +205,9 @@ function toStrictOptionsJSON( input ) {
  *
  * @private
  *
- * @param {string}   value                          - JSON or relaxed notation.
- * @param {Function} [strictReviver]                - JSON.parse reviver used for strict JSON.
- * @param {Function} [relaxedReviver=strictReviver] - JSON.parse reviver used for relaxed notation.
+ * @param {string}                         value                          - JSON or relaxed notation.
+ * @param {( key: string, value: * ) => *} [strictReviver]                - JSON.parse reviver used for strict JSON.
+ * @param {( key: string, value: * ) => *} [relaxedReviver=strictReviver] - JSON.parse reviver used for relaxed notation.
  *
  * @throws {SyntaxError} When neither format parses.
  *
@@ -225,7 +225,11 @@ function toStrictOptionsJSON( input ) {
  * parseOptionsJSON( "{'n': '5'}", undefined, toNumber ); // { n: 5 }
  * parseOptionsJSON( '{"n": "5"}', undefined, toNumber ); // { n: '5' }
  */
-function parseOptionsJSON( value, strictReviver, relaxedReviver = strictReviver ) {
+function parseOptionsJSON(
+	value,
+	strictReviver,
+	relaxedReviver = strictReviver
+) {
 	try {
 		return JSON.parse( value, strictReviver );
 	} catch {
@@ -547,7 +551,7 @@ export function getOptionsFromAttribute(
 		}
 
 		return FEATURES.parseRegex
-			? optionStringToRegExp( value ) ?? value
+			? ( optionStringToRegExp( value ) ?? value )
 			: value;
 	};
 
@@ -591,7 +595,11 @@ export function getOptionsFromAttribute(
 			( trimmed.startsWith( '[' ) || trimmed.startsWith( '{' ) )
 		) {
 			try {
-				return parseOptionsJSON( trimmed, strictReviver, relaxedReviver );
+				return parseOptionsJSON(
+					trimmed,
+					strictReviver,
+					relaxedReviver
+				);
 			} catch ( error ) {
 				console.warn(
 					`Failed to parse JSON from "${ attribute }", using it as a string.`,
@@ -630,8 +638,7 @@ export function getOptionsFromAttribute(
 
 		for ( const [ key, value ] of Object.entries( extra ) ) {
 			result[ key ] =
-				isPlainObject( value ) &&
-				isPlainObject( result[ key ] )
+				isPlainObject( value ) && isPlainObject( result[ key ] )
 					? mergeOptions( result[ key ], value )
 					: value;
 		}
@@ -660,7 +667,10 @@ export function getOptionsFromAttribute(
 				);
 			}
 		} catch ( error ) {
-			console.warn( `Failed to parse JSON from "${ attributeName }"`, error );
+			console.warn(
+				`Failed to parse JSON from "${ attributeName }"`,
+				error
+			);
 		}
 	}
 
@@ -683,7 +693,9 @@ export function getOptionsFromAttribute(
 		);
 
 		if ( ! isValidPath ) {
-			console.warn( `Ignoring invalid option attribute "${ attribute }".` );
+			console.warn(
+				`Ignoring invalid option attribute "${ attribute }".`
+			);
 			continue;
 		}
 

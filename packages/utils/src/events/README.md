@@ -19,13 +19,13 @@ import { triggerEvent, swipeEvent, createEventManager } from '@storepress/utils'
 Dispatches a `CustomEvent` on every resolved target, with your data in `event.detail`. Targets are resolved with `getElements`, so a selector, an element, a list, `document` or `window` all work.
 
 ```js
-triggerEvent( $targets, eventType, eventDetails = {}, options = {} );
+triggerEvent( $targets, eventName, eventDetails = {}, options = {} );
 ```
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `$targets` | `string \| Element \| Document \| Window \| ArrayLike<Element>` | | Target(s) to dispatch on. |
-| `eventType` | `string` | | Event name, e.g. `'storepress:cart:updated'`. |
+| `eventName` | `string` | | Event name, e.g. `'storepress:cart:updated'`. |
 | `eventDetails` | `Object` | `{}` | Data copied (shallow) into `event.detail`. |
 | `options.bubbles` | `boolean` | `false` | Whether the event bubbles up the DOM tree. |
 | `options.cancelable` | `boolean` | `true` | Whether `preventDefault()` marks the event as canceled. |
@@ -162,17 +162,18 @@ const events = createEventManager( namespace, options = {} );
 | `options.separator` | `string` | `':'` | Separator in custom event names. |
 | `options.autoRemove` | `boolean` | `true` | Remove an element's listeners when it is removed from the page. |
 
-**Returns:** the manager object. Every method except `get` and `getAll` returns the manager, so calls can be chained.
+**Returns:** the manager object. Every method except `get`, `getAll` and `getEventName` returns the manager, so calls can be chained.
 
 | Method | Description |
 | --- | --- |
-| `add( $targets, eventType, handler, eventOptions )` | Adds a handler. Several handlers per event are allowed; the same reference twice is ignored. |
-| `set( $targets, eventType, handler, eventOptions )` | Removes every handler of that event in this namespace, then adds this one. |
-| `trigger( $targets, eventType, eventDetails, triggerOptions )` | Dispatches registered events. Custom events get `eventDetails` in `event.detail`. |
-| `remove( $targets, eventType, handler )` | Removes one handler, one event, or every event on the element. |
+| `add( $targets, eventName, handler, eventOptions )` | Adds a handler. Several handlers per event are allowed; the same reference twice is ignored. |
+| `set( $targets, eventName, handler, eventOptions )` | Removes every handler of that event in this namespace, then adds this one. |
+| `trigger( $targets, eventName, eventDetails, triggerOptions )` | Dispatches registered events. Custom events get `eventDetails` in `event.detail`. |
+| `remove( $targets, eventName, handler )` | Removes one handler, one event, or every event on the element. |
 | `removeAll( $targets )` | Removes every listener in the namespace, or every listener on `$targets` only when given. |
 | `get( $targets )` | Lists registered events, with handler counts, for the given elements. |
 | `getAll( $targets )` | Lists every tracked element and its events in the namespace, or only the tracked elements among `$targets` when given. |
+| `getEventName( eventName )` | Returns `{prefix}{separator}{namespace}`, or the full custom event name when `eventName` is given, e.g. `'storepress:quick-view:open'`. Use it with `triggerEvent()` or plain `addEventListener`. |
 
 Event names: if the element has an `on{type}` property (`onclick`, `onkeydown`, `onchange`), the event is **native** and attached by its real name. Anything else is **custom** and attached as `{prefix}{separator}{namespace}{separator}{type}`, e.g. `storepress:quick-view:open`.
 

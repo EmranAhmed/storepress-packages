@@ -74,6 +74,7 @@ const wordPressPackages = [
 	'@wordpress/warning',
 	'@wordpress/widgets',
 	'@wordpress/wordcount',
+	'@storepress/utils',
 ];
 
 const restrictedImports = [
@@ -124,6 +125,7 @@ module.exports = [
 			},
 		},
 		settings: {
+			jsdoc: { definedTypes: [ 'Generator' ] },
 			'import/core-modules': wordPressPackages,
 			'import/resolver': {
 				node: {

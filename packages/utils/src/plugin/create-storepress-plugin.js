@@ -34,12 +34,12 @@ import { toUpperCamelCase } from '../string/to-upper-camel-case.js';
  *   taken earlier stays empty. Look the plugin up when you need it, not at load time.
  * - The namespace also sets the event names: `storepress:{namespace_in_snake_case}:init`.
  *
- * @param {Object}                                   config              - Same as `createPlugin()`.
- * @param {string|Element|Array<Element>|NodeList}   config.selector     - Default targets.
- * @param {Object}                                   [config.options={}] - Default settings for new instances.
- * @param {Function}                                 config.plugin       - Plugin class, called with `new plugin( element, settings )`.
- * @param {string}                                   config.namespace    - Unique plugin name, e.g. `'product-slider'`.
- * @param {{onSetup?: Function, onClear?: Function}} [config.callback]   - Lifecycle callbacks, called with `this` set to the controller. `onSetup` runs at the end of `setup()`, `onClear` at the end of `clear()`.
+ * @param {Object}                                              config              - Same as `createPlugin()`.
+ * @param {string|Element|Array<Element>|NodeList}              config.selector     - Default targets.
+ * @param {Object}                                              [config.options={}] - Default settings for new instances.
+ * @param {new ( element: Element, options: Object ) => Object} config.plugin       - Plugin class, called with `new plugin( element, settings )`.
+ * @param {string}                                              config.namespace    - Unique plugin name, e.g. `'product-slider'`.
+ * @param {{onSetup?: () => void, onClear?: () => void}}        [config.callback]   - Lifecycle callbacks, called with `this` set to the controller. `onSetup` runs at the end of `setup()`, `onClear` at the end of `clear()`.
  *
  * @return {Object} The plugin controller returned by `createPlugin()`.
  *

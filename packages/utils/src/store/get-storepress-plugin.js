@@ -73,7 +73,8 @@ export function getStorePressPlugin( namespace ) {
 
 	window.StorePress = window.StorePress || {};
 	window.StorePress.$Plugins = window.StorePress.$Plugins || {};
-	window.StorePress.$Plugins[ name ] = window.StorePress.$Plugins[ name ] || {};
+	window.StorePress.$Plugins[ name ] =
+		window.StorePress.$Plugins[ name ] || {};
 
 	// Create if it doesn't exist
 	if ( ! window.StorePress.$Plugins[ name ].Plugin ) {

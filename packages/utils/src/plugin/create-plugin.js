@@ -59,12 +59,12 @@ import { toSnakeCase } from '../string/to-snake-case.js';
  * - `createPlugin` does not register the controller globally. Use
  *   `createStorePressPlugin()` when other scripts need to find it.
  *
- * @param {Object}                                   config              - Plugin configuration.
- * @param {string|Element|Array<Element>|NodeList}   config.selector     - Default targets used when a method is called without a selector.
- * @param {Object}                                   [config.options={}] - Default settings passed to each new instance by `init()` and `reload()`.
- * @param {Function}                                 config.plugin       - Plugin class. Called with `new plugin( element, settings )`.
- * @param {string}                                   config.namespace    - Unique plugin name, e.g. `'product-slider'`. Used for the event names and the global stores.
- * @param {{onSetup?: Function, onClear?: Function}} [config.callback]   - Lifecycle callbacks, called with `this` set to the controller. `onSetup` runs at the end of `setup()`, `onClear` at the end of `clear()`.
+ * @param {Object}                                              config              - Plugin configuration.
+ * @param {string|Element|Array<Element>|NodeList}              config.selector     - Default targets used when a method is called without a selector.
+ * @param {Object}                                              [config.options={}] - Default settings passed to each new instance by `init()` and `reload()`.
+ * @param {new ( element: Element, options: Object ) => Object} config.plugin       - Plugin class. Called with `new plugin( element, settings )`.
+ * @param {string}                                              config.namespace    - Unique plugin name, e.g. `'product-slider'`. Used for the event names and the global stores.
+ * @param {{onSetup?: () => void, onClear?: () => void}}        [config.callback]   - Lifecycle callbacks, called with `this` set to the controller. `onSetup` runs at the end of `setup()`, `onClear` at the end of `clear()`.
  *
  * @return {Object} The plugin controller: `setup`, `clear`, `init`, `destroy`,
  * `reload`, `get`, the `controller` getter (an AbortController), the `instance`
@@ -225,7 +225,11 @@ export function createPlugin( {
 		 * Each read of `instance` returns a new object, so `this` inside its
 		 * methods is that object, not the controller.
 		 *
-		 * @return {{init: Function, destroy: Function, reload: Function}} Instance helpers.
+		 * @return {{
+		 *   init: ( $element: string|Element|Array<Element>|NodeList, settings: Object ) => void,
+		 *   destroy: ( $element: string|Element|Array<Element>|NodeList ) => void,
+		 *   reload: ( $element: string|Element|Array<Element>|NodeList, settings: Object ) => void
+		 * }} Instance helpers.
 		 *
 		 * @example
 		 * // Start one slider immediately, with explicit settings.

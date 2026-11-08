@@ -37,10 +37,10 @@ import { getPluginInstanceStore } from '../store/get-plugin-instance-store.js';
  * - The namespace is converted with `toUpperCamelCase()`, so `'product-slider'`
  *   and `'ProductSlider'` share the same store.
  *
- * @param {string|Element|Document|Array<Element>|NodeList} selectors - Targets, as accepted by `getElements()`.
- * @param {Object}                                          options   - Second argument for the plugin constructor.
- * @param {Function}                                        plugin    - Plugin class, called with `new plugin( element, options )`.
- * @param {string}                                          namespace - Plugin namespace, e.g. `'product-slider'`.
+ * @param {string|Element|Document|Array<Element>|NodeList}     selectors - Targets, as accepted by `getElements()`.
+ * @param {Object}                                              options   - Second argument for the plugin constructor.
+ * @param {new ( element: Element, options: Object ) => Object} plugin    - Plugin class, called with `new plugin( element, options )`.
+ * @param {string}                                              namespace - Plugin namespace, e.g. `'product-slider'`.
  *
  * @return {Array<Object>} One instance per matched element, new or existing, in
  * document order. Empty when nothing matches.

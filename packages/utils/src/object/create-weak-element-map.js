@@ -49,7 +49,7 @@
  *   delete: ( key: Object ) => boolean,
  *   clear: () => void,
  *   size: number,
- *   forEach: ( callback: Function, thisArg?: * ) => void,
+ *   forEach: ( callback: ( value: *, key: Object, store: Object ) => void, thisArg?: * ) => void,
  *   keys: () => Iterator<Object>,
  *   values: () => Iterator<*>,
  *   entries: () => Iterator<Array>
@@ -149,7 +149,7 @@ export function createWeakElementMap() {
 	 *
 	 * @private
 	 *
-	 * @return {Generator<Array>} Live [ key, value ] pairs, in insertion order.
+	 * @yield {Array} A live [ key, value ] pair, in insertion order.
 	 *
 	 * @example
 	 * // Iterate live pairs

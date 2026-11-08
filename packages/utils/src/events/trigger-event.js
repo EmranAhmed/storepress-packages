@@ -29,7 +29,7 @@ import { getElements } from '../dom/get-elements.js';
  *   Native default actions (following a link, submitting a form) do not run.
  *
  * @param {string|Element|Document|Window|ArrayLike<Element>} $targets                  - Target(s) to dispatch on. Resolved with `getElements`.
- * @param {string}                                            eventType                 - Event name, e.g. `'storepress:cart:updated'`.
+ * @param {string}                                            eventName                 - Event name, e.g. `'storepress:cart:updated'`.
  * @param {Object}                                            [eventDetails={}]         - Data copied into `event.detail`.
  * @param {Object}                                            [options={}]              - CustomEvent options.
  * @param {boolean}                                           [options.bubbles=false]   - Whether the event bubbles up the DOM tree.
@@ -113,7 +113,7 @@ import { getElements } from '../dom/get-elements.js';
  */
 export function triggerEvent(
 	$targets,
-	eventType,
+	eventName,
 	eventDetails = {},
 	options = {}
 ) {
@@ -129,7 +129,7 @@ export function triggerEvent(
 	const $elements = getElements( $targets );
 	$elements.forEach( ( $element ) => {
 		return $element.dispatchEvent(
-			new CustomEvent( eventType, {
+			new CustomEvent( eventName, {
 				...availableOptions,
 				detail: {
 					...eventDetails,

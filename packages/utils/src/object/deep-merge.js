@@ -51,7 +51,9 @@ function cloneMergeValue( value, copies ) {
 
 	if ( isPlainObject( value ) ) {
 		const copy =
-			Object.getPrototypeOf( value ) === null ? Object.create( null ) : {};
+			Object.getPrototypeOf( value ) === null
+				? Object.create( null )
+				: {};
 		return mergeInto( copy, value, copies );
 	}
 
@@ -99,7 +101,9 @@ function mergeInto( target, source, copies ) {
 			continue;
 		}
 
-		const existing = Object.hasOwn( target, key ) ? target[ key ] : undefined;
+		const existing = Object.hasOwn( target, key )
+			? target[ key ]
+			: undefined;
 
 		if ( isPlainObject( value ) && isPlainObject( existing ) ) {
 			mergeInto( existing, value, copies );

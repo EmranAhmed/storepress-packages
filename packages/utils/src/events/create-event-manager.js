@@ -9,6 +9,12 @@ import { createWeakElementMap } from '../object/create-weak-element-map.js';
 import { getEventStore } from '../store/get-event-store.js';
 
 /**
+ * What the event manager methods accept as targets.
+ *
+ * @typedef {string|Element|NodeList|Array<Element>|Document} EventManagerTargets
+ */
+
+/**
  * Creates a namespaced manager that adds, replaces, triggers and removes DOM
  * event listeners, and cleans them up for you.
  *
@@ -92,14 +98,15 @@ import { getEventStore } from '../store/get-event-store.js';
  * @param {boolean} [options.autoRemove=true]     - Remove an element's listeners automatically when it is removed from the page.
  *
  * @return {{
- *   add: Function,
- *   set: Function,
- *   trigger: Function,
- *   remove: Function,
- *   removeAll: Function,
- *   get: Function,
- *   getAll: Function
- * }} The event manager. Every method except `get` and `getAll` returns the manager, so calls can be chained.
+ *   add: ( $targets: EventManagerTargets, eventName: string, handler: ( event: Event ) => void, eventOptions?: Object ) => Object,
+ *   set: ( $targets: EventManagerTargets, eventName: string, handler: ( event: Event ) => void, eventOptions?: Object ) => Object,
+ *   trigger: ( $targets: EventManagerTargets, eventName?: string|null, eventDetails?: Object, triggerOptions?: Object ) => Object,
+ *   remove: ( $targets: EventManagerTargets, eventName?: string|null, handler?: (( event: Event ) => void)|null ) => Object,
+ *   removeAll: ( $targets?: EventManagerTargets|null ) => Object,
+ *   get: ( $targets: EventManagerTargets ) => Array<Object>,
+ *   getAll: ( $targets?: EventManagerTargets|null ) => Array<Object>,
+ *   getEventName: ( eventName?: string ) => string
+ * }} The event manager. Every method except `get`, `getAll` and `getEventName` returns the manager, so calls can be chained.
  *
  * @example
  * // At a glance
@@ -116,6 +123,7 @@ import { getEventStore } from '../store/get-event-store.js';
  * // [ { eventType: 'storepress:slider:click', isNative: true, nativeType: 'click', size: 1 } ]
  * events.remove( '.slider-next', 'click', goNext ); // one handler
  * events.removeAll();                               // everything in 'slider'
+ * events.getEventName( 'slide-changed' );           // 'storepress:slider:slide-changed'
  *
  * @example
  * // Real-life use case: quick view modal with full cleanup when it closes
@@ -191,6 +199,41 @@ export function createEventManager( namespace, options = {} ) {
 	const controllers = getEventStore( prefix );
 	const canObserve = autoRemove && typeof MutationObserver !== 'undefined';
 	let observer = null;
+
+	/**
+	 * Returns this manager's event name prefix, or the full name of an event.
+	 *
+	 * Use it to build custom event names without repeating the prefix,
+	 * separator and namespace, e.g. to announce an event with `triggerEvent()`
+	 * or to listen with plain `addEventListener`. It only builds the string:
+	 * native types such as `'click'` are attached by their real name, so their
+	 * full name here is never dispatched.
+	 *
+	 * @function getEventName
+	 * @memberof createEventManager
+	 *
+	 * @param {string} [eventName=''] - Event type, e.g. `'slide-change'`. Empty returns only `{prefix}{separator}{namespace}`.
+	 *
+	 * @return {string} `'{prefix}{separator}{namespace}'`, or `'{prefix}{separator}{namespace}{separator}{eventName}'` when `eventName` is given.
+	 *
+	 * @example
+	 * const events = createEventManager( 'slider-ui' );
+	 * events.getEventName();                 // 'storepress:slider-ui'
+	 * events.getEventName( 'slide-change' ); // 'storepress:slider-ui:slide-change'
+	 *
+	 * @example
+	 * // Announce an event to other scripts
+	 * triggerEvent( slider, events.getEventName( 'slide-change' ), { index }, { bubbles: true } );
+	 *
+	 * // Elsewhere
+	 * document.addEventListener( events.getEventName( 'slide-change' ), onSlideChange );
+	 */
+	const getEventName = ( eventName = '' ) => {
+		const path = `${ prefix }${ separator }${ namespace }`;
+		return eventName === ''
+			? path
+			: `${ path }${ separator }${ eventName }`;
+	};
 
 	/**
 	 * Checks whether this namespace has no tracked elements left.
@@ -339,7 +382,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @private
 	 *
 	 * @param {string|Element|Document}  $target           - Target element or selector (first match).
-	 * @param {string}                   eventType         - Event type, e.g. `'click'` or a custom name like `'open'`.
+	 * @param {string}                   eventName         - Event type, e.g. `'click'` or a custom name like `'open'`.
 	 * @param {( event: Event ) => void} handler           - Listener function.
 	 * @param {Object}                   [eventOptions={}] - `addEventListener` options (`once`, `passive`, `capture`). `signal` is set internally.
 	 *
@@ -355,7 +398,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @example
 	 * _add( modal, 'open', onOpen ); // listens for 'storepress:quick-view:open'
 	 */
-	const _add = ( $target, eventType, handler, eventOptions = {} ) => {
+	const _add = ( $target, eventName, handler, eventOptions = {} ) => {
 		const $element = getElement( $target );
 		if ( ! controllers.has( namespace ) ) {
 			// Elements are held weakly: an element dropped without cleanup is
@@ -366,14 +409,14 @@ export function createEventManager( namespace, options = {} ) {
 			controllers.get( namespace ).set( $element, {} );
 		}
 		const events = controllers.get( namespace ).get( $element );
-		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		const _eventName = getEventName( eventName );
 
 		// One Map per event name: handler => AbortController.
-		if ( ! events[ eventName ] ) {
-			events[ eventName ] = new Map();
+		if ( ! events[ _eventName ] ) {
+			events[ _eventName ] = new Map();
 		}
 
-		const handlers = events[ eventName ];
+		const handlers = events[ _eventName ];
 
 		// Same handler added twice: ignore it (matches native addEventListener).
 		if ( handlers.has( handler ) ) {
@@ -383,8 +426,8 @@ export function createEventManager( namespace, options = {} ) {
 		const controller = new AbortController();
 		handlers.set( handler, controller );
 
-		const type = eventName.split( separator ).at( -1 );
-		const getType = `on${ type }` in $element ? type : eventName;
+		const type = _eventName.split( separator ).at( -1 );
+		const getType = `on${ type }` in $element ? type : _eventName;
 		$element.addEventListener( getType, handler, {
 			...eventOptions,
 			signal: controller.signal,
@@ -396,7 +439,7 @@ export function createEventManager( namespace, options = {} ) {
 		if ( eventOptions.once ) {
 			$element.addEventListener(
 				getType,
-				() => _forget( $element, eventName, handler ),
+				() => _forget( $element, _eventName, handler ),
 				{ once: true, signal: controller.signal }
 			);
 		}
@@ -457,7 +500,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @memberof createEventManager
 	 *
 	 * @param {string|Element|NodeList|Array|Document} $targets          - CSS selector, element, NodeList, array of elements, or `document`.
-	 * @param {string}                                 eventType         - Event type, e.g. `'click'`, `'keydown'`, or a custom name like `'open'`.
+	 * @param {string}                                 eventName         - Event type, e.g. `'click'`, `'keydown'`, or a custom name like `'open'`.
 	 * @param {( event: Event ) => void}               handler           - Listener function.
 	 * @param {Object}                                 [eventOptions={}] - `addEventListener` options, e.g. `{ once: true, passive: true }`.
 	 *
@@ -474,10 +517,10 @@ export function createEventManager( namespace, options = {} ) {
 	 * events.add( '.product-gallery', 'touchstart', onTouch, { passive: true } );
 	 * events.add( '.store-notice', 'click', dismissNotice, { once: true } ); // untracked after it runs
 	 */
-	const add = ( $targets, eventType, handler, eventOptions = {} ) => {
+	const add = ( $targets, eventName, handler, eventOptions = {} ) => {
 		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
-			_add( $element, eventType, handler, eventOptions );
+			_add( $element, eventName, handler, eventOptions );
 		} );
 
 		return manager;
@@ -496,7 +539,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @memberof createEventManager
 	 *
 	 * @param {string|Element|NodeList|Array|Document} $targets          - CSS selector, element, NodeList, array of elements, or `document`.
-	 * @param {string}                                 eventType         - Event type, e.g. `'click'`.
+	 * @param {string}                                 eventName         - Event type, e.g. `'click'`.
 	 * @param {( event: Event ) => void}               handler           - The only handler that should remain for this event.
 	 * @param {Object}                                 [eventOptions={}] - `addEventListener` options.
 	 *
@@ -516,13 +559,13 @@ export function createEventManager( namespace, options = {} ) {
 	 * // Fix: keep analytics in its own namespace
 	 * createEventManager( 'analytics' ).add( '#play', 'click', trackPlay );
 	 */
-	const set = ( $targets, eventType, handler, eventOptions = {} ) => {
+	const set = ( $targets, eventName, handler, eventOptions = {} ) => {
 		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
 			if ( controllers.has( namespace ) ) {
-				_remove( $element, eventType );
+				_remove( $element, eventName );
 			}
-			_add( $element, eventType, handler, eventOptions );
+			_add( $element, eventName, handler, eventOptions );
 		} );
 
 		return manager;
@@ -532,12 +575,12 @@ export function createEventManager( namespace, options = {} ) {
 	 * Dispatches this manager's registered events on one element.
 	 *
 	 * The single-element worker behind `trigger`. A native event whose name
-	 * matches `eventType` is dispatched as a bubbling, cancelable `Event`
+	 * matches `eventName` is dispatched as a bubbling, cancelable `Event`
 	 * without details. Every other matching event is dispatched with
 	 * `triggerEvent` as a `CustomEvent` under its full name, with the details
 	 * in `event.detail`.
 	 *
-	 * Known issue: with `eventType` set to `null`, native events are also sent
+	 * Known issue: with `eventName` set to `null`, native events are also sent
 	 * through `triggerEvent` under their full name (e.g. `'storepress:slider:click'`),
 	 * which no native listener hears. So `trigger( $element )` fires custom
 	 * events only.
@@ -545,7 +588,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @private
 	 *
 	 * @param {Element|Document} $target             - Target element.
-	 * @param {string|null}      eventType           - Event type to dispatch, or `null` for every registered event.
+	 * @param {string|null}      eventName           - Event type to dispatch, or `null` for every registered event.
 	 * @param {Object}           [eventDetails={}]   - Data for custom events, available as `event.detail`.
 	 * @param {Object}           [triggerOptions={}] - CustomEvent options (`bubbles`, `cancelable`, `composed`).
 	 *
@@ -559,15 +602,15 @@ export function createEventManager( namespace, options = {} ) {
 	 */
 	const _trigger = (
 		$target,
-		eventType,
+		eventName,
 		eventDetails = {},
 		triggerOptions = {}
 	) => {
-		const events = _getEvents( $target, eventType );
-		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		const events = _getEvents( $target, eventName );
+		const _eventName = getEventName( eventName );
 		for ( const [ event, isNative, type ] of events ) {
 			const $element = getElement( $target );
-			if ( isNative && eventName === event ) {
+			if ( isNative && _eventName === event ) {
 				$element.dispatchEvent(
 					new Event( type, {
 						bubbles: true,
@@ -594,7 +637,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @memberof createEventManager
 	 *
 	 * @param {string|Element|NodeList|Array|Document} $targets            - CSS selector, element, NodeList, array of elements, or `document`.
-	 * @param {string|null}                            [eventType=null]    - Event type to trigger. `null` triggers every registered custom event on the element (native ones are skipped, see `_trigger`).
+	 * @param {string|null}                            [eventName=null]    - Event type to trigger. `null` triggers every registered custom event on the element (native ones are skipped, see `_trigger`).
 	 * @param {Object}                                 [eventDetails={}]   - Data for custom events, available as `event.detail`.
 	 * @param {Object}                                 [triggerOptions={}] - CustomEvent options (`bubbles`, `cancelable`, `composed`). Custom events default to non-bubbling.
 	 *
@@ -612,7 +655,7 @@ export function createEventManager( namespace, options = {} ) {
 	 */
 	const trigger = (
 		$targets,
-		eventType = null,
+		eventName = null,
 		eventDetails = {},
 		triggerOptions = {}
 	) => {
@@ -621,7 +664,7 @@ export function createEventManager( namespace, options = {} ) {
 		}
 		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
-			_trigger( $element, eventType, eventDetails, triggerOptions );
+			_trigger( $element, eventName, eventDetails, triggerOptions );
 		} );
 
 		return manager;
@@ -636,7 +679,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @private
 	 *
 	 * @param {Element|Document} $target   - Target element (not a selector).
-	 * @param {string|null}      eventType - Event type to match, or `null` for all events.
+	 * @param {string|null}      eventName - Event type to match, or `null` for all events.
 	 *
 	 * @return {Array<[string, boolean, string]>} Tuples of `[ full event name, is native, short event type ]`.
 	 *
@@ -648,14 +691,13 @@ export function createEventManager( namespace, options = {} ) {
 	 * _getEvents( modal, null );
 	 * // [ [ 'storepress:slider:open', false, 'open' ], [ 'storepress:slider:close', false, 'close' ] ]
 	 */
-	const _getEvents = ( $target, eventType ) => {
+	const _getEvents = ( $target, eventName ) => {
 		if ( ! controllers.get( namespace ).has( $target ) ) {
 			return [];
 		}
 		const events = controllers.get( namespace ).get( $target );
 		const available = [];
-		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
-		if ( eventType === null ) {
+		if ( eventName === null ) {
 			for ( const [ type ] of Object.entries( events ) ) {
 				const event = type.split( separator ).at( -1 );
 				const isNative = `on${ event }` in $target;
@@ -663,8 +705,9 @@ export function createEventManager( namespace, options = {} ) {
 			}
 			return available;
 		}
+		const _eventName = getEventName( eventName );
 		for ( const [ type ] of Object.entries( events ) ) {
-			if ( type === eventName ) {
+			if ( type === _eventName ) {
 				const event = type.split( separator ).at( -1 );
 				const isNative = `on${ event }` in $target;
 				available.push( [ type, isNative, event ] );
@@ -683,7 +726,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @private
 	 *
 	 * @param {string|Element|Document}         $target        - Target element or selector (first match).
-	 * @param {string|null}                     eventType      - Event type to remove, or `null` for every event.
+	 * @param {string|null}                     eventName      - Event type to remove, or `null` for every event.
 	 * @param {( event: Event ) => void | null} [handler=null] - Handler to remove, or `null` for every handler of the event.
 	 *
 	 * @throws {Error} If the namespace does not exist in the store.
@@ -697,7 +740,7 @@ export function createEventManager( namespace, options = {} ) {
 	 * @example
 	 * _remove( button, null ); // every event on button; button leaves the store
 	 */
-	const _remove = ( $target, eventType, handler = null ) => {
+	const _remove = ( $target, eventName, handler = null ) => {
 		const $element = getElement( $target );
 		if ( typeof controllers.get( namespace ) === 'undefined' ) {
 			throw new Error(
@@ -708,10 +751,10 @@ export function createEventManager( namespace, options = {} ) {
 			return;
 		}
 		const events = controllers.get( namespace ).get( $element );
-		const eventName = `${ prefix }${ separator }${ namespace }${ separator }${ eventType }`;
+		const _eventName = getEventName( eventName );
 
 		for ( const [ type, handlers ] of Object.entries( events ) ) {
-			if ( eventType !== null && type !== eventName ) {
+			if ( eventName !== null && type !== _eventName ) {
 				continue;
 			}
 			for ( const [ fn, controller ] of handlers ) {
@@ -747,8 +790,8 @@ export function createEventManager( namespace, options = {} ) {
 	 * @memberof createEventManager
 	 *
 	 * @param {string|Element|NodeList|Array|Document} $targets         - CSS selector, element, NodeList, array of elements, or `document`.
-	 * @param {string|null}                            [eventType=null] - Event type to remove. `null` removes every event on the element.
-	 * @param {Function|null}                          [handler=null]   - Handler to remove (same reference used in `add`). `null` removes every handler of the event.
+	 * @param {string|null}                            [eventName=null] - Event type to remove. `null` removes every event on the element.
+	 * @param {(( event: Event ) => void)|null}        [handler=null]   - Handler to remove (same reference used in `add`). `null` removes every handler of the event.
 	 *
 	 * @return {Object} The event manager, for chaining.
 	 *
@@ -761,13 +804,13 @@ export function createEventManager( namespace, options = {} ) {
 	 * events.remove( '.product-gallery' );
 	 * events.remove( document, 'keydown' );
 	 */
-	const remove = ( $targets, eventType = null, handler = null ) => {
+	const remove = ( $targets, eventName = null, handler = null ) => {
 		if ( ! controllers.has( namespace ) ) {
 			return manager;
 		}
 		const $elements = getElements( $targets );
 		$elements.forEach( ( $element ) => {
-			_remove( $element, eventType, handler );
+			_remove( $element, eventName, handler );
 		} );
 
 		return manager;
@@ -864,11 +907,11 @@ export function createEventManager( namespace, options = {} ) {
 		}
 		const events = controllers.get( namespace ).get( $element );
 		const available = [];
-		for ( const [ eventType, handlers ] of Object.entries( events ) ) {
-			const last = eventType.split( separator ).at( -1 );
+		for ( const [ eventName, handlers ] of Object.entries( events ) ) {
+			const last = eventName.split( separator ).at( -1 );
 			const isNative = `on${ last }` in $element;
 			available.push( {
-				eventType,
+				eventType: eventName,
 				isNative,
 				nativeType: isNative ? last : '',
 				size: handlers.size,
@@ -992,6 +1035,7 @@ export function createEventManager( namespace, options = {} ) {
 		removeAll,
 		get,
 		getAll,
+		getEventName,
 	};
 
 	return manager;
