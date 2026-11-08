@@ -12,3 +12,4 @@ MIGRATION-GUIDE.md
 *debug.log
 packages/**/build-module
 packages/**/build
+storybook-static
